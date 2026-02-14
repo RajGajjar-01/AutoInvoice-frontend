@@ -7,7 +7,7 @@ export const Route = createRootRoute({
     component: () => (<>
       <HeadContent />
       <Outlet />
-      <TanStackRouterDevtools position="bottom-right"/>
+      {/* <TanStackRouterDevtools position="bottom-right"/> */}
       <ReactQueryDevtools initialIsOpen={false}/>
     </>),
     notFoundComponent: () => <NotFound />,
