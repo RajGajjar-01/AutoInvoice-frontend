@@ -1,14 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Navbar } from '@/components/landing/Navbar';
-import { HeroSection } from '@/components/landing/HeroSection';
-import { PainSection } from '@/components/landing/PainSection';
-import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
-import { FeaturesSection } from '@/components/landing/FeaturesSection';
-import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
-import { PricingSection } from '@/components/landing/PricingSection';
-import { FAQSection } from '@/components/landing/FAQSection';
-import { CTASection } from '@/components/landing/CTASection';
-import { Footer } from '@/components/landing/Footer';
+import { Navbar } from '@/components/landing-new/Navbar';
+import { Hero } from '@/components/landing-new/Hero';
+import { TrustedBy } from '@/components/landing-new/TrustedBy';
+import { ProblemSolution } from '@/components/landing-new/ProblemSolution';
+import { Features } from '@/components/landing-new/Features';
+import { BuiltFor } from '@/components/landing-new/BuiltFor';
+import { DashboardPreview } from '@/components/landing-new/DashboardPreview';
+import { Security } from '@/components/landing-new/Security';
+import { Testimonials } from '@/components/landing-new/Testimonials';
+import { FinalCTA } from '@/components/landing-new/FinalCTA';
+import { Footer } from '@/components/landing-new/Footer';
 
 export const Route = createFileRoute('/')({
     component: LandingPage,
@@ -16,16 +17,17 @@ export const Route = createFileRoute('/')({
 
 function LandingPage() {
     return (
-        <div className="bg-background text-foreground overflow-x-hidden">
+        <div className="min-h-screen bg-white">
             <Navbar />
-            <HeroSection />
-            <PainSection />
-            <HowItWorksSection />
-            <FeaturesSection />
-            <TestimonialsSection />
-            <PricingSection />
-            <FAQSection />
-            <CTASection />
+            <Hero />
+            <TrustedBy />
+            <ProblemSolution />
+            <Features />
+            <BuiltFor />
+            <DashboardPreview />
+            <Security />
+            <Testimonials />
+            <FinalCTA />
             <Footer />
         </div>
     );
