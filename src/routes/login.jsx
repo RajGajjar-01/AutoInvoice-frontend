@@ -52,7 +52,8 @@ function Login() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome Back</h1>
+          <p className="text-gray-600 dark:text-gray-400">Login to your account to continue</p>
         </div>
 
         <div className="grid gap-4">
@@ -67,7 +68,7 @@ function Login() {
           <FormField control={form.control} name="password" render={({ field }) => (<FormItem>
             <div className="flex items-center">
               <FormLabel>Password</FormLabel>
-              <RouterLink to="/recover-password" className="ml-auto text-sm underline-offset-4 hover:underline">
+              <RouterLink to="/recover-password" className="ml-auto text-sm text-[#0a4a5c] dark:text-[#4ade80] hover:text-[#083a48] dark:hover:text-[#22c55e] underline-offset-4 hover:underline">
                 Forgot your password?
               </RouterLink>
             </div>
@@ -77,14 +78,14 @@ function Login() {
             <FormMessage className="text-xs" />
           </FormItem>)} />
 
-          <LoadingButton type="submit" loading={loginMutation.isPending}>
+          <LoadingButton type="submit" loading={loginMutation.isPending} className="w-full bg-[#0a4a5c] hover:bg-[#083a48] text-white">
             Log In
           </LoadingButton>
         </div>
 
-        <div className="text-center text-sm">
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
           Don't have an account yet?{" "}
-          <RouterLink to="/signup" className="underline underline-offset-4">
+          <RouterLink to="/signup" className="text-[#0a4a5c] dark:text-[#4ade80] hover:text-[#083a48] dark:hover:text-[#22c55e] font-medium underline-offset-4 hover:underline">
             Sign up
           </RouterLink>
         </div>

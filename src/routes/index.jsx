@@ -7,7 +7,7 @@ import { Features } from '@/components/landing-new/Features';
 import { BuiltFor } from '@/components/landing-new/BuiltFor';
 import { DashboardPreview } from '@/components/landing-new/DashboardPreview';
 import { Security } from '@/components/landing-new/Security';
-import { Testimonials } from '@/components/landing-new/Testimonials';
+import { Pricing } from '@/components/landing-new/Pricing';
 import { FinalCTA } from '@/components/landing-new/FinalCTA';
 import { Footer } from '@/components/landing-new/Footer';
 
@@ -26,7 +26,7 @@ function LandingPage() {
             <BuiltFor />
             <DashboardPreview />
             <Security />
-            <Testimonials />
+            <Pricing />
             <FinalCTA />
             <Footer />
         </div>

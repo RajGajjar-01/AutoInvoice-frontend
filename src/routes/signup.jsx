@@ -65,7 +65,8 @@ function SignUp() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Create an account</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Get Started</h1>
+          <p className="text-gray-600 dark:text-gray-400">Create your account to start automating</p>
         </div>
 
         <div className="grid gap-4">
@@ -101,14 +102,14 @@ function SignUp() {
             <FormMessage />
           </FormItem>)} />
 
-          <LoadingButton type="submit" className="w-full" loading={signUpMutation.isPending}>
+          <LoadingButton type="submit" className="w-full bg-[#0a4a5c] hover:bg-[#083a48] text-white" loading={signUpMutation.isPending}>
             Sign Up
           </LoadingButton>
         </div>
 
-        <div className="text-center text-sm">
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
           Already have an account?{" "}
-          <RouterLink to="/login" className="underline underline-offset-4">
+          <RouterLink to="/login" className="text-[#0a4a5c] dark:text-[#4ade80] hover:text-[#083a48] dark:hover:text-[#22c55e] font-medium underline-offset-4 hover:underline">
             Log in
           </RouterLink>
         </div>

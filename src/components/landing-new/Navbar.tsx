@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,9 +39,11 @@ export function Navbar() {
             <Link to="/login" className="text-gray-700 hover:text-[#0a4a5c] transition-colors">
               Login
             </Link>
-            <Link to="/signup" className="bg-[#0a4a5c] text-white px-6 py-2.5 rounded-lg hover:bg-[#083a48] transition-colors">
-              Start Free
-            </Link>
+            <Button asChild variant="default" size="default" className="bg-[#0a4a5c] text-white hover:bg-[#083a48]">
+              <Link to="/signup">
+                Start Free
+              </Link>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -75,9 +78,11 @@ export function Navbar() {
                 <Link to="/login" className="text-gray-700 hover:text-[#0a4a5c]">
                   Login
                 </Link>
-                <Link to="/signup" className="bg-[#0a4a5c] text-white px-6 py-2.5 rounded-lg hover:bg-[#083a48] text-center">
-                  Start Free
-                </Link>
+                <Button asChild variant="default" size="default" className="bg-[#0a4a5c] text-white hover:bg-[#083a48]">
+                  <Link to="/signup">
+                    Start Free
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>

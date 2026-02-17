@@ -1,171 +1,169 @@
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+
 export function Hero() {
   const businessImages = [
     {
-      url: "https://images.unsplash.com/photo-1739066598279-1297113f5c6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBraXJhbmElMjBzdG9yZSUyMG93bmVyJTIwbGFwdG9wfGVufDF8fHx8MTc3MTIzOTE1MHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Kirana store owner"
+      url: "/assets/images/NEERUS – Next Gen Indian Ethnic store by FRDC, Mumbai – India.jpg",
+      alt: "Indian kirana store owner",
+      gridArea: "img1"
     },
     {
-      url: "https://images.unsplash.com/photo-1762867408424-773ca7dce149?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjB0ZXh0aWxlJTIwY2xvdGhpbmclMjByZXRhaWwlMjBzdG9yZXxlbnwxfHx8fDE3NzEyMzkxNTF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Cloth retail store"
+      url: "/assets/images/Satika Threads.jpg",
+      alt: "Indian textile shop",
+      gridArea: "img2"
     },
     {
-      url: "https://images.unsplash.com/photo-1611072965169-e1534f6f300c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwaGFybWFjeSUyMG1lZGljYWwlMjBzdG9yZSUyMHNoZWx2ZXN8ZW58MXx8fHwxNzcxMjM5MTU3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Medical store"
+      url: "/assets/images/mehar chand and sons, spices and teas, new delhi_.jpg",
+      alt: "Indian spices and teas shop",
+      gridArea: "img3"
     },
     {
-      url: "https://images.unsplash.com/photo-1640181637089-cce4a3040ed2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXRhaWwlMjBzaG93cm9vbSUyMGJ1c2luZXNzJTIwc3RhZmYlMjBpbmRpYXxlbnwxfHx8fDE3NzEyMzkxNTF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Retail showroom"
+      url: "/assets/images/🛒 Transform Your Supermarket with Spazes Interior Design! 🛒.jpg",
+      alt: "Indian supermarket interior",
+      gridArea: "img4"
     },
     {
-      url: "https://images.unsplash.com/photo-1718248648359-2a3a5fc579c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3YXJlaG91c2UlMjBpbmR1c3RyaWFsJTIwc3RvcmFnZSUyMGdvb2RzfGVufDF8fHx8MTc3MTIzOTE1OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Warehouse"
+      url: "/assets/images/download.jpg",
+      alt: "Indian retail store",
+      gridArea: "img5"
     },
     {
-      url: "https://images.unsplash.com/photo-1654262609484-76d1a8f3b016?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBhY2NvdW50YW50JTIwd29ya2luZyUyMGxhcHRvcCUyMGZpbmFuY2V8ZW58MXx8fHwxNzcxMjM5MTUyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      alt: "Accountant working"
+      url: "/assets/images/138,188 Mobile Store Stock Photos, High-Res Pictures, and Images - Getty Images.jpg",
+      alt: "Indian mobile store",
+      gridArea: "img6"
+    },
+    {
+      url: "/assets/images/Purani dukaan.jpg",
+      alt: "Indian traditional shop",
+      gridArea: "img7"
+    },
+    {
+      url: "/assets/images/download (1).jpg",
+      alt: "Indian business",
+      gridArea: "img8"
     }
   ];
 
   return (
-    <section className="bg-white pt-16 pb-24 overflow-hidden">
-      <div className="max-w-[1200px] mx-auto px-6">
-        {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
-          {/* Left Column - Content */}
-          <div className="space-y-8">
-            <h1 className="text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight">
-              From Small Shop to Smart Business — Automatically
+    <section className="bg-gradient-to-b from-gray-50 via-white to-gray-50 pb-12 overflow-hidden">
+      {/* Hero with Image Background and Text Overlay */}
+      <div className="relative min-h-[90vh] flex items-center">
+        {/* Background Bento Grid - Desktop */}
+        <div
+          className="absolute inset-0 hidden lg:grid gap-3 p-6"
+          style={{
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateRows: 'repeat(3, 1fr)',
+            gridTemplateAreas: `
+              "img1 img1 img2 img3"
+              "img1 img1 img4 img4"
+              "img5 img6 img7 img8"
+            `
+          }}
+        >
+          {businessImages.map((image, index) => (
+            <div
+              key={index}
+              className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 animate-fadeIn"
+              style={{
+                gridArea: image.gridArea,
+                animationDelay: `${index * 100}ms`
+              }}
+            >
+              <img
+                src={image.url}
+                alt={image.alt}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-110"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Background Tablet Grid */}
+        <div className="absolute inset-0 hidden md:grid lg:hidden grid-cols-2 auto-rows-[200px] gap-4 p-6">
+          {businessImages.slice(0, 4).map((image, index) => (
+            <div
+              key={index}
+              className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 animate-fadeIn"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <img
+                src={image.url}
+                alt={image.alt}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Background Mobile */}
+        <div className="absolute inset-0 md:hidden">
+          <img
+            src={businessImages[0].url}
+            alt={businessImages[0].alt}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+
+        {/* Dark Overlay for Text Readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70"></div>
+
+        {/* Text Content Overlay - Centered */}
+        <div className="relative z-10 max-w-[1400px] mx-auto px-6 w-full">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <div className="inline-block animate-fadeIn" style={{ animationDelay: '200ms' }}>
+              <span className="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium border border-white/30 hover:bg-white/30 transition-all duration-300">
+                Trusted by Indian Businesses
+              </span>
+            </div>
+
+            <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-[1.1] drop-shadow-2xl animate-fadeIn" style={{ animationDelay: '400ms' }}>
+              From Small Shop to{" "}
+              <span className="text-[#4ade80] inline-block hover:scale-110 transition-transform duration-300">Smart Business</span>
+              {" "}— Automatically
             </h1>
-            
-            <p className="text-xl text-gray-600 leading-relaxed">
+
+            <p className="text-xl lg:text-2xl text-white/90 leading-relaxed max-w-3xl mx-auto drop-shadow-lg animate-fadeIn" style={{ animationDelay: '600ms' }}>
               Capture invoices from email, manage data your way, track payments, and get real-time insights — built for MSMEs and accountants.
             </p>
 
-            <div className="flex flex-wrap gap-4">
-              <button className="bg-[#0a4a5c] text-white px-8 py-4 rounded-lg hover:bg-[#083a48] transition-colors text-lg">
-                Start Free
-              </button>
-              <button className="border-2 border-[#0a4a5c] text-[#0a4a5c] px-8 py-4 rounded-lg hover:bg-[#0a4a5c] hover:text-white transition-colors text-lg">
-                Book Demo
-              </button>
+            <div className="flex flex-wrap gap-4 justify-center pt-4 animate-fadeIn" style={{ animationDelay: '800ms' }}>
+              <Button asChild variant="default" size="lg" className="bg-white text-[#0a4a5c] hover:bg-gray-100 px-8 py-6 text-lg shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <Link to="/signup">
+                  Start Free Trial
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" className="border-2 border-white bg-transparent text-white hover:text-white hover:bg-white/20 backdrop-blur-sm px-8 py-6 text-lg shadow-2xl hover:scale-105 transition-all duration-300">
+                Watch Demo
+              </Button>
             </div>
 
-            {/* Dashboard Preview Card */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg mt-8">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <div className="h-3 w-24 bg-gray-300 rounded"></div>
-                    <div className="h-2 w-16 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="h-8 w-8 bg-[#0a4a5c] rounded"></div>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="h-2 w-12 bg-gray-300 rounded mb-2"></div>
-                    <div className="h-4 w-16 bg-[#0a4a5c] rounded"></div>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="h-2 w-12 bg-gray-300 rounded mb-2"></div>
-                    <div className="h-4 w-16 bg-[#d4a574] rounded"></div>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="h-2 w-12 bg-gray-300 rounded mb-2"></div>
-                    <div className="h-4 w-16 bg-gray-300 rounded"></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-full bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-4/5 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-3/4 bg-gray-200 rounded"></div>
-                  </div>
-                </div>
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap items-center justify-center gap-6 pt-6 text-sm text-white/90 animate-fadeIn" style={{ animationDelay: '1000ms' }}>
+              <div className="flex items-center gap-2 hover:scale-110 transition-transform duration-300">
+                <svg className="w-5 h-5 text-green-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2 hover:scale-110 transition-transform duration-300">
+                <svg className="w-5 h-5 text-green-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ animationDelay: '200ms' }}>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>14-day free trial</span>
+              </div>
+              <div className="flex items-center gap-2 hover:scale-110 transition-transform duration-300">
+                <svg className="w-5 h-5 text-green-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ animationDelay: '400ms' }}>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>Cancel anytime</span>
               </div>
             </div>
-          </div>
-
-          {/* Right Column - Curved Image Layout (Desktop only) */}
-          <div className="hidden lg:block relative h-[600px]">
-            {/* Images positioned in a flowing wave pattern */}
-            {businessImages.map((image, index) => {
-              // Create a more dynamic staggered wave layout
-              const positions = [
-                { top: '5%', left: '5%', rotate: '-3deg', scale: '1' },
-                { top: '5%', right: '5%', rotate: '3deg', scale: '0.95' },
-                { top: '28%', left: '20%', rotate: '2deg', scale: '1.05' },
-                { top: '28%', right: '15%', rotate: '-2deg', scale: '0.98' },
-                { top: '52%', left: '8%', rotate: '-4deg', scale: '1.02' },
-                { top: '52%', right: '8%', rotate: '4deg', scale: '1' }
-              ];
-
-              return (
-                <div
-                  key={index}
-                  className="absolute w-[200px] h-[200px] bg-white rounded-2xl shadow-2xl overflow-hidden transition-transform hover:scale-105 hover:z-10 hover:shadow-3xl duration-300"
-                  style={{
-                    ...positions[index],
-                    transform: `rotate(${positions[index].rotate}) scale(${positions[index].scale})`,
-                  }}
-                >
-                  <img
-                    src={image.url}
-                    alt={image.alt}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Subtle overlay gradient for depth */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                </div>
-              );
-            })}
-            
-            {/* Decorative connecting lines */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" viewBox="0 0 500 600">
-              <path
-                d="M 50,80 Q 150,60 250,100 T 450,140 Q 350,180 250,200 T 50,280 Q 150,320 250,340 T 450,400 Q 350,440 250,480 T 50,540"
-                stroke="#0a4a5c"
-                strokeWidth="3"
-                fill="none"
-                strokeDasharray="8,8"
-                opacity="0.5"
-              />
-              <path
-                d="M 80,120 Q 200,90 300,140 T 420,200 Q 320,240 200,280 T 80,360 Q 200,400 300,440 T 420,500"
-                stroke="#d4a574"
-                strokeWidth="2"
-                fill="none"
-                strokeDasharray="6,6"
-                opacity="0.4"
-              />
-              <circle cx="100" cy="100" r="3" fill="#0a4a5c" opacity="0.6" />
-              <circle cx="400" cy="120" r="3" fill="#0a4a5c" opacity="0.6" />
-              <circle cx="150" cy="240" r="3" fill="#d4a574" opacity="0.6" />
-              <circle cx="380" cy="280" r="3" fill="#d4a574" opacity="0.6" />
-              <circle cx="100" cy="400" r="3" fill="#0a4a5c" opacity="0.6" />
-              <circle cx="400" cy="440" r="3" fill="#0a4a5c" opacity="0.6" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Mobile Image Scroll */}
-        <div className="lg:hidden">
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-            {businessImages.map((image, index) => (
-              <div
-                key={index}
-                className="flex-shrink-0 w-[180px] h-[180px] bg-white rounded-2xl shadow-lg overflow-hidden"
-              >
-                <img
-                  src={image.url}
-                  alt={image.alt}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
           </div>
         </div>
       </div>
