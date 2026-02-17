@@ -1,5 +1,7 @@
 import { Mail, FileSpreadsheet, BellRing, TrendingDown, CheckCircle2, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 export function ProblemSolution() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -106,9 +108,9 @@ export function ProblemSolution() {
             <div className="flex-1 grid md:grid-cols-2 gap-12 items-center">
               {/* Problem & Solution Side */}
               <div className="space-y-6 transition-all duration-500 ease-in-out" key={currentIndex}>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-100 rounded-lg">
-                  <span className="text-sm font-medium text-red-700">Problem</span>
-                </div>
+                <Badge variant="destructive" className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 text-red-700 hover:bg-red-100">
+                  Problem
+                </Badge>
                 <h3 className="text-3xl font-semibold text-gray-900 animate-fadeIn">
                   {currentItem.problem}
                 </h3>
@@ -117,10 +119,10 @@ export function ProblemSolution() {
                 </p>
 
                 <div className="pt-6 border-t border-gray-200">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-lg mb-4">
-                    <CheckCircle2 className="w-4 h-4 text-green-700" />
-                    <span className="text-sm font-medium text-green-700">Solution</span>
-                  </div>
+                  <Badge className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 mb-4">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Solution
+                  </Badge>
                   <h4 className="text-2xl font-semibold text-gray-900 mb-3 animate-fadeIn">
                     {currentItem.solution}
                   </h4>

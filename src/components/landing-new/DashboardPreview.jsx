@@ -1,4 +1,7 @@
 import { TrendingUp, IndianRupee, Users, Package, FileText, Clock, CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export function DashboardPreview() {
   return (
@@ -22,12 +25,12 @@ export function DashboardPreview() {
               <p className="text-gray-500 mt-1">Real-time overview</p>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+              <Button variant="outline" size="sm">
                 Export
-              </button>
-              <button className="px-4 py-2 bg-[#0a4a5c] text-white rounded-lg text-sm hover:bg-[#083a48] transition-colors">
+              </Button>
+              <Button size="sm" className="bg-[#0a4a5c] hover:bg-[#083a48]">
                 Filters
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -247,13 +250,13 @@ export function DashboardPreview() {
                           <span className="text-sm text-gray-600">{invoice.date}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${invoice.status === 'Paid'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-amber-100 text-amber-700'
+                          <Badge variant={invoice.status === 'Paid' ? 'default' : 'secondary'} className={`inline-flex items-center gap-1 ${invoice.status === 'Paid'
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                             }`}>
                             {invoice.status === 'Paid' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                             {invoice.status}
-                          </span>
+                          </Badge>
                         </td>
                       </tr>
                     ))}

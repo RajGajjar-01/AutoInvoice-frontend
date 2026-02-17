@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export function BuiltFor() {
     const [activeStage, setActiveStage] = useState(0);
@@ -77,7 +78,7 @@ export function BuiltFor() {
         setActiveStage((prev) => (prev - 1 + stages.length) % stages.length);
     };
 
-    const goToSlide = (index: number) => {
+    const goToSlide = (index) => {
         setIsAutoPlaying(false);
         setActiveStage(index);
     };

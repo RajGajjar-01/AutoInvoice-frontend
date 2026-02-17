@@ -1,4 +1,5 @@
 import { Lock, ShieldCheck, FileText, Cloud } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function Security() {
   const features = [
@@ -36,21 +37,25 @@ export function Security() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div key={index} className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-white border-2 border-gray-200 rounded-2xl">
-                  <Icon className="w-8 h-8 text-[#0a4a5c]" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
+              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-gray-200 group">
+                <CardHeader className="pb-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#0a4a5c]/10 to-[#0d6580]/10 rounded-2xl mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-8 h-8 text-[#0a4a5c] group-hover:text-[#0d6580] transition-colors" strokeWidth={1.5} />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-[#0a4a5c] transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed text-sm">
+                    {feature.description}
+                  </p>
+                </CardContent>
+              </Card>
             );
           })}
         </div>

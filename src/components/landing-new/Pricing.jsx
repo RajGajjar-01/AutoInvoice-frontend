@@ -1,10 +1,6 @@
 import { Check, Zap } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-<<<<<<< Updated upstream
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-=======
 import {
   Card,
   CardContent,
@@ -15,10 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
->>>>>>> Stashed changes
 
 export function Pricing() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [billingCycle, setBillingCycle] = useState("monthly");
 
   const plans = [
     {
@@ -98,7 +93,7 @@ export function Pricing() {
           <Tabs
             defaultValue="monthly"
             className="w-[400px] flex flex-col items-center"
-            onValueChange={(v) => setBillingCycle(v as "monthly" | "yearly")}
+            onValueChange={(v) => setBillingCycle(v)}
           >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="monthly">Monthly</TabsTrigger>
@@ -117,39 +112,10 @@ export function Pricing() {
           {plans.map((plan, index) => (
             <Card
               key={index}
-<<<<<<< Updated upstream
-              className={`relative transition-all duration-500 hover:scale-105 ${plan.popular
-                ? 'shadow-2xl ring-2 ring-[#0a4a5c] transform md:scale-105 border-[#0a4a5c]'
-                : 'shadow-lg hover:shadow-xl'
-=======
               className={`relative flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${plan.popular ? "border-[#0a4a5c] shadow-xl md:scale-105 z-10" : ""
->>>>>>> Stashed changes
                 }`}
             >
               {plan.popular && (
-<<<<<<< Updated upstream
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <Badge variant="default" className="bg-gradient-to-r from-[#0a4a5c] to-[#0d6580] text-white px-4 py-2 text-sm font-semibold shadow-lg flex items-center gap-2">
-                    <Zap className="w-4 h-4 fill-current" />
-                    Most Popular
-                  </Badge>
-                </div>
-              )}
-
-              <CardHeader className={plan.popular ? 'pt-8' : ''}>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <CardDescription className="min-h-[40px]">
-                  {plan.description}
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                {/* Price */}
-                <div className="pb-6 border-b border-gray-200">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-bold text-gray-900">
-                      {plan.price}
-=======
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#0a4a5c]" />
               )}
 
@@ -165,7 +131,6 @@ export function Pricing() {
                     <span className="inline-flex items-center rounded-full bg-[#0a4a5c] px-2.5 py-0.5 text-xs font-semibold text-white">
                       <Zap className="mr-1 h-3 w-3 fill-current" />
                       Popular
->>>>>>> Stashed changes
                     </span>
                   )}
                 </div>
@@ -177,12 +142,7 @@ export function Pricing() {
                   <span className="text-muted-foreground font-medium">{plan.period}</span>
                 </div>
 
-<<<<<<< Updated upstream
-                {/* Features List */}
-                <div className="space-y-3">
-=======
                 <ul className="space-y-4">
->>>>>>> Stashed changes
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3 text-sm">
                       <div className="rounded-full bg-green-100 p-1">
@@ -191,32 +151,18 @@ export function Pricing() {
                       <span>{feature}</span>
                     </li>
                   ))}
-<<<<<<< Updated upstream
-                </div>
-              </CardContent>
-
-              <CardFooter className="">
-                <Button
-                  asChild
-                  variant="default"
-                  size="lg"
-                  className={`w-full ${plan.popular
-                    ? 'bg-gradient-to-r from-[#0a4a5c] to-[#0d6580] text-white hover:from-[#0d6580] hover:to-[#0a4a5c]'
-                    : 'bg-gray-900 text-white hover:bg-gray-800'
-                    } px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300`}
-=======
                 </ul>
               </CardContent>
 
               <CardFooter className="pt-8 border-t">
                 <Button
                   asChild
+                  size="lg"
                   className={`w-full py-6 text-base font-semibold ${plan.popular
                       ? "bg-[#0a4a5c] hover:bg-[#083a48]"
                       : "variant-outline"
                     }`}
                   variant={plan.popular ? "default" : "outline"}
->>>>>>> Stashed changes
                 >
                   <Link to={plan.ctaLink}>{plan.cta}</Link>
                 </Button>

@@ -24,6 +24,7 @@ export function FinalCTA() {
           <Button
             asChild
             size="lg"
+            variant="default"
             className="h-14 px-10 text-lg font-bold bg-white text-[#0a4a5c] hover:bg-gray-100 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group"
           >
             <Link to="/signup">
@@ -31,15 +32,11 @@ export function FinalCTA() {
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
-<<<<<<< Updated upstream
-          <Button variant="outline" size="lg" className="border-2 border-white bg-white text-[#0a4a5c] hover:bg-transparent hover:text-white px-10 py-4 text-lg hover:scale-105 transition-all duration-300">
-=======
           <Button
             variant="outline"
             size="lg"
             className="h-14 px-10 text-lg font-bold border-2 border-white bg-transparent text-white hover:bg-white/10 hover:text-white hover:scale-105 transition-all duration-300"
           >
->>>>>>> Stashed changes
             Book Demo
           </Button>
         </div>
