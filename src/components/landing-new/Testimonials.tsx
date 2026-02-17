@@ -1,7 +1,10 @@
 import { Quote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+<<<<<<< Updated upstream
 import { Separator } from "@/components/ui/separator";
+=======
+>>>>>>> Stashed changes
 
 export function Testimonials() {
   const testimonials = [
@@ -26,19 +29,20 @@ export function Testimonials() {
   ];
 
   return (
-    <section className="bg-white py-20">
-      <div className="max-w-[1200px] mx-auto px-6">
+    <section className="bg-gray-50/50 py-24">
+      <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-semibold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
             Trusted by Business Owners Across India
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-muted-foreground">
             Real stories from real businesses
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
+<<<<<<< Updated upstream
             <Card
               key={index}
               className="hover:shadow-lg transition-shadow border-gray-200"
@@ -64,6 +68,26 @@ export function Testimonials() {
                       {testimonial.name}
                     </div>
                     <div className="text-sm text-gray-600">
+=======
+            <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white">
+              <CardContent className="pt-8">
+                <Quote className="w-10 h-10 text-[#0a4a5c] opacity-20 mb-6" />
+
+                <p className="text-gray-700 leading-relaxed mb-8 italic text-lg">
+                  "{testimonial.quote}"
+                </p>
+
+                <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
+                  <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                    <AvatarImage src={testimonial.image} alt={testimonial.name} className="object-cover" />
+                    <AvatarFallback>{testimonial.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-bold text-gray-900">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+>>>>>>> Stashed changes
                       {testimonial.business}
                     </div>
                   </div>
