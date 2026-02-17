@@ -11,7 +11,7 @@ export function Features() {
   const features = [
     {
       icon: Mail,
-      title: "Email Automation",
+      title: "automation",
       description: "Connect your inbox and let AI extract, categorize, and organize all invoices automatically.",
       color: "bg-blue-500/10 text-blue-500",
     },
