@@ -1,4 +1,7 @@
 import { Quote } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 export function Testimonials() {
   const testimonials = [
@@ -36,32 +39,37 @@ export function Testimonials() {
 
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <div
+            <Card
               key={index}
-              className="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow"
+              className="hover:shadow-lg transition-shadow border-gray-200"
             >
-              <Quote className="w-10 h-10 text-[#0a4a5c] opacity-20 mb-4" />
-              
-              <p className="text-gray-700 leading-relaxed mb-6 italic">
-                "{testimonial.quote}"
-              </p>
+              <CardContent className="p-8">
+                <Quote className="w-10 h-10 text-[#0a4a5c] opacity-20 mb-4" />
 
-              <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
-                <img
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="w-14 h-14 rounded-full object-cover"
-                />
-                <div>
-                  <div className="font-semibold text-gray-900">
-                    {testimonial.name}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {testimonial.business}
+                <p className="text-gray-700 leading-relaxed mb-6 italic">
+                  "{testimonial.quote}"
+                </p>
+
+                <Separator className="mb-6" />
+
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-14 h-14">
+                    <AvatarImage className="" src={testimonial.image} alt={testimonial.name} />
+                    <AvatarFallback className="bg-[#0a4a5c] text-white">
+                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {testimonial.business}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

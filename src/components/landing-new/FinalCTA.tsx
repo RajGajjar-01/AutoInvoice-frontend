@@ -30,7 +30,7 @@ export function FinalCTA() {
               </span>
             </Link>
           </Button>
-          <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-white px-10 py-4 text-lg hover:scale-105 transition-all duration-300">
+          <Button variant="outline" size="lg" className="border-2 border-white bg-white text-[#0a4a5c] hover:bg-transparent hover:text-white px-10 py-4 text-lg hover:scale-105 transition-all duration-300">
             Book Demo
           </Button>
         </div>

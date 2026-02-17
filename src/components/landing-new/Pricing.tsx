@@ -1,6 +1,8 @@
 import { Check, Zap } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export function Pricing() {
   const plans = [
@@ -79,36 +81,34 @@ export function Pricing() {
         {/* Pricing Cards - Horizontal Grid */}
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan, index) => (
-            <div
+            <Card
               key={index}
-              className={`relative rounded-2xl overflow-hidden transition-all duration-500 hover:scale-105 bg-white ${plan.popular
-                  ? 'shadow-2xl ring-2 ring-[#0a4a5c] transform md:scale-105'
-                  : 'shadow-lg hover:shadow-xl'
+              className={`relative transition-all duration-500 hover:scale-105 ${plan.popular
+                ? 'shadow-2xl ring-2 ring-[#0a4a5c] transform md:scale-105 border-[#0a4a5c]'
+                : 'shadow-lg hover:shadow-xl'
                 }`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Popular Badge */}
               {plan.popular && (
-                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#0a4a5c] to-[#0d6580] text-white px-4 py-3 text-center font-semibold flex items-center justify-center gap-2 shadow-lg">
-                  <Zap className="w-4 h-4 fill-current" />
-                  <span className="text-sm">Most Popular</span>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                  <Badge variant="default" className="bg-gradient-to-r from-[#0a4a5c] to-[#0d6580] text-white px-4 py-2 text-sm font-semibold shadow-lg flex items-center gap-2">
+                    <Zap className="w-4 h-4 fill-current" />
+                    Most Popular
+                  </Badge>
                 </div>
               )}
 
-              {/* Card Content */}
-              <div className={`p-8 flex flex-col h-full ${plan.popular ? 'pt-16' : ''}`}>
-                {/* Plan Name */}
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    {plan.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 min-h-[40px]">
-                    {plan.description}
-                  </p>
-                </div>
+              <CardHeader className={plan.popular ? 'pt-8' : ''}>
+                <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                <CardDescription className="min-h-[40px]">
+                  {plan.description}
+                </CardDescription>
+              </CardHeader>
 
+              <CardContent className="space-y-6">
                 {/* Price */}
-                <div className="mb-8 pb-8 border-b border-gray-200">
+                <div className="pb-6 border-b border-gray-200">
                   <div className="flex items-baseline gap-2">
                     <span className="text-5xl font-bold text-gray-900">
                       {plan.price}
@@ -120,7 +120,7 @@ export function Pricing() {
                 </div>
 
                 {/* Features List */}
-                <div className="flex-1 space-y-4 mb-8">
+                <div className="space-y-3">
                   {plan.features.map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mt-0.5">
@@ -132,22 +132,24 @@ export function Pricing() {
                     </div>
                   ))}
                 </div>
+              </CardContent>
 
-                {/* CTA Button */}
+              <CardFooter className="">
                 <Button
                   asChild
+                  variant="default"
                   size="lg"
                   className={`w-full ${plan.popular
-                      ? 'bg-gradient-to-r from-[#0a4a5c] to-[#0d6580] text-white hover:from-[#0d6580] hover:to-[#0a4a5c]'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                    ? 'bg-gradient-to-r from-[#0a4a5c] to-[#0d6580] text-white hover:from-[#0d6580] hover:to-[#0a4a5c]'
+                    : 'bg-gray-900 text-white hover:bg-gray-800'
                     } px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300`}
                 >
                   <Link to={plan.ctaLink}>
                     {plan.cta}
                   </Link>
                 </Button>
-              </div>
-            </div>
+              </CardFooter>
+            </Card>
           ))}
         </div>
 
