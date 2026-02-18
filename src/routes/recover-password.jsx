@@ -8,7 +8,7 @@ import { AuthLayout } from "@/components/Common/AuthLayout";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LoadingButton } from "@/components/ui/loading-button";
-import { isLoggedIn } from "@/hooks/useAuth";
+
 import useCustomToast from "@/hooks/useCustomToast";
 import { handleError } from "@/utils";
 const formSchema = z.object({
@@ -16,13 +16,7 @@ const formSchema = z.object({
 });
 export const Route = createFileRoute("/recover-password")({
   component: RecoverPassword,
-  beforeLoad: async () => {
-    if (isLoggedIn()) {
-      throw redirect({
-        to: "/",
-      });
-    }
-  },
+  component: RecoverPassword,
   head: () => ({
     meta: [
       {

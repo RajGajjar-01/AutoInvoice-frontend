@@ -3,17 +3,16 @@ import { useNavigate } from "@tanstack/react-router";
 import { LoginService, UsersService, } from "@/client";
 import { handleError } from "@/utils";
 import useCustomToast from "./useCustomToast";
-const isLoggedIn = () => {
-    return localStorage.getItem("access_token") !== null;
-};
+import axios from "axios";
+
+// function removed
 const useAuth = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { showErrorToast } = useCustomToast();
-    const { data: user } = useQuery({
+    const { data: user, isLoading } = useQuery({
         queryKey: ["currentUser"],
         queryFn: UsersService.readUserMe,
-        enabled: isLoggedIn(),
     });
     const signUpMutation = useMutation({
         mutationFn: (data) => UsersService.registerUser({ requestBody: data }),
@@ -26,10 +25,9 @@ const useAuth = () => {
         },
     });
     const login = async (data) => {
-        const response = await LoginService.loginAccessToken({
+        await LoginService.loginAccessToken({
             formData: data,
         });
-        localStorage.setItem("access_token", response.access_token);
     };
     const loginMutation = useMutation({
         mutationFn: login,
@@ -39,15 +37,18 @@ const useAuth = () => {
         onError: handleError.bind(showErrorToast),
     });
     const logout = () => {
-        localStorage.removeItem("access_token");
-        navigate({ to: "/login" });
+        axios.post(`${import.meta.env.VITE_API_URL}/api/v1/login/logout`).then(() => {
+            queryClient.clear();
+            navigate({ to: "/login" });
+        });
     };
     return {
         signUpMutation,
         loginMutation,
         logout,
         user,
+        isLoading,
     };
 };
-export { isLoggedIn };
+
 export default useAuth;

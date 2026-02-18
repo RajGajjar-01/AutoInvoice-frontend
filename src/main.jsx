@@ -8,12 +8,9 @@ import { Toaster } from "./components/ui/sonner";
 import "./index.css";
 import { routeTree } from "./routeTree.gen";
 OpenAPI.BASE = import.meta.env.VITE_API_URL;
-OpenAPI.TOKEN = async () => {
-    return localStorage.getItem("access_token") || "";
-};
+OpenAPI.WITH_CREDENTIALS = true;
 const handleApiError = (error) => {
     if (error instanceof ApiError && [401, 403].includes(error.status)) {
-        localStorage.removeItem("access_token");
         window.location.href = "/login";
     }
 };
@@ -28,9 +25,9 @@ const queryClient = new QueryClient({
 const router = createRouter({ routeTree });
 ReactDOM.createRoot(document.getElementById("root")).render(<StrictMode>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router}/>
-        <Toaster richColors closeButton/>
-      </QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+            <Toaster richColors closeButton />
+        </QueryClientProvider>
     </ThemeProvider>
-  </StrictMode>);
+</StrictMode>);

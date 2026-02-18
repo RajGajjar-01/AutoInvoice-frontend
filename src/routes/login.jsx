@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from 
 import { Input } from "@/components/ui/input";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { PasswordInput } from "@/components/ui/password-input";
-import useAuth, { isLoggedIn } from "@/hooks/useAuth";
+import useAuth from "@/hooks/useAuth";
 const formSchema = z.object({
   username: z.email(),
   password: z
@@ -17,13 +17,7 @@ const formSchema = z.object({
 });
 export const Route = createFileRoute("/login")({
   component: Login,
-  beforeLoad: async () => {
-    if (isLoggedIn()) {
-      throw redirect({
-        to: "/",
-      });
-    }
-  },
+  component: Login,
   head: () => ({
     meta: [
       {
