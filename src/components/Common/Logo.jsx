@@ -17,5 +17,5 @@ export function Logo({ variant = "full", className, asLink = true, }) {
     if (!asLink) {
         return content;
     }
-    return <Link to="/">{content}</Link>;
+    return <Link to="/dashboard">{content}</Link>;
 }

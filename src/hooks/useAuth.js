@@ -13,6 +13,7 @@ const useAuth = () => {
     const { data: user, isLoading } = useQuery({
         queryKey: ["currentUser"],
         queryFn: UsersService.readUserMe,
+        retry: false,
     });
     const signUpMutation = useMutation({
         mutationFn: (data) => UsersService.registerUser({ requestBody: data }),
@@ -32,15 +33,17 @@ const useAuth = () => {
     const loginMutation = useMutation({
         mutationFn: login,
         onSuccess: () => {
-            navigate({ to: "/" });
+            navigate({ to: "/dashboard" });
         },
         onError: handleError.bind(showErrorToast),
     });
     const logout = () => {
-        axios.post(`${import.meta.env.VITE_API_URL}/api/v1/login/logout`).then(() => {
-            queryClient.clear();
-            navigate({ to: "/login" });
-        });
+        axios
+            .post(`${import.meta.env.VITE_API_URL}/api/v1/login/logout`, {}, { withCredentials: true })
+            .then(() => {
+                queryClient.clear();
+                navigate({ to: "/login" });
+            });
     };
     return {
         signUpMutation,

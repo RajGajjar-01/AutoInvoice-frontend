@@ -31,9 +31,9 @@ test("Log in with valid email and password ", async ({ page }) => {
   await page.goto("/login");
   await fillForm(page, firstSuperuser, firstSuperuserPassword);
   await page.getByRole("button", { name: "Log In" }).click();
-  await page.waitForURL("/");
+  await page.waitForURL("/dashboard");
   await expect(
-    page.getByText("Welcome back, nice to see you again!")
+    page.getByText("Welcome back, nice to see you again!!!")
   ).toBeVisible();
 });
 test("Log in with invalid email", async ({ page }) => {
@@ -53,9 +53,9 @@ test("Successful log out", async ({ page }) => {
   await page.goto("/login");
   await fillForm(page, firstSuperuser, firstSuperuserPassword);
   await page.getByRole("button", { name: "Log In" }).click();
-  await page.waitForURL("/");
+  await page.waitForURL("/dashboard");
   await expect(
-    page.getByText("Welcome back, nice to see you again!")
+    page.getByText("Welcome back, nice to see you again!!!")
   ).toBeVisible();
   await page.getByTestId("user-menu").click();
   await page.getByRole("menuitem", { name: "Log out" }).click();
@@ -65,9 +65,9 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
   await page.goto("/login");
   await fillForm(page, firstSuperuser, firstSuperuserPassword);
   await page.getByRole("button", { name: "Log In" }).click();
-  await page.waitForURL("/");
+  await page.waitForURL("/dashboard");
   await expect(
-    page.getByText("Welcome back, nice to see you again!")
+    page.getByText("Welcome back, nice to see you again!!!")
   ).toBeVisible();
   await page.getByTestId("user-menu").click();
   await page.getByRole("menuitem", { name: "Log out" }).click();

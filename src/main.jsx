@@ -10,8 +10,11 @@ import { routeTree } from "./routeTree.gen";
 OpenAPI.BASE = import.meta.env.VITE_API_URL;
 OpenAPI.WITH_CREDENTIALS = true;
 const handleApiError = (error) => {
+    const publicPages = ["/", "/login", "/signup", "/recover-password", "/reset-password"];
     if (error instanceof ApiError && [401, 403].includes(error.status)) {
-        window.location.href = "/login";
+        if (!publicPages.includes(window.location.pathname)) {
+            window.location.href = "/login";
+        }
     }
 };
 const queryClient = new QueryClient({

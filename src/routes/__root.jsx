@@ -4,12 +4,16 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import ErrorComponent from "@/components/Common/ErrorComponent";
 import NotFound from "@/components/Common/NotFound";
 export const Route = createRootRoute({
-    component: () => (<>
-      <HeadContent />
-      <Outlet />
-      <TanStackRouterDevtools position="bottom-right"/>
-      <ReactQueryDevtools initialIsOpen={false}/>
-    </>),
-    notFoundComponent: () => <NotFound />,
-    errorComponent: () => <ErrorComponent />,
+  component: () => (<>
+    <HeadContent />
+    <Outlet />
+    {import.meta.env.DEV && (
+      <>
+        <TanStackRouterDevtools position="bottom-right" />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </>
+    )}
+  </>),
+  notFoundComponent: () => <NotFound />,
+  errorComponent: () => <ErrorComponent />,
 });

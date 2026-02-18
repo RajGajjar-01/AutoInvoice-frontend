@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, Link as RouterLink, redirect, } from "@tanstack/react-router";
+import { createFileRoute, Link as RouterLink } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AuthLayout } from "@/components/Common/AuthLayout";
@@ -9,14 +9,13 @@ import { LoadingButton } from "@/components/ui/loading-button";
 import { PasswordInput } from "@/components/ui/password-input";
 import useAuth from "@/hooks/useAuth";
 const formSchema = z.object({
-  username: z.email(),
+  username: z.string().email({ message: "Invalid email address" }),
   password: z
     .string()
     .min(1, { message: "Password is required" })
     .min(8, { message: "Password must be at least 8 characters" }),
 });
 export const Route = createFileRoute("/login")({
-  component: Login,
   component: Login,
   head: () => ({
     meta: [

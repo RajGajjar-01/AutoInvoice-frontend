@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, Link as RouterLink, redirect, } from "@tanstack/react-router";
+import { createFileRoute, Link as RouterLink } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AuthLayout } from "@/components/Common/AuthLayout";
@@ -10,7 +10,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import useAuth from "@/hooks/useAuth";
 const formSchema = z
   .object({
-    email: z.email(),
+    email: z.string().email({ message: "Invalid email address" }),
     full_name: z.string().min(1, { message: "Full Name is required" }),
     password: z
       .string()

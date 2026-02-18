@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link as RouterLink, redirect, } from "@tanstack/react-router";
+import { createFileRoute, Link as RouterLink } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { LoginService } from "@/client";
@@ -12,10 +12,9 @@ import { LoadingButton } from "@/components/ui/loading-button";
 import useCustomToast from "@/hooks/useCustomToast";
 import { handleError } from "@/utils";
 const formSchema = z.object({
-  email: z.email(),
+  email: z.string().email({ message: "Invalid email address" }),
 });
 export const Route = createFileRoute("/recover-password")({
-  component: RecoverPassword,
   component: RecoverPassword,
   head: () => ({
     meta: [

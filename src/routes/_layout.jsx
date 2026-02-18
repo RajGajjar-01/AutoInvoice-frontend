@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Footer } from "@/components/Common/Footer";
 import AppSidebar from "@/components/Sidebar/AppSidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger, } from "@/components/ui/sidebar";
@@ -10,6 +11,13 @@ export const Route = createFileRoute("/_layout")({
 
 function Layout() {
   const { isLoading, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate({ to: "/login", replace: true });
+    }
+  }, [isLoading, user, navigate]);
 
   if (isLoading) {
     return (
