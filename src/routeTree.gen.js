@@ -9,11 +9,25 @@ import { Route as SignupRouteImport } from './routes/signup';
 import { Route as ResetPasswordRouteImport } from './routes/reset-password';
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password';
 import { Route as LoginRouteImport } from './routes/login';
+import { Route as DataTablesRouteImport } from './routes/data-tables';
+import { Route as DataTablesTableIdRouteImport } from './routes/data-tables.$tableId';
 import { Route as LayoutRouteImport } from './routes/_layout';
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index';
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings';
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items';
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin';
+import { Route as LayoutProfileRouteImport } from './routes/_layout/profile';
+
+const DataTablesRoute = DataTablesRouteImport.update({
+    id: '/data-tables',
+    path: '/data-tables',
+    getParentRoute: () => rootRouteImport,
+});
+const DataTablesTableIdRoute = DataTablesTableIdRouteImport.update({
+    id: '/data-tables/$tableId',
+    path: '/data-tables/$tableId',
+    getParentRoute: () => rootRouteImport,
+});
 const SignupRoute = SignupRouteImport.update({
     id: '/signup',
     path: '/signup',
@@ -58,10 +72,16 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
     path: '/admin',
     getParentRoute: () => LayoutRoute,
 });
+const LayoutProfileRoute = LayoutProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => LayoutRoute,
+});
 const LayoutRouteChildren = {
     LayoutAdminRoute: LayoutAdminRoute,
     LayoutItemsRoute: LayoutItemsRoute,
     LayoutSettingsRoute: LayoutSettingsRoute,
+    LayoutProfileRoute: LayoutProfileRoute,
     LayoutIndexRoute: LayoutIndexRoute,
 };
 const LayoutRouteWithChildren = LayoutRoute._addFileChildren(LayoutRouteChildren);
@@ -71,6 +91,8 @@ const rootRouteChildren = {
     RecoverPasswordRoute: RecoverPasswordRoute,
     ResetPasswordRoute: ResetPasswordRoute,
     SignupRoute: SignupRoute,
+    DataTablesRoute: DataTablesRoute,
+    DataTablesTableIdRoute: DataTablesTableIdRoute,
 };
 export const routeTree = rootRouteImport
     ._addFileChildren(rootRouteChildren)

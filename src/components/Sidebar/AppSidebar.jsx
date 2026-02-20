@@ -1,30 +1,43 @@
-import { Briefcase, Home, Users } from "lucide-react";
+import { Briefcase, Home, Table2, UserCircle, Users } from "lucide-react";
 import { SidebarAppearance } from "@/components/Common/Appearance";
 import { Logo } from "@/components/Common/Logo";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
 import useAuth from "@/hooks/useAuth";
 import { Main } from "./Main";
 import { User } from "./User";
+
 const baseItems = [
-    { icon: Home, title: "Dashboard", path: "/" },
-    { icon: Briefcase, title: "Items", path: "/items" },
+  { icon: Home, title: "Dashboard", path: "/dashboard" },
+  { icon: Briefcase, title: "Items", path: "/items" },
+  { icon: Table2, title: "Data Tables", path: "/data-tables" },
+  { icon: UserCircle, title: "Account", path: "/profile" },
 ];
+
 export function AppSidebar() {
-    const { user: currentUser } = useAuth();
-    const items = currentUser?.is_superuser
-        ? [...baseItems, { icon: Users, title: "Admin", path: "/admin" }]
-        : baseItems;
-    return (<Sidebar collapsible="icon">
+  const { user: currentUser } = useAuth();
+  const items = currentUser?.is_superuser
+    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin" }]
+    : baseItems;
+
+  return (
+    <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-6 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
-        <Logo variant="responsive"/>
+        <Logo variant="responsive" />
       </SidebarHeader>
       <SidebarContent>
-        <Main items={items}/>
+        <Main items={items} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarAppearance />
-        <User user={currentUser}/>
+        <User user={currentUser} />
       </SidebarFooter>
-    </Sidebar>);
+    </Sidebar>
+  );
 }
+
 export default AppSidebar;
