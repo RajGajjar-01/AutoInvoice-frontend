@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Logo } from "@/components/Common/Logo";
+import { ArrowRight } from "lucide-react";
 import { Appearance } from "@/components/Common/Appearance";
 import { Footer } from "@/components/Common/Footer";
+import { Logo } from "@/components/Common/Logo";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,

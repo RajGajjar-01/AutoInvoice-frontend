@@ -16,8 +16,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
+import { Route as LayoutDataTablesTableIdRouteImport } from './routes/_layout/data-tables.$tableId'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 
 const SignupRoute = SignupRouteImport.update({
@@ -54,6 +57,11 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LayoutRoute,
 })
+const LayoutProfileRoute = LayoutProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => LayoutRoute,
+})
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
   id: '/items',
   path: '/items',
@@ -62,6 +70,16 @@ const LayoutItemsRoute = LayoutItemsRouteImport.update({
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
+  id: '/data-tables',
+  path: '/data-tables',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutDataTablesTableIdRoute = LayoutDataTablesTableIdRouteImport.update({
+  id: '/data-tables/$tableId',
+  path: '/data-tables/$tableId',
   getParentRoute: () => LayoutRoute,
 })
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
@@ -73,7 +91,10 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
 const LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
+  LayoutDataTablesRoute: LayoutDataTablesRoute,
+  LayoutDataTablesTableIdRoute: LayoutDataTablesTableIdRoute,
   LayoutItemsRoute: LayoutItemsRoute,
+  LayoutProfileRoute: LayoutProfileRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
 }
 
@@ -88,4 +109,5 @@ const rootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
 }
+
 export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)
