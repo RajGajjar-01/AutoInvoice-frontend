@@ -1,43 +1,41 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Footer } from "@/components/Common/Footer";
-import AppSidebar from "@/components/Sidebar/AppSidebar";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import useAuth from "@/hooks/useAuth";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router"
+import { useEffect } from "react"
+import { Footer } from "@/components/Common/Footer"
+import AppSidebar from "@/components/Sidebar/AppSidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import useAuth from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,
-});
+})
 
 function Layout() {
-  const { isLoading, user } = useAuth();
-  const navigate = useNavigate();
+  const { isLoading, user } = useAuth()
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate({ to: "/login", replace: true });
+      navigate({ to: "/login", replace: true })
     }
-  }, [isLoading, user, navigate]);
+  }, [isLoading, user, navigate])
 
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         Loading...
       </div>
-    );
+    )
   }
 
   if (!user) {
-    return null;
+    return null
   }
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1 text-muted-foreground" />
-        </header>
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4" />
         <main className="flex-1 p-6 md:p-8">
           <div className="mx-auto max-w-7xl">
             <Outlet />
@@ -46,7 +44,7 @@ function Layout() {
         <Footer />
       </SidebarInset>
     </SidebarProvider>
-  );
+  )
 }
 
-export default Layout;
+export default Layout

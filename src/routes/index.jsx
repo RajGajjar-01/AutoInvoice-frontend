@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
-import { Appearance } from "@/components/Common/Appearance";
-import { Footer } from "@/components/Common/Footer";
-import { Logo } from "@/components/Common/Logo";
-import { Button } from "@/components/ui/button";
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { ArrowRight } from "lucide-react"
+import { Appearance } from "@/components/Common/Appearance"
+import { Footer } from "@/components/Common/Footer"
+import { Logo } from "@/components/Common/Logo"
+import { Button } from "@/components/ui/button"
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-});
+})
 
 function LandingPage() {
   return (
@@ -40,12 +40,11 @@ function LandingPage() {
         <div className="flex max-w-2xl flex-col items-center gap-8 text-center">
           <div className="flex flex-col gap-4">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              Invoicing made{" "}
-              <span className="text-primary">effortless</span>
+              Invoicing made <span className="text-primary">effortless</span>
             </h1>
             <p className="text-lg text-muted-foreground">
-              Create, manage, and track your invoices in one place.
-              Spend less time on paperwork and more time growing your business.
+              Create, manage, and track your invoices in one place. Spend less
+              time on paperwork and more time growing your business.
             </p>
           </div>
 
@@ -65,5 +64,5 @@ function LandingPage() {
 
       <Footer />
     </div>
-  );
+  )
 }

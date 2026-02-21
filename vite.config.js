@@ -6,19 +6,19 @@ import { defineConfig } from "vite"
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "./src"),
-        },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
-    plugins: [
-        tanstackRouter({
-            target: "react",
-            autoCodeSplitting: true,
-            generatedRouteTree: "./src/routeTree.gen.js",
-            disableTypes: true,
-        }),
-        react(),
-        tailwindcss(),
-    ],
+  },
+  plugins: [
+    tanstackRouter({
+      target: "react",
+      autoCodeSplitting: true,
+      generatedRouteTree: "./src/routeTree.gen.js",
+      disableTypes: true,
+    }),
+    react(),
+    tailwindcss(),
+  ],
 })

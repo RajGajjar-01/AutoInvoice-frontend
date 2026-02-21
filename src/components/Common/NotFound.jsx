@@ -1,7 +1,12 @@
-import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router"
+import { Button } from "@/components/ui/button"
+
 const NotFound = () => {
-    return (<div className="flex min-h-screen items-center justify-center flex-col p-4" data-testid="not-found">
+  return (
+    <div
+      className="flex min-h-screen items-center justify-center flex-col p-4"
+      data-testid="not-found"
+    >
       <div className="flex items-center z-10">
         <div className="flex flex-col ml-4 items-center justify-center p-4">
           <span className="text-6xl md:text-8xl font-bold leading-none mb-4">
@@ -19,6 +24,7 @@ const NotFound = () => {
           <Button className="mt-4">Go Back</Button>
         </Link>
       </div>
-    </div>);
-};
-export default NotFound;
+    </div>
+  )
+}
+export default NotFound

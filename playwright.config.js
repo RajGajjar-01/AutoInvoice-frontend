@@ -1,5 +1,5 @@
-import { defineConfig, devices } from "@playwright/test";
-import "dotenv/config";
+import { defineConfig, devices } from "@playwright/test"
+import "dotenv/config"
 var playwright_config_default = defineConfig({
   testDir: "./tests",
   /* Run tests in files in parallel */
@@ -17,7 +17,7 @@ var playwright_config_default = defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: "http://localhost:5173",
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: "on-first-retry"
+    trace: "on-first-retry",
   },
   /* Configure projects for major browsers */
   projects: [
@@ -26,10 +26,10 @@ var playwright_config_default = defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        storageState: "playwright/.auth/user.json"
+        storageState: "playwright/.auth/user.json",
       },
-      dependencies: ["setup"]
-    }
+      dependencies: ["setup"],
+    },
     // {
     //   name: 'firefox',
     //   use: {
@@ -69,9 +69,7 @@ var playwright_config_default = defineConfig({
   webServer: {
     command: "bun run dev",
     url: "http://localhost:5173",
-    reuseExistingServer: !process.env.CI
-  }
-});
-export {
-  playwright_config_default as default
-};
+    reuseExistingServer: !process.env.CI,
+  },
+})
+export { playwright_config_default as default }

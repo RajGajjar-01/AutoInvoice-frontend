@@ -1,4 +1,5 @@
-import { defineConfig } from "@hey-api/openapi-ts";
+import { defineConfig } from "@hey-api/openapi-ts"
+
 var openapi_ts_config_default = defineConfig({
   input: "./openapi.json",
   output: "./src/client",
@@ -11,20 +12,18 @@ var openapi_ts_config_default = defineConfig({
       operationId: true,
       classNameBuilder: "{{name}}Service",
       methodNameBuilder: (operation) => {
-        let name = operation.name;
-        const service = operation.service;
+        let name = operation.name
+        const service = operation.service
         if (service && name.toLowerCase().startsWith(service.toLowerCase())) {
-          name = name.slice(service.length);
+          name = name.slice(service.length)
         }
-        return name.charAt(0).toLowerCase() + name.slice(1);
-      }
+        return name.charAt(0).toLowerCase() + name.slice(1)
+      },
     },
     {
       name: "@hey-api/schemas",
-      type: "json"
-    }
-  ]
-});
-export {
-  openapi_ts_config_default as default
-};
+      type: "json",
+    },
+  ],
+})
+export { openapi_ts_config_default as default }

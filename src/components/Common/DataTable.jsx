@@ -1,42 +1,85 @@
-import { flexRender, getCoreRowModel, getPaginationRowModel, useReactTable, } from "@tanstack/react-table";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
-export function DataTable({ columns, data, }) {
-    const table = useReactTable({
-        data,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-    });
-    return (<div className="flex flex-col gap-4">
+import {
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+export function DataTable({ columns, data }) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  })
+  return (
+    <div className="flex flex-col gap-4">
       <Table>
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (<TableRow key={headerGroup.id} className="hover:bg-transparent">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header) => {
-                return (<TableHead key={header.id}>
+                return (
+                  <TableHead key={header.id}>
                     {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>);
-            })}
-            </TableRow>))}
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                )
+              })}
+            </TableRow>
+          ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.length ? (table.getRowModel().rows.map((row) => (<TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (<TableCell key={cell.id}>
+          {table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>))}
-              </TableRow>))) : (<TableRow className="hover:bg-transparent">
-              <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow className="hover:bg-transparent">
+              <TableCell
+                colSpan={columns.length}
+                className="h-32 text-center text-muted-foreground"
+              >
                 No results found.
               </TableCell>
-            </TableRow>)}
+            </TableRow>
+          )}
         </TableBody>
       </Table>
 
-      {table.getPageCount() > 1 && (<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20">
+      {table.getPageCount() > 1 && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="text-sm text-muted-foreground">
               Showing{" "}
@@ -44,24 +87,34 @@ export function DataTable({ columns, data, }) {
                 table.getState().pagination.pageSize +
                 1}{" "}
               to{" "}
-              {Math.min((table.getState().pagination.pageIndex + 1) *
-                table.getState().pagination.pageSize, data.length)}{" "}
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) *
+                  table.getState().pagination.pageSize,
+                data.length,
+              )}{" "}
               of{" "}
               <span className="font-medium text-foreground">{data.length}</span>{" "}
               entries
             </div>
             <div className="flex items-center gap-x-2">
               <p className="text-sm text-muted-foreground">Rows per page</p>
-              <Select value={`${table.getState().pagination.pageSize}`} onValueChange={(value) => {
-                table.setPageSize(Number(value));
-            }}>
+              <Select
+                value={`${table.getState().pagination.pageSize}`}
+                onValueChange={(value) => {
+                  table.setPageSize(Number(value))
+                }}
+              >
                 <SelectTrigger className="h-8 w-[70px]">
-                  <SelectValue placeholder={table.getState().pagination.pageSize}/>
+                  <SelectValue
+                    placeholder={table.getState().pagination.pageSize}
+                  />
                 </SelectTrigger>
                 <SelectContent side="top">
-                  {[5, 10, 25, 50].map((pageSize) => (<SelectItem key={pageSize} value={`${pageSize}`}>
+                  {[5, 10, 25, 50].map((pageSize) => (
+                    <SelectItem key={pageSize} value={`${pageSize}`}>
                       {pageSize}
-                    </SelectItem>))}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -80,24 +133,50 @@ export function DataTable({ columns, data, }) {
             </div>
 
             <div className="flex items-center gap-x-1">
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+              >
                 <span className="sr-only">Go to first page</span>
-                <ChevronsLeft className="h-4 w-4"/>
+                <ChevronsLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
                 <span className="sr-only">Go to previous page</span>
-                <ChevronLeft className="h-4 w-4"/>
+                <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
                 <span className="sr-only">Go to next page</span>
-                <ChevronRight className="h-4 w-4"/>
+                <ChevronRight className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+              >
                 <span className="sr-only">Go to last page</span>
-                <ChevronsRight className="h-4 w-4"/>
+                <ChevronsRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
-        </div>)}
-    </div>);
+        </div>
+      )}
+    </div>
+  )
 }

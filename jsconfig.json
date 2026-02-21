@@ -1,17 +1,13 @@
 {
-    "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "@/*": [
-                "./src/*"
-            ]
-        },
-        "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "Node",
-        "jsx": "react-jsx"
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
     },
-    "include": [
-        "src"
-    ]
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
 }
