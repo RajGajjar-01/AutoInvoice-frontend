@@ -21,6 +21,8 @@ import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutDataTablesIndexRouteImport } from './routes/_layout/data-tables/index'
+import { Route as LayoutDataTablesNewRouteImport } from './routes/_layout/data-tables.new'
 import { Route as LayoutDataTablesTableIdRouteImport } from './routes/_layout/data-tables.$tableId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -82,6 +84,16 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 })
+const LayoutDataTablesIndexRoute = LayoutDataTablesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutDataTablesRoute,
+})
+const LayoutDataTablesNewRoute = LayoutDataTablesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => LayoutDataTablesRoute,
+})
 const LayoutDataTablesTableIdRoute = LayoutDataTablesTableIdRouteImport.update({
   id: '/$tableId',
   path: '/$tableId',
@@ -90,6 +102,8 @@ const LayoutDataTablesTableIdRoute = LayoutDataTablesTableIdRouteImport.update({
 
 const LayoutDataTablesRouteChildren = {
   LayoutDataTablesTableIdRoute: LayoutDataTablesTableIdRoute,
+  LayoutDataTablesNewRoute: LayoutDataTablesNewRoute,
+  LayoutDataTablesIndexRoute: LayoutDataTablesIndexRoute,
 }
 
 const LayoutDataTablesRouteWithChildren =
