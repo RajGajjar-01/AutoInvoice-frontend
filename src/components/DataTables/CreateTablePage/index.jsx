@@ -1,39 +1,60 @@
 import { useNavigate } from "@tanstack/react-router"
-import { ArrowLeft, Settings2 } from "lucide-react"
+import {
+    Calendar,
+    Check,
+    DollarSign,
+    Hash,
+    Mail,
+    MapPin,
+    MessageSquare,
+    Phone,
+    Plus,
+    Tag,
+    User,
+} from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { ColumnEditorPanel } from "@/components/DataTables/CreateTablePage/ColumnEditorPanel"
 import { TablePreview } from "@/components/DataTables/CreateTablePage/TablePreview"
 import { PREDEFINED_TEMPLATES, tablesStore } from "@/components/DataTables/tableStore"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 
-// ─── CreateTablePage ───────────────────────────────────────────────────────────
-// Notion-inspired layout:
-//   [Sticky Top Bar                                      ]
-//   [  Table Preview (flex-1)     ] [| Column Editor |  ]
-//
-// Zero horizontal scroll achieved by:
-// 1. Root container: overflow-hidden
-// 2. Table columns: flex-1 (proportional, never overflow)
-// 3. Column panel: fixed 272px, overflow-x-hidden
-// 4. No min-w anywhere in the table
+// ─── Quick Add field presets ──────────────────────────────────────────────────
+const QUICK_ADD_FIELDS = [
+    { label: "Name", icon: User, type: "Text" },
+    { label: "Email", icon: Mail, type: "Text" },
+    { label: "Phone", icon: Phone, type: "Text" },
+    { label: "Amount", icon: DollarSign, type: "Amount (₹)" },
+    { label: "Date", icon: Calendar, type: "Date" },
+    { label: "Status", icon: Tag, type: "Status" },
+    { label: "Notes", icon: MessageSquare, type: "Text" },
+    { label: "Address", icon: MapPin, type: "Text" },
+]
+
+// ─── CreateTablePage ──────────────────────────────────────────────────────────
 export function CreateTablePage({ templateId }) {
     const navigate = useNavigate()
+    const tableNameRef = useRef(null)
 
     const [tableName, setTableName] = useState("")
+    const [description, setDescription] = useState("")
+    const [tableNameError, setTableNameError] = useState(false)
     const [columns, setColumns] = useState([
-        {
-            name: "",
-            type: "Text",
-            mandatory: false,
-            options: [],
-            _id: crypto.randomUUID(),
-        },
+        { name: "", type: "Text", mandatory: false, options: [], _id: crypto.randomUUID() },
     ])
-    const [isPanelOpen, setIsPanelOpen] = useState(true)
+    // Maps quick-add label → column _id so we can detect when it's deleted
+    const [quickAddIds, setQuickAddIds] = useState({}) // { [label]: _id }
 
-    const titleRef = useRef(null)
+    // Derived: which labels are currently present in the columns array
+    const addedQuickFields = new Set(
+        Object.entries(quickAddIds)
+            .filter(([, id]) => columns.some((c) => c._id === id))
+            .map(([label]) => label)
+    )
 
     // Pre-fill from template
     useEffect(() => {
@@ -41,135 +62,194 @@ export function CreateTablePage({ templateId }) {
         const tpl = PREDEFINED_TEMPLATES.find((t) => t.id === templateId)
         if (!tpl) return
         setTableName(tpl.name)
-        setColumns(
-            tpl.columns.map((col) => ({
-                ...col,
-                _id: crypto.randomUUID(),
-            }))
-        )
+        setColumns(tpl.columns.map((col) => ({ ...col, _id: crypto.randomUUID() })))
     }, [templateId]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleAddColumn = () => {
         setColumns((prev) => [
             ...prev,
-            {
-                name: "",
-                type: "Text",
-                mandatory: false,
-                options: [],
-                _id: crypto.randomUUID(),
-            },
+            { name: "", type: "Text", mandatory: false, options: [], _id: crypto.randomUUID() },
         ])
     }
 
+    // ── Quick Add handler ─────────────────────────────────────────────────────
+    const handleQuickAdd = (field) => {
+        if (addedQuickFields.has(field.label)) return
+        const newId = crypto.randomUUID()
+        setColumns((prev) => [
+            ...prev,
+            { name: field.label, type: field.type, mandatory: false, options: [], _id: newId },
+        ])
+        // Store the _id so we can track if this column gets deleted later
+        setQuickAddIds((prev) => ({ ...prev, [field.label]: newId }))
+    }
+
+    // ── Validation & Submission ───────────────────────────────────────────────
     const validate = () => {
         if (!tableName.trim()) {
+            setTableNameError(true)
             toast.error("Table name is required.")
-            titleRef.current?.focus()
+            tableNameRef.current?.focus()
             return false
         }
-
         const names = columns.map((c) => c.name.trim())
-
         for (let i = 0; i < columns.length; i++) {
             if (!names[i]) {
-                toast.error(`Column ${i + 1} has no name. Please fill in all column names.`)
+                toast.error(`Column ${i + 1} has no name. Please fill in all field names.`)
                 return false
             }
         }
-
         const uniqueNames = new Set(names)
         if (uniqueNames.size !== names.length) {
             toast.error("Duplicate column names are not allowed.")
             return false
         }
-
         for (const col of columns) {
             if (col.type === "Dropdown" && (!col.options || col.options.length === 0)) {
                 toast.error(`Dropdown column "${col.name}" must have at least one option.`)
                 return false
             }
         }
-
         return true
     }
 
-    const handleCreate = () => {
+    const handleSave = () => {
         if (!validate()) return
         const cleanedColumns = columns.map(({ _id, _isBlank, _isDuplicate, ...rest }) => rest)
-        tablesStore.add({ name: tableName.trim(), columns: cleanedColumns })
-        toast.success(`Table "${tableName.trim()}" created!`)
+        tablesStore.add({ name: tableName.trim(), description: description.trim(), columns: cleanedColumns })
+        toast.success(`Table "${tableName.trim()}" created successfully!`)
         navigate({ to: "/data-tables" })
     }
 
-    const handleDiscard = () => navigate({ to: "/data-tables" })
+    const handleCancel = () => navigate({ to: "/data-tables" })
 
     return (
-        <div className="flex flex-col w-full h-[calc(100vh-10rem)] min-h-[550px] border rounded-xl overflow-hidden bg-background shadow-sm">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
 
-            {/* ── Top Bar ─────────────────────────────────────────────────────── */}
-            <div className="flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-md px-6 py-3 shrink-0">
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleDiscard}
-                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                    >
-                        <ArrowLeft className="h-4 w-4 mr-1" />
-                        Back
-                    </Button>
-                    <Separator orientation="vertical" className="h-4" />
-                    <div className="flex flex-col">
-                        <span className="text-sm font-bold leading-none text-foreground">New Data Table</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">Configuration</span>
+            {/* ══════════════════════════════════════════════════════
+                TOP BAR — title, subtitle, actions
+            ══════════════════════════════════════════════════════ */}
+            <div className="shrink-0 border-b border-border bg-background/95 backdrop-blur-sm">
+                {/* Title row */}
+                <div className="flex items-center justify-between px-6 py-4">
+                    <div>
+                        <h1 className="text-xl font-bold tracking-tight text-foreground">Create New Table</h1>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                            Define your custom data structure. Fields you add will become columns in your table.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-9 px-4 text-muted-foreground"
+                            onClick={handleCancel}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            size="sm"
+                            className="h-9 px-5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all active:scale-[0.98]"
+                            onClick={handleSave}
+                        >
+                            Save Table
+                        </Button>
                     </div>
                 </div>
 
-                <div className="flex-1" />
-
-                <div className="flex items-center gap-2">
-                    <Button
-                        type="button"
-                        variant={isPanelOpen ? "secondary" : "ghost"}
-                        size="sm"
-                        className="gap-2 h-9"
-                        onClick={() => setIsPanelOpen((v) => !v)}
-                    >
-                        <Settings2 className="h-4 w-4" />
-                        {isPanelOpen ? "Hide Properties" : "Show Properties"}
-                    </Button>
-
-                    <Separator orientation="vertical" className="h-6 mx-1" />
-
-                    <Button type="button" variant="outline" size="sm" className="h-9 px-4" onClick={handleDiscard}>
-                        Discard
-                    </Button>
-                    <Button type="button" size="sm" className="h-9 px-4 bg-orange-600 hover:bg-orange-700 text-white shadow-sm transition-all active:scale-95" onClick={handleCreate}>
-                        Create Table
-                    </Button>
+                {/* Table Name + Description */}
+                <div className="flex items-end gap-4 px-6 pb-4">
+                    <div className="flex flex-col gap-1.5 flex-1 max-w-sm">
+                        <Label htmlFor="table-name" className="text-xs font-medium">
+                            Table Name <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                            id="table-name"
+                            ref={tableNameRef}
+                            placeholder="e.g. Invoice Tracker"
+                            value={tableName}
+                            onChange={(e) => { setTableName(e.target.value); if (tableNameError) setTableNameError(false) }}
+                            className={`h-9 text-sm ${tableNameError ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                        />
+                        {tableNameError && <p className="text-[11px] text-destructive">Table name is required</p>}
+                    </div>
+                    <div className="flex flex-col gap-1.5 flex-1 max-w-md">
+                        <Label htmlFor="table-desc" className="text-xs font-medium text-muted-foreground">
+                            Description <span className="font-normal">(optional)</span>
+                        </Label>
+                        <Input
+                            id="table-desc"
+                            placeholder="What is this table used for?"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="h-9 text-sm"
+                        />
+                    </div>
                 </div>
             </div>
 
-            {/* ── Split Content Area — fills remaining height, no scroll ──────── */}
-            {/* min-h-0 is essential to allow flex children to shrink below their content size */}
+            {/* ══════════════════════════════════════════════════════
+                QUICK ADD STRIP
+            ══════════════════════════════════════════════════════ */}
+            <div className="shrink-0 border-b border-border bg-muted/30 px-6 py-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                        ⚡ Quick Add
+                    </span>
+                    <Separator orientation="vertical" className="h-4" />
+                    <div className="flex flex-wrap gap-2">
+                        {QUICK_ADD_FIELDS.map((field) => {
+                            const added = addedQuickFields.has(field.label)
+                            const Icon = field.icon
+                            return (
+                                <button
+                                    key={field.label}
+                                    type="button"
+                                    disabled={added}
+                                    onClick={() => handleQuickAdd(field)}
+                                    className={`
+                                        inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium
+                                        transition-all duration-200
+                                        ${added
+                                            ? "border-primary/30 bg-primary/8 text-primary/60 cursor-not-allowed"
+                                            : "border-border bg-background text-foreground hover:border-primary hover:bg-primary/5 hover:text-primary cursor-pointer active:scale-95"
+                                        }
+                                    `}
+                                >
+                                    {added
+                                        ? <Check className="h-3 w-3 text-primary/60" />
+                                        : <Icon className="h-3 w-3" />
+                                    }
+                                    {field.label}
+                                    {added
+                                        ? <span className="text-[10px] text-primary/50 ml-0.5">Added</span>
+                                        : <Plus className="h-2.5 w-2.5 text-muted-foreground/60" />
+                                    }
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            {/* ══════════════════════════════════════════════════════
+                SPLIT CONTENT — Preview (flex-1) | Builder (w-80)
+            ══════════════════════════════════════════════════════ */}
             <div className="flex flex-1 min-h-0 overflow-hidden">
                 <TablePreview
-                    tableName={tableName}
-                    setTableName={setTableName}
-                    titleRef={titleRef}
                     columns={columns}
                     setColumns={setColumns}
                     onAddColumn={handleAddColumn}
                 />
 
-                {isPanelOpen && (
-                    <ColumnEditorPanel
-                        columns={columns}
-                        setColumns={setColumns}
-                        onAddColumn={handleAddColumn}
-                    />
-                )}
+                <ColumnEditorPanel
+                    columns={columns}
+                    setColumns={setColumns}
+                    onAddColumn={handleAddColumn}
+                />
             </div>
         </div>
     )

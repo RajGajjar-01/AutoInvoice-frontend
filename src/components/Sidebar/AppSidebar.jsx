@@ -47,7 +47,7 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      variant="inset"
+      variant="sidebar"
       className="group-data-[state=collapsed]:cursor-pointer"
       onClick={handleSidebarClick}
     >

@@ -35,7 +35,7 @@ function Layout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="overflow-hidden flex flex-col">
-        <main className="flex-1 p-4">
+        <main className="flex-1 p-4 flex flex-col">
           <Outlet />
         </main>
         <Footer />

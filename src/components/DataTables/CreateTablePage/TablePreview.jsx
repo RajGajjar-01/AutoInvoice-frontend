@@ -13,7 +13,7 @@ import {
     useSortable,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { LayoutGrid, Plus } from "lucide-react"
+import { GripVertical, LayoutGrid, Plus, Trash2 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 
@@ -33,66 +33,14 @@ const TYPE_BADGE_COLORS = {
     Dropdown: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
 }
 
-// ─── Inline editable Table Title ─────────────────────────────────────────────
-function InlineTitle({ tableName, setTableName, titleRef }) {
-    const [editing, setEditing] = useState(false)
-    const inputRef = useRef(null)
-
-    useEffect(() => {
-        if (titleRef) {
-            titleRef.current = {
-                focus: () => {
-                    setEditing(true)
-                    setTimeout(() => inputRef.current?.focus(), 0)
-                },
-            }
-        }
-    }, [titleRef])
-
-    const startEditing = () => {
-        setEditing(true)
-        setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 0)
-    }
-
-    if (editing) {
-        return (
-            <input
-                ref={inputRef}
-                className="text-2xl font-bold tracking-tight bg-transparent border-b-2 border-primary outline-none w-full max-w-xl pb-0.5 text-foreground placeholder:text-muted-foreground/40 leading-tight"
-                placeholder="Untitled Table"
-                value={tableName}
-                onChange={(e) => setTableName(e.target.value)}
-                onBlur={() => setEditing(false)}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") setEditing(false) }}
-                autoFocus
-            />
-        )
-    }
-
-    return (
-        <button type="button" onClick={startEditing} className="group text-left w-full" title="Click to edit table name">
-            {tableName
-                ? <h1 className="text-2xl font-bold tracking-tight text-foreground group-hover:opacity-80 transition-opacity leading-tight">{tableName}</h1>
-                : <h1 className="text-2xl font-bold tracking-tight text-muted-foreground/30 italic leading-tight">Untitled Table</h1>
-            }
-        </button>
-    )
-}
-
-// ─── Column Header Cell ───────────────────────────────────────────────────────
-// Fixed 160px width — original chip-style look.
-// Double-click to rename (two-way sync: external col.name updates local when not focused).
-function SortableColumnHeader({ col, onChange, isDragOverlay = false }) {
+// ─── Sortable Column Header Cell ──────────────────────────────────────────────
+function SortableColumnHeader({ col, onChange, onDelete, canDelete, isDragOverlay = false }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: col._id })
-
     const [editing, setEditing] = useState(false)
     const [localName, setLocalName] = useState(col.name)
     const inputRef = useRef(null)
 
-    // Two-way sync: reflect changes made in ColumnEditorPanel
-    useEffect(() => {
-        if (!editing) setLocalName(col.name)
-    }, [col.name, editing])
+    useEffect(() => { if (!editing) setLocalName(col.name) }, [col.name, editing])
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -108,65 +56,70 @@ function SortableColumnHeader({ col, onChange, isDragOverlay = false }) {
         setEditing(false)
     }, [col, localName, onChange])
 
-    const handleDblClick = () => {
-        if (isDragOverlay) return
-        setEditing(true)
-        setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 0)
-    }
-
     return (
         <div
             ref={isDragOverlay ? undefined : setNodeRef}
             style={isDragOverlay ? {} : style}
-            {...(isDragOverlay ? {} : attributes)}
-            {...(isDragOverlay ? {} : listeners)}
-            // Fixed 160px — each column has identical width. Container scrolls when many columns are added.
             className={`
-                w-[160px] shrink-0 flex items-center border-r border-border last:border-r-0 select-none
-                bg-muted/30 cursor-grab active:cursor-grabbing group
-                hover:bg-accent/50 transition-colors
+                w-44 shrink-0 flex items-center border-r border-border last:border-r-0 select-none relative group
+                bg-muted/40 transition-colors hover:bg-muted/70
                 ${isDragOverlay ? "shadow-xl ring-2 ring-primary/30 rounded" : ""}
             `}
-            onDoubleClick={handleDblClick}
-            title="Drag to reorder · Double-click to rename"
+            onDoubleClick={() => {
+                if (isDragOverlay) return
+                setEditing(true)
+                setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 0)
+            }}
+            title="Double-click to rename · Drag to reorder"
         >
+            {/* Drag handle — visible on hover */}
+            <div
+                {...(isDragOverlay ? {} : attributes)}
+                {...(isDragOverlay ? {} : listeners)}
+                className="px-1.5 py-3 cursor-grab active:cursor-grabbing text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors shrink-0"
+            >
+                <GripVertical className="h-3.5 w-3.5" />
+            </div>
+
             {editing ? (
                 <input
                     ref={inputRef}
-                    className="w-full h-full bg-transparent outline-none border-b border-primary text-xs font-medium text-foreground px-2 py-2.5"
+                    className="flex-1 h-full bg-transparent outline-none border-b-2 border-primary text-xs font-medium text-foreground py-2.5 pr-2"
                     value={localName}
                     onChange={(e) => setLocalName(e.target.value)}
                     onBlur={commit}
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") commit() }}
                     onClick={(e) => e.stopPropagation()}
+                    autoFocus
                 />
             ) : (
-                <div className="flex items-center gap-1.5 px-2 py-2.5 w-full overflow-hidden">
-                    <span className="text-xs font-medium truncate flex-1 text-foreground">
-                        {col.name ? col.name : <span className="italic text-muted-foreground/50">Untitled</span>}
+                <div className="flex items-center gap-1.5 pr-2 py-2.5 w-full overflow-hidden min-w-0">
+                    <span className="text-xs font-semibold truncate flex-1 text-foreground">
+                        {col.name ? col.name : <span className="italic text-muted-foreground/40">Untitled</span>}
                     </span>
                     <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap ${badgeColor}`}>
                         {col.type}
                     </span>
                 </div>
             )}
+
+            {/* Delete icon — appears on hover */}
+            {!isDragOverlay && canDelete && (
+                <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onDelete(col._id) }}
+                    className="absolute right-0.5 top-0.5 h-5 w-5 rounded flex items-center justify-center text-muted-foreground/0 group-hover:text-muted-foreground/50 hover:!text-destructive hover:bg-destructive/10 transition-all"
+                    aria-label="Remove column"
+                >
+                    <Trash2 className="h-2.5 w-2.5" />
+                </button>
+            )}
         </div>
     )
 }
 
 // ─── TablePreview ─────────────────────────────────────────────────────────────
-// Layout contract (no page-level overflow, ever):
-//
-//   [outer]  flex-1 min-w-0  ← min-w-0 prevents this flex child from exceeding parent
-//     [title area]  shrink-0
-//     [table card area]  flex-1 overflow-hidden
-//       [table card]  h-full  overflow-auto  ← ONLY place scroll lives
-//         [header row sticky]  min-w-max  ← expands to fit all fixed-width columns
-//         [data rows]          min-w-max
-//
-// Result: the table card scrolls internally (both axes if needed).
-// The Properties panel is unaffected regardless of column count.
-export function TablePreview({ tableName, setTableName, titleRef, columns, setColumns, onAddColumn }) {
+export function TablePreview({ columns, setColumns, onAddColumn, onRemoveColumn }) {
     const [activeId, setActiveId] = useState(null)
 
     const sensors = useSensors(
@@ -187,112 +140,117 @@ export function TablePreview({ tableName, setTableName, titleRef, columns, setCo
         setColumns((prev) => prev.map((c) => (c._id === updatedCol._id ? updatedCol : c)))
     }, [setColumns])
 
+    const handleDelete = useCallback((id) => {
+        if (onRemoveColumn) {
+            onRemoveColumn(id)
+        } else {
+            setColumns((prev) => {
+                if (prev.length <= 1) return prev
+                return prev.filter((c) => c._id !== id)
+            })
+        }
+    }, [onRemoveColumn, setColumns])
+
     const activeCol = activeId ? columns.find((c) => c._id === activeId) : null
 
-    return (
-        // flex-1 min-w-0 → fills remaining space, CANNOT push past flex parent (critical)
-        // overflow-hidden → outer container never scrolls
-        <div className="flex-1 min-w-0 flex flex-col overflow-hidden bg-background">
-
-            {/* ── Compact title ─────────────────────────────────────────── */}
-            <div className="px-6 pt-3 pb-2 shrink-0">
-                <InlineTitle tableName={tableName} setTableName={setTableName} titleRef={titleRef} />
-                <p className="mt-1 text-xs text-muted-foreground">
-                    Double-click column headers to rename · Drag to reorder
-                </p>
+    // ── Empty state ────────────────────────────────────────────────────────────
+    if (columns.length === 0) {
+        return (
+            <div className="flex-1 min-w-0 flex flex-col items-center justify-center gap-4 text-center p-8 bg-muted/10">
+                <div className="rounded-2xl bg-muted/60 p-6">
+                    <LayoutGrid className="h-10 w-10 text-muted-foreground/30" />
+                </div>
+                <div>
+                    <p className="text-sm font-semibold text-foreground">No fields added yet</p>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                        Use Quick Add above for common fields, or define a custom field in the panel on the right.
+                    </p>
+                </div>
             </div>
+        )
+    }
 
-            {/* ── Table wrapper — overflow-hidden so inner scroll is self-contained ── */}
-            <div className="flex-1 min-h-0 px-6 pb-4 overflow-hidden flex flex-col">
-                {columns.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-                        <div className="rounded-full bg-muted p-4">
-                            <LayoutGrid className="h-6 w-6 text-muted-foreground/40" />
+    return (
+        <div className="flex-1 min-w-0 flex flex-col overflow-hidden bg-muted/10">
+            {/* ── Table card ── */}
+            <div className="flex-1 min-h-0 m-4 rounded-xl border border-border overflow-hidden flex flex-col bg-card shadow-sm">
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                >
+                    <div className="flex-1 overflow-auto">
+                        {/* ── Header row ── */}
+                        <div className="flex items-stretch border-b border-border sticky top-0 z-10 bg-muted/50 min-w-max">
+                            {/* Row number stub */}
+                            <div className="w-10 shrink-0 border-r border-border flex items-center justify-center py-3">
+                                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter select-none">#</span>
+                            </div>
+
+                            <SortableContext items={columns.map((c) => c._id)} strategy={horizontalListSortingStrategy}>
+                                {columns.map((col) => (
+                                    <SortableColumnHeader
+                                        key={col._id}
+                                        col={col}
+                                        onChange={handleColumnNameChange}
+                                        onDelete={handleDelete}
+                                        canDelete={columns.length > 1}
+                                    />
+                                ))}
+                            </SortableContext>
+
+                            {/* Add column button */}
+                            <div className="flex items-center px-1 shrink-0 border-l border-border">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                    onClick={onAddColumn}
+                                    aria-label="Add column"
+                                >
+                                    <Plus className="h-3.5 w-3.5" />
+                                </Button>
+                            </div>
+
+                            <DragOverlay>
+                                {activeCol
+                                    ? <SortableColumnHeader col={activeCol} onChange={() => { }} onDelete={() => { }} canDelete={false} isDragOverlay />
+                                    : null
+                                }
+                            </DragOverlay>
                         </div>
-                        <p className="text-sm text-muted-foreground">Add your first column using the Properties panel →</p>
-                    </div>
-                ) : (
-                    // The ONE overflow-auto container — header + body scroll together horizontally
-                    // and body scrolls vertically. Nothing else on the page scrolls.
-                    <div className="flex-1 min-h-0 rounded-xl border border-border shadow-sm overflow-hidden flex flex-col bg-card">
-                        <DndContext
-                            sensors={sensors}
-                            collisionDetection={closestCenter}
-                            onDragStart={handleDragStart}
-                            onDragEnd={handleDragEnd}
-                        >
-                            {/* ── Header Row ─ sticky top so it stays visible on vertical scroll ── */}
-                            <div className="flex-1 overflow-auto">
-                                <div className="flex items-stretch border-b border-border sticky top-0 z-10 min-w-max bg-muted/50">
-                                    {/* Row number stub */}
-                                    <div className="w-12 shrink-0 border-r border-border flex items-center justify-center py-3">
-                                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter select-none">#</span>
-                                    </div>
 
-                                    {/* Sortable column headers — each exactly 160px */}
-                                    <SortableContext
-                                        items={columns.map((c) => c._id)}
-                                        strategy={horizontalListSortingStrategy}
-                                    >
-                                        {columns.map((col) => (
-                                            <SortableColumnHeader
-                                                key={col._id}
-                                                col={col}
-                                                onChange={handleColumnNameChange}
-                                            />
-                                        ))}
-                                    </SortableContext>
-
-                                    {/* Add column — stays at right edge */}
-                                    <div className="flex items-center px-1 shrink-0 border-l border-border">
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                            onClick={onAddColumn}
-                                            aria-label="Add column"
-                                        >
-                                            <Plus className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </div>
-
-                                    <DragOverlay>
-                                        {activeCol
-                                            ? <SortableColumnHeader col={activeCol} onChange={() => { }} isDragOverlay />
-                                            : null
-                                        }
-                                    </DragOverlay>
+                        {/* ── Data rows — 5 placeholder rows ── */}
+                        {[1, 2, 3, 4, 5].map((rowIdx) => (
+                            <div key={rowIdx} className="flex items-stretch border-b border-border last:border-b-0 min-w-max hover:bg-muted/20 transition-colors">
+                                {/* Row number */}
+                                <div className="w-10 shrink-0 border-r border-border flex items-center justify-center py-3 bg-muted/10">
+                                    <span className="text-[10px] text-muted-foreground/30 font-semibold select-none">{rowIdx}</span>
                                 </div>
 
-                                {/* ── Data Rows — same min-w-max so they align with the header ── */}
-                                {[0, 1, 2].map((rowIdx) => (
+                                {columns.map((col) => (
                                     <div
-                                        key={rowIdx}
-                                        className="flex items-stretch border-b border-border last:border-b-0 min-w-max hover:bg-muted/10 transition-colors"
+                                        key={col._id}
+                                        className="w-44 shrink-0 border-r border-border last:border-r-0 px-3 py-3 flex items-center"
                                     >
-                                        {/* Row number */}
-                                        <div className="w-12 shrink-0 border-r border-border flex items-center justify-center py-3 bg-muted/10">
-                                            <span className="text-[10px] text-muted-foreground/40 font-semibold select-none">{rowIdx + 1}</span>
-                                        </div>
-                                        {/* Cells — same fixed width as header columns */}
-                                        {columns.map((col) => (
-                                            <div
-                                                key={col._id}
-                                                className="w-[160px] shrink-0 border-r border-border last:border-r-0 px-3 py-3 flex items-center"
-                                            >
-                                                <span className="text-muted-foreground/25 text-sm select-none">—</span>
-                                            </div>
-                                        ))}
-                                        {/* Trailing spacer to match the + button column */}
-                                        <div className="w-10 shrink-0 border-l border-border" />
+                                        <span className="text-muted-foreground/20 text-sm select-none">—</span>
                                     </div>
                                 ))}
+
+                                {/* Trailing spacer to match + button col */}
+                                <div className="w-9 shrink-0 border-l border-border" />
                             </div>
-                        </DndContext>
+                        ))}
                     </div>
-                )}
+                </DndContext>
             </div>
+
+            {/* ── Footer hint ── */}
+            <p className="text-[11px] text-muted-foreground text-center pb-2 shrink-0">
+                Double-click a column header to rename it · Drag to reorder
+            </p>
         </div>
     )
 }
