@@ -241,33 +241,16 @@ export function TableCell({
     const past = isPastDate(value)
     if (editing) {
       return (
-        <div className="flex items-center gap-1 px-1 py-1">
+        <div className="flex items-center px-1 py-1 w-full">
           <Input
             ref={inputRef}
             type="date"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="h-7 text-xs border-primary"
+            onBlur={commit}
+            className="h-7 text-xs border-primary focus:ring-1 focus:ring-primary w-full"
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 text-green-600"
-            onClick={commit}
-          >
-            <Check className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 text-muted-foreground"
-            onClick={cancel}
-          >
-            <X className="h-3.5 w-3.5" />
-          </Button>
         </div>
       )
     }
@@ -299,7 +282,7 @@ export function TableCell({
   if (type === "Attachment") {
     if (editing) {
       return (
-        <div className="flex items-center gap-1 px-1 py-1">
+        <div className="flex items-center px-1 py-1 w-full">
           <Input
             ref={inputRef}
             type="text"
@@ -307,26 +290,9 @@ export function TableCell({
             placeholder="filename.pdf"
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="h-7 text-xs border-primary"
+            onBlur={commit}
+            className="h-7 text-xs border-primary focus:ring-1 focus:ring-primary w-full"
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 text-green-600"
-            onClick={commit}
-          >
-            <Check className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 text-muted-foreground"
-            onClick={cancel}
-          >
-            <X className="h-3.5 w-3.5" />
-          </Button>
         </div>
       )
     }
@@ -359,16 +325,17 @@ export function TableCell({
           : "text"
 
     return (
-      <div className="flex items-center gap-1 px-1 py-1">
+      <div className="flex items-center px-1 py-1 w-full">
         {type === "Text" ? (
-          <>
+          <div className="w-full">
             <input
               ref={inputRef}
               list={`dl-${datalistId}`}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="flex h-7 w-full rounded-md border border-primary bg-background px-2 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              onBlur={commit}
+              className="flex h-7 w-full rounded-md border border-primary bg-background px-2 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
               placeholder=""
             />
             <datalist id={`dl-${datalistId}`}>
@@ -376,35 +343,18 @@ export function TableCell({
                 <option key={s} value={s} />
               ))}
             </datalist>
-          </>
+          </div>
         ) : (
           <Input
             ref={inputRef}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
+            onBlur={commit}
             type={inputType}
-            className="h-7 text-xs border-primary"
+            className="h-7 text-xs border-primary focus:ring-1 focus:ring-primary w-full"
           />
         )}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 shrink-0 text-green-600"
-          onClick={commit}
-        >
-          <Check className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 shrink-0 text-muted-foreground"
-          onClick={cancel}
-        >
-          <X className="h-3.5 w-3.5" />
-        </Button>
       </div>
     )
   }

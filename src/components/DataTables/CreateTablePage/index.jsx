@@ -105,43 +105,50 @@ export function CreateTablePage({ templateId }) {
     const handleDiscard = () => navigate({ to: "/data-tables" })
 
     return (
-        // Escape parent padding (-m-6 md:-m-8) then fill viewport minus the sticky header (h-16)
-        <div className="flex flex-col overflow-hidden -m-6 md:-m-8" style={{ height: "calc(100vh - 64px)" }}>
+        <div className="flex flex-col w-full h-[calc(100vh-10rem)] min-h-[550px] border rounded-xl overflow-hidden bg-background shadow-sm">
 
             {/* ── Top Bar ─────────────────────────────────────────────────────── */}
-            <div className="flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur-sm px-4 py-2 shrink-0">
-                <button
-                    type="button"
-                    onClick={handleDiscard}
-                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Data Tables
-                </button>
-
-                <Separator orientation="vertical" className="h-4" />
-
-                <span className="text-sm font-semibold">New Table</span>
+            <div className="flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-md px-6 py-3 shrink-0">
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleDiscard}
+                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-1" />
+                        Back
+                    </Button>
+                    <Separator orientation="vertical" className="h-4" />
+                    <div className="flex flex-col">
+                        <span className="text-sm font-bold leading-none text-foreground">New Data Table</span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">Configuration</span>
+                    </div>
+                </div>
 
                 <div className="flex-1" />
 
-                <Button
-                    type="button"
-                    variant={isPanelOpen ? "secondary" : "ghost"}
-                    size="sm"
-                    className="gap-1.5 text-xs h-8"
-                    onClick={() => setIsPanelOpen((v) => !v)}
-                >
-                    <Settings2 className="h-3.5 w-3.5" />
-                    Properties
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        type="button"
+                        variant={isPanelOpen ? "secondary" : "ghost"}
+                        size="sm"
+                        className="gap-2 h-9"
+                        onClick={() => setIsPanelOpen((v) => !v)}
+                    >
+                        <Settings2 className="h-4 w-4" />
+                        {isPanelOpen ? "Hide Properties" : "Show Properties"}
+                    </Button>
 
-                <Button type="button" variant="outline" size="sm" className="h-8" onClick={handleDiscard}>
-                    Discard
-                </Button>
-                <Button type="button" size="sm" className="h-8" onClick={handleCreate}>
-                    Create Table
-                </Button>
+                    <Separator orientation="vertical" className="h-6 mx-1" />
+
+                    <Button type="button" variant="outline" size="sm" className="h-9 px-4" onClick={handleDiscard}>
+                        Discard
+                    </Button>
+                    <Button type="button" size="sm" className="h-9 px-4 bg-orange-600 hover:bg-orange-700 text-white shadow-sm transition-all active:scale-95" onClick={handleCreate}>
+                        Create Table
+                    </Button>
+                </div>
             </div>
 
             {/* ── Split Content Area — fills remaining height, no scroll ──────── */}

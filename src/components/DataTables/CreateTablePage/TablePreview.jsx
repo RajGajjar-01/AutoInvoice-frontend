@@ -214,7 +214,7 @@ export function TablePreview({ tableName, setTableName, titleRef, columns, setCo
                 ) : (
                     // The ONE overflow-auto container — header + body scroll together horizontally
                     // and body scrolls vertically. Nothing else on the page scrolls.
-                    <div className="flex-1 min-h-0 rounded-lg border border-border shadow-sm overflow-auto bg-card">
+                    <div className="flex-1 min-h-0 rounded-xl border border-border shadow-sm overflow-hidden flex flex-col bg-card">
                         <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
@@ -222,72 +222,73 @@ export function TablePreview({ tableName, setTableName, titleRef, columns, setCo
                             onDragEnd={handleDragEnd}
                         >
                             {/* ── Header Row ─ sticky top so it stays visible on vertical scroll ── */}
-                            {/* min-w-max ensures the row expands to accommodate all fixed-width columns */}
-                            <div className="flex items-stretch border-b border-border sticky top-0 z-10 min-w-max bg-muted/30">
-                                {/* Row number stub */}
-                                <div className="w-10 shrink-0 border-r border-border flex items-center justify-center py-2.5">
-                                    <span className="text-[10px] text-muted-foreground font-semibold select-none">#</span>
-                                </div>
-
-                                {/* Sortable column headers — each exactly 160px */}
-                                <SortableContext
-                                    items={columns.map((c) => c._id)}
-                                    strategy={horizontalListSortingStrategy}
-                                >
-                                    {columns.map((col) => (
-                                        <SortableColumnHeader
-                                            key={col._id}
-                                            col={col}
-                                            onChange={handleColumnNameChange}
-                                        />
-                                    ))}
-                                </SortableContext>
-
-                                {/* Add column — stays at right edge */}
-                                <div className="flex items-center px-1 shrink-0 border-l border-border">
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                        onClick={onAddColumn}
-                                        aria-label="Add column"
-                                    >
-                                        <Plus className="h-3.5 w-3.5" />
-                                    </Button>
-                                </div>
-
-                                <DragOverlay>
-                                    {activeCol
-                                        ? <SortableColumnHeader col={activeCol} onChange={() => { }} isDragOverlay />
-                                        : null
-                                    }
-                                </DragOverlay>
-                            </div>
-
-                            {/* ── Data Rows — same min-w-max so they align with the header ── */}
-                            {[0, 1, 2].map((rowIdx) => (
-                                <div
-                                    key={rowIdx}
-                                    className="flex items-stretch border-b border-border last:border-b-0 min-w-max hover:bg-muted/10 transition-colors"
-                                >
-                                    {/* Row number */}
-                                    <div className="w-10 shrink-0 border-r border-border flex items-center justify-center py-3 bg-muted/10">
-                                        <span className="text-[10px] text-muted-foreground/40 select-none">{rowIdx + 1}</span>
+                            <div className="flex-1 overflow-auto">
+                                <div className="flex items-stretch border-b border-border sticky top-0 z-10 min-w-max bg-muted/50">
+                                    {/* Row number stub */}
+                                    <div className="w-12 shrink-0 border-r border-border flex items-center justify-center py-3">
+                                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter select-none">#</span>
                                     </div>
-                                    {/* Cells — same fixed width as header columns */}
-                                    {columns.map((col) => (
-                                        <div
-                                            key={col._id}
-                                            className="w-[160px] shrink-0 border-r border-border last:border-r-0 px-3 py-3 flex items-center"
+
+                                    {/* Sortable column headers — each exactly 160px */}
+                                    <SortableContext
+                                        items={columns.map((c) => c._id)}
+                                        strategy={horizontalListSortingStrategy}
+                                    >
+                                        {columns.map((col) => (
+                                            <SortableColumnHeader
+                                                key={col._id}
+                                                col={col}
+                                                onChange={handleColumnNameChange}
+                                            />
+                                        ))}
+                                    </SortableContext>
+
+                                    {/* Add column — stays at right edge */}
+                                    <div className="flex items-center px-1 shrink-0 border-l border-border">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                            onClick={onAddColumn}
+                                            aria-label="Add column"
                                         >
-                                            <span className="text-muted-foreground/25 text-sm select-none">—</span>
-                                        </div>
-                                    ))}
-                                    {/* Trailing spacer to match the + button column */}
-                                    <div className="w-9 shrink-0 border-l border-border" />
+                                            <Plus className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </div>
+
+                                    <DragOverlay>
+                                        {activeCol
+                                            ? <SortableColumnHeader col={activeCol} onChange={() => { }} isDragOverlay />
+                                            : null
+                                        }
+                                    </DragOverlay>
                                 </div>
-                            ))}
+
+                                {/* ── Data Rows — same min-w-max so they align with the header ── */}
+                                {[0, 1, 2].map((rowIdx) => (
+                                    <div
+                                        key={rowIdx}
+                                        className="flex items-stretch border-b border-border last:border-b-0 min-w-max hover:bg-muted/10 transition-colors"
+                                    >
+                                        {/* Row number */}
+                                        <div className="w-12 shrink-0 border-r border-border flex items-center justify-center py-3 bg-muted/10">
+                                            <span className="text-[10px] text-muted-foreground/40 font-semibold select-none">{rowIdx + 1}</span>
+                                        </div>
+                                        {/* Cells — same fixed width as header columns */}
+                                        {columns.map((col) => (
+                                            <div
+                                                key={col._id}
+                                                className="w-[160px] shrink-0 border-r border-border last:border-r-0 px-3 py-3 flex items-center"
+                                            >
+                                                <span className="text-muted-foreground/25 text-sm select-none">—</span>
+                                            </div>
+                                        ))}
+                                        {/* Trailing spacer to match the + button column */}
+                                        <div className="w-10 shrink-0 border-l border-border" />
+                                    </div>
+                                ))}
+                            </div>
                         </DndContext>
                     </div>
                 )}
