@@ -4,7 +4,9 @@ import { useMemo, useState } from "react"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
 import { ReminderModal } from "@/components/DataTables/ReminderModal"
 import { TableCell } from "@/components/DataTables/TableCell"
+import { MobileEntryView } from "@/components/DataTables/MobileEntryView"
 import { tablesStore } from "@/components/DataTables/tableStore"
+import { useIsMobile } from "@/hooks/useMobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -71,6 +73,7 @@ const DATE_FILTER_TYPES = new Set(["Date", "Due Date", "Expiry Date"])
 const BOOL_FILTER_TYPES = new Set(["Checkbox"])
 
 function TableViewPage() {
+  const isMobile = useIsMobile()
   const { tableId } = Route.useParams()
   const navigate = useNavigate()
 
@@ -119,6 +122,11 @@ function TableViewPage() {
     refresh()
   }
 
+  const handleAddRowWithData = (data) => {
+    tablesStore.addRowWithData(tableId, data)
+    refresh()
+  }
+
   const handleDeleteRow = (rowId) => {
     tablesStore.deleteRow(tableId, rowId)
     setSelectedRows((prev) => {
@@ -135,10 +143,60 @@ function TableViewPage() {
     refresh()
   }
 
+  const handleNavigate = (rowIndex, colIndex, direction) => {
+    let nextRow = rowIndex
+    let nextCol = colIndex
+
+    if (direction === "left") nextCol--
+    else if (direction === "right") nextCol++
+    else if (direction === "up") nextRow--
+    else if (direction === "down") nextRow++
+
+    const canMove =
+      nextCol >= 0 &&
+      nextCol < cols.length &&
+      nextRow >= 0 &&
+      nextRow < filteredRows.length
+
+    if (!canMove) return false
+
+    // Find the next cell's interactive element and focus it
+    setTimeout(() => {
+      const selector = `[data-row="${nextRow}"][data-col="${nextCol}"]`
+      const cell = document.querySelector(selector)
+      if (cell) {
+        // Try to find ANY focusable element
+        const focusable =
+          cell.querySelector(
+            'button, input, select, textarea, [tabindex="0"]',
+          ) || cell
+
+        // Scroll before focus to avoid weird jumps
+        focusable.scrollIntoView({
+          behavior: "auto",
+          block: "nearest",
+          inline: "nearest",
+        })
+        focusable.focus({ preventScroll: true })
+
+        // If it's a div (view mode), click it to enter edit mode
+        if (focusable.tagName === "DIV") {
+          focusable.click()
+        }
+      }
+    }, 20)
+    return true
+  }
+
   // ── Re-read after mutations ────────────────────────────────────────────────
   const currentTable = tablesStore.getById(tableId)
   const allRows = currentTable.rows
   const cols = currentTable.columns
+
+  // Set of rowIds that have at least one active reminder
+  const rowsWithReminders = new Set(
+    (currentTable.reminders ?? []).map((r) => r.rowId)
+  )
 
   // ── Suggestions map for Text fields ───────────────────────────────────────
   const suggestionsMap = useMemo(() => {
@@ -273,26 +331,26 @@ function TableViewPage() {
   return (
     <>
       {/* ── Sub-header ───────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-5">
         <Button
           variant="ghost"
           size="sm"
-          className="text-muted-foreground hover:text-foreground gap-1.5 -ml-2"
+          className="text-[#8A8A8A] hover:text-[#2E2E2E] gap-1.5 -ml-2 hover:bg-[#F5F6F8]"
           onClick={() => navigate({ to: "/data-tables" })}
         >
           <ArrowLeft className="h-4 w-4" />
           Data Tables
         </Button>
-        <Separator orientation="vertical" className="h-5" />
-        <span className="text-sm font-semibold truncate">
+        <Separator orientation="vertical" className="h-5 bg-[#E5E7EB]" />
+        <span className="text-sm font-semibold text-[#2E2E2E] truncate">
           {currentTable.name}
         </span>
         <div className="ml-auto flex items-center gap-2">
-          <Badge variant="outline" className="text-xs text-muted-foreground">
+          <Badge variant="outline" className="text-xs text-[#8A8A8A] border-[#E5E7EB] bg-white">
             {filteredRows.length} / {allRows.length} row
             {allRows.length !== 1 ? "s" : ""}
           </Badge>
-          <Badge variant="outline" className="text-xs text-muted-foreground">
+          <Badge variant="outline" className="text-xs text-[#8A8A8A] border-[#E5E7EB] bg-white">
             {cols.length} column{cols.length !== 1 ? "s" : ""}
           </Badge>
         </div>
@@ -305,18 +363,18 @@ function TableViewPage() {
             placeholder="Search rows…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-64 h-9"
+            className="w-64 h-9 border-[#E5E7EB] bg-white focus:border-[#1a5c38] focus:ring-[#1a5c38]/10 placeholder:text-[#8A8A8A] text-[#2E2E2E]"
           />
           <Button
             variant="outline"
             size="sm"
-            className="gap-2"
+            className="gap-2 border-[#E5E7EB] text-[#2E2E2E] hover:bg-[#F5F6F8] hover:border-[#1a5c38] hover:text-[#1a5c38]"
             onClick={openFilterPanel}
           >
             <Filter className="h-4 w-4" />
             Filter
             {Object.keys(filters).length > 0 && (
-              <Badge className="h-4 w-4 flex items-center justify-center p-0 text-[10px]">
+              <Badge className="h-4 w-4 flex items-center justify-center p-0 text-[10px] bg-[#1a5c38]">
                 {Object.keys(filters).length}
               </Badge>
             )}
@@ -324,7 +382,11 @@ function TableViewPage() {
         </div>
         <div className="flex items-center gap-2">
           <ExportMenu table={currentTable} rows={filteredRows} />
-          <Button size="sm" className="gap-2" onClick={handleAddRow}>
+          <Button
+            size="sm"
+            className="gap-2 bg-[#1a5c38] hover:bg-[#14492d] text-white shadow-sm"
+            onClick={handleAddRow}
+          >
             <Plus className="h-4 w-4" />
             Add Row
           </Button>
@@ -333,14 +395,15 @@ function TableViewPage() {
 
       {/* ── Bulk selection bar ────────────────────────────────────────── */}
       {selectedRows.size > 0 && (
-        <div className="flex items-center gap-3 rounded-lg border bg-muted/60 px-4 py-2.5 mb-4">
-          <span className="text-sm font-medium">
+        <div className="flex items-center gap-3 rounded-lg border border-[#E5E7EB] bg-[#F4EBD2] px-4 py-2.5 mb-4 shadow-sm">
+          <span className="text-sm font-medium text-[#2E2E2E]">
             {selectedRows.size} row{selectedRows.size !== 1 ? "s" : ""} selected
           </span>
           <div className="ml-auto flex gap-2">
             <Button
               variant="ghost"
               size="sm"
+              className="text-[#8A8A8A] hover:text-[#2E2E2E] hover:bg-white/60"
               onClick={() => setSelectedRows(new Set())}
             >
               Clear Selection
@@ -354,144 +417,175 @@ function TableViewPage() {
       )}
 
       {/* ── Table ─────────────────────────────────────────────────────── */}
-      <div className="rounded-xl border shadow-sm overflow-hidden bg-card">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent bg-muted/40">
-                <TableHead className="w-10 text-center border-r">
-                  <Checkbox
-                    checked={allFilteredSelected}
-                    onCheckedChange={toggleSelectAll}
-                    aria-label="Select all rows"
-                  />
-                </TableHead>
-                <TableHead className="w-10 text-center text-xs text-muted-foreground font-medium border-r">
-                  #
-                </TableHead>
-                {cols.map((col) => (
-                  <TableHead
-                    key={col.name}
-                    className="text-xs font-semibold border-r last:border-r-0 min-w-[140px]"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="truncate">{col.name}</span>
-                      {col.mandatory && (
-                        <span className="text-destructive text-xs">*</span>
-                      )}
-                      <span
-                        className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${TYPE_BADGE_COLORS[col.type] ?? "bg-muted text-muted-foreground"}`}
-                      >
-                        {col.type}
-                      </span>
-                    </div>
+      {isMobile ? (
+        <MobileEntryView
+          tableId={tableId}
+          table={currentTable}
+          rows={filteredRows}
+          cols={cols}
+          onDeleteRow={handleDeleteRow}
+          onAddRowWithData={handleAddRowWithData}
+          onUpdateCell={handleCellChange}
+          suggestionsMap={suggestionsMap}
+          onSetReminder={(rowId, row) =>
+            setReminderState({
+              open: true,
+              rowId: rowId,
+              rowLabel: getRowLabel(row, filteredRows.findIndex(r => r.id === rowId)),
+            })
+          }
+        />
+      ) : (
+        <div className="rounded-xl border border-[#E5E7EB] shadow-[0_1px_6px_0_rgba(0,0,0,0.06)] overflow-hidden bg-white">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent bg-[#F5F6F8] border-b border-[#E5E7EB]">
+                  <TableHead className="w-10 text-center border-r border-[#E5E7EB]">
+                    <Checkbox
+                      checked={allFilteredSelected}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Select all rows"
+                      className="border-[#E5E7EB] data-[state=checked]:bg-[#3B82F6] data-[state=checked]:border-[#3B82F6]"
+                    />
                   </TableHead>
-                ))}
-                <TableHead className="w-12 border-l text-xs text-muted-foreground font-medium text-center">
-                  <Bell className="h-3.5 w-3.5 mx-auto" />
-                </TableHead>
-                <TableHead className="w-10 border-l" />
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {filteredRows.length === 0 ? (
-                <TableRow className="hover:bg-transparent">
-                  <ShadTableCell
-                    colSpan={colSpanTotal}
-                    className="h-24 text-center text-sm text-muted-foreground"
-                  >
-                    {allRows.length === 0
-                      ? 'No rows yet. Click "Add Row" to get started.'
-                      : "No rows match your search or filters."}
-                  </ShadTableCell>
+                  <TableHead className="w-10 text-center text-xs text-[#8A8A8A] font-semibold border-r border-[#E5E7EB]">
+                    #
+                  </TableHead>
+                  {cols.map((col) => (
+                    <TableHead
+                      key={col.name}
+                      className="text-xs font-semibold text-[#2E2E2E] border-r border-[#E5E7EB] last:border-r-0 min-w-[140px] py-3"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate">{col.name}</span>
+                        {col.mandatory && (
+                          <span className="text-destructive text-xs">*</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  ))}
+                  <TableHead className="w-12 border-l border-[#E5E7EB] text-xs text-[#8A8A8A] font-medium text-center">
+                    <Bell className="h-3.5 w-3.5 mx-auto text-[#8A8A8A]" />
+                  </TableHead>
+                  <TableHead className="w-10 border-l border-[#E5E7EB]" />
                 </TableRow>
-              ) : (
-                filteredRows.map((row, rowIndex) => (
-                  <TableRow
-                    key={row.id}
-                    className="group border-b last:border-b-0 hover:bg-muted/30 transition-colors"
-                  >
-                    <ShadTableCell className="w-10 text-center border-r p-2">
-                      <Checkbox
-                        checked={selectedRows.has(row.id)}
-                        onCheckedChange={(checked) =>
-                          toggleRow(row.id, checked)
-                        }
-                        aria-label={`Select row ${rowIndex + 1}`}
-                      />
-                    </ShadTableCell>
-                    <ShadTableCell className="text-center text-xs text-muted-foreground border-r w-10 select-none">
-                      {rowIndex + 1}
-                    </ShadTableCell>
-                    {cols.map((col) => (
-                      <ShadTableCell
-                        key={col.name}
-                        className="p-0 border-r last:border-r-0"
-                      >
-                        <TableCell
-                          type={col.type}
-                          value={row[col.name]}
-                          onChange={(val) =>
-                            handleCellChange(row.id, col.name, val)
-                          }
-                          suggestions={suggestionsMap[col.name] ?? []}
-                          dropdownOptions={col.options ?? []}
-                        />
-                      </ShadTableCell>
-                    ))}
-                    <ShadTableCell className="w-12 border-l p-0">
-                      <div className="flex items-center justify-center h-full px-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-primary"
-                          onClick={() =>
-                            setReminderState({
-                              open: true,
-                              rowId: row.id,
-                              rowLabel: getRowLabel(row, rowIndex),
-                            })
-                          }
-                          aria-label="Set reminder"
-                        >
-                          <Bell className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </ShadTableCell>
-                    <ShadTableCell className="w-10 border-l p-0">
-                      <div className="flex items-center justify-center h-full px-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDeleteRow(row.id)}
-                          aria-label="Delete row"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+              </TableHeader>
+
+              <TableBody>
+                {filteredRows.length === 0 ? (
+                  <TableRow className="hover:bg-transparent">
+                    <ShadTableCell
+                      colSpan={colSpanTotal}
+                      className="h-24 text-center text-sm text-muted-foreground"
+                    >
+                      {allRows.length === 0
+                        ? 'No rows yet. Click "Add Row" to get started.'
+                        : "No rows match your search or filters."}
                     </ShadTableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ) : (
+                  filteredRows.map((row, rowIndex) => (
+                    <TableRow
+                      key={row.id}
+                      className={`group border-b border-[#E5E7EB] last:border-b-0 transition-colors ${selectedRows.has(row.id)
+                        ? "bg-[#F4EBD2] hover:bg-[#F4EBD2]"
+                        : "bg-white hover:bg-[#F5F6F8]"
+                        }`}
+                    >
+                      <ShadTableCell className="w-10 text-center border-r border-[#E5E7EB] p-2">
+                        <Checkbox
+                          checked={selectedRows.has(row.id)}
+                          onCheckedChange={(checked) =>
+                            toggleRow(row.id, checked)
+                          }
+                          aria-label={`Select row ${rowIndex + 1}`}
+                          className="border-[#E5E7EB] data-[state=checked]:bg-[#1a5c38] data-[state=checked]:border-[#1a5c38]"
+                        />
+                      </ShadTableCell>
+                      <ShadTableCell className="text-center text-xs text-[#8A8A8A] border-r border-[#E5E7EB] w-10 select-none font-medium">
+                        {rowIndex + 1}
+                      </ShadTableCell>
+                      {cols.map((col, colIndex) => (
+                        <ShadTableCell
+                          key={col.name}
+                          className="p-0 border-r border-[#E5E7EB] last:border-r-0"
+                          data-row={rowIndex}
+                          data-col={colIndex}
+                        >
+                          <TableCell
+                            type={col.type}
+                            value={row[col.name]}
+                            onChange={(val) =>
+                              handleCellChange(row.id, col.name, val)
+                            }
+                            onNavigate={(dir) =>
+                              handleNavigate(rowIndex, colIndex, dir)
+                            }
+                            suggestions={suggestionsMap[col.name] ?? []}
+                            dropdownOptions={col.options ?? []}
+                          />
+                        </ShadTableCell>
+                      ))}
+                      <ShadTableCell className="w-12 border-l border-[#E5E7EB] p-0">
+                        <div className="flex items-center justify-center h-full px-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`h-7 w-7 hover:bg-[#e8f5ee] ${rowsWithReminders.has(row.id)
+                              ? "text-[#1a5c38]"
+                              : "text-[#8A8A8A] hover:text-[#1a5c38]"
+                              }`}
+                            onClick={() =>
+                              setReminderState({
+                                open: true,
+                                rowId: row.id,
+                                rowLabel: getRowLabel(row, rowIndex),
+                              })
+                            }
+                            aria-label="Set reminder"
+                          >
+                            <Bell
+                              className="h-3.5 w-3.5"
+                              fill={rowsWithReminders.has(row.id) ? "currentColor" : "none"}
+                            />
+                          </Button>
+                        </div>
+                      </ShadTableCell>
+                      <ShadTableCell className="w-10 border-l border-[#E5E7EB] p-0">
+                        <div className="flex items-center justify-center h-full px-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-[#8A8A8A] hover:text-destructive hover:bg-red-50"
+                            onClick={() => handleDeleteRow(row.id)}
+                            aria-label="Delete row"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </ShadTableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
 
-        {/* Add Row footer */}
-        <div className="border-t px-4 py-2 bg-muted/20">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground text-xs gap-1.5"
-            onClick={handleAddRow}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add Row
-          </Button>
+          {/* Add Row footer */}
+          <div className="border-t border-[#E5E7EB] px-4 py-2 bg-[#F5F6F8]/60">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[#8A8A8A] hover:text-[#1a5c38] hover:bg-[#e8f5ee] text-xs gap-1.5"
+              onClick={handleAddRow}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add Row
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Reminder Modal ────────────────────────────────────────────── */}
       <ReminderModal
@@ -611,10 +705,10 @@ function TableViewPage() {
                 !DATE_FILTER_TYPES.has(c.type) &&
                 !BOOL_FILTER_TYPES.has(c.type),
             ) && (
-              <p className="text-sm text-muted-foreground">
-                No filterable columns in this table.
-              </p>
-            )}
+                <p className="text-sm text-muted-foreground">
+                  No filterable columns in this table.
+                </p>
+              )}
           </div>
 
           <div className="flex gap-2 mt-8">

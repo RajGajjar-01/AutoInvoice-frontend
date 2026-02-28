@@ -34,13 +34,28 @@ const TYPE_BADGE_COLORS = {
 }
 
 // ─── Sortable Column Header Cell ──────────────────────────────────────────────
-function SortableColumnHeader({ col, onChange, onDelete, canDelete, isDragOverlay = false }) {
+function SortableColumnHeader({ col, onChange, onDelete, canDelete, onNavigate, isDragOverlay = false }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: col._id })
     const [editing, setEditing] = useState(false)
     const [localName, setLocalName] = useState(col.name)
     const inputRef = useRef(null)
-
     useEffect(() => { if (!editing) setLocalName(col.name) }, [col.name, editing])
+
+    const commit = useCallback(() => {
+        const { _isBlank, _isDuplicate, ...clean } = col
+        onChange({ ...clean, name: localName })
+        setEditing(false)
+    }, [col, localName, onChange])
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter" || e.key === "Escape") commit()
+        if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && onNavigate) {
+            const moved = onNavigate(e.key === "ArrowLeft" ? "left" : "right")
+            if (moved) commit()
+            e.preventDefault()
+            e.stopPropagation()
+        }
+    }
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -49,12 +64,6 @@ function SortableColumnHeader({ col, onChange, onDelete, canDelete, isDragOverla
     }
 
     const badgeColor = TYPE_BADGE_COLORS[col.type] ?? "bg-muted text-muted-foreground"
-
-    const commit = useCallback(() => {
-        const { _isBlank, _isDuplicate, ...clean } = col
-        onChange({ ...clean, name: localName })
-        setEditing(false)
-    }, [col, localName, onChange])
 
     return (
         <div
@@ -65,6 +74,9 @@ function SortableColumnHeader({ col, onChange, onDelete, canDelete, isDragOverla
                 bg-muted/40 transition-colors hover:bg-muted/70
                 ${isDragOverlay ? "shadow-xl ring-2 ring-primary/30 rounded" : ""}
             `}
+            data-col-id={col._id}
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
             onDoubleClick={() => {
                 if (isDragOverlay) return
                 setEditing(true)
@@ -88,7 +100,7 @@ function SortableColumnHeader({ col, onChange, onDelete, canDelete, isDragOverla
                     value={localName}
                     onChange={(e) => setLocalName(e.target.value)}
                     onBlur={commit}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") commit() }}
+                    onKeyDown={handleKeyDown}
                     onClick={(e) => e.stopPropagation()}
                     autoFocus
                 />
@@ -189,13 +201,26 @@ export function TablePreview({ columns, setColumns, onAddColumn, onRemoveColumn 
                             </div>
 
                             <SortableContext items={columns.map((c) => c._id)} strategy={horizontalListSortingStrategy}>
-                                {columns.map((col) => (
+                                {columns.map((col, index) => (
                                     <SortableColumnHeader
                                         key={col._id}
                                         col={col}
                                         onChange={handleColumnNameChange}
                                         onDelete={handleDelete}
                                         canDelete={columns.length > 1}
+                                        onNavigate={(dir) => {
+                                            const nextIdx = dir === "left" ? index - 1 : index + 1
+                                            if (nextIdx >= 0 && nextIdx < columns.length) {
+                                                const nextId = columns[nextIdx]._id
+                                                document.querySelector(`[data-col-id="${nextId}"]`)?.focus()
+                                                return true
+                                            } else if (dir === "right" && nextIdx === columns.length) {
+                                                // If at the end, focus side panel
+                                                document.querySelector(`[data-panel="side-column"]`)?.focus()
+                                                return true
+                                            }
+                                            return false
+                                        }}
                                     />
                                 ))}
                             </SortableContext>

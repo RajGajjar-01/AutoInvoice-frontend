@@ -348,6 +348,14 @@ export const tablesStore = {
     })
   },
 
+  addRowWithData(tableId, data) {
+    this.tables = this.tables.map((t) => {
+      if (t.id !== tableId) return t
+      const newRow = { ...data, id: data.id || crypto.randomUUID() }
+      return { ...t, rows: [...t.rows, newRow] }
+    })
+  },
+
   updateCell(tableId, rowId, colName, value) {
     this.tables = this.tables.map((t) => {
       if (t.id !== tableId) return t

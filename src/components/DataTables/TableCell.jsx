@@ -66,6 +66,7 @@ export function TableCell({
   type,
   value,
   onChange,
+  onNavigate,
   suggestions = [],
   dropdownOptions = [],
 }) {
@@ -89,14 +90,37 @@ export function TableCell({
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") commit()
-    if (e.key === "Escape") cancel()
+    if (e.key === "Enter") {
+      commit()
+    }
+    if (e.key === "Escape") {
+      cancel()
+    }
+    if (onNavigate && (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      const dir = e.key.replace("Arrow", "").toLowerCase()
+      // Only commit and move if navigation is possible
+      const moved = onNavigate(dir)
+      if (moved) {
+        commit()
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    }
   }
 
   // ── Checkbox ───────────────────────────────────────────────────────────────
   if (type === "Checkbox") {
     return (
-      <div className="flex items-center justify-center px-3 py-2">
+      <div
+        className="flex items-center justify-center px-3 py-2 outline-none focus-within:bg-muted/30 h-full"
+        onKeyDown={(e) => {
+          if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
+            onNavigate(e.key.replace("Arrow", "").toLowerCase())
+            e.preventDefault()
+            e.stopPropagation()
+          }
+        }}
+      >
         <Checkbox
           checked={!!value}
           onCheckedChange={(checked) => onChange(checked)}
@@ -105,127 +129,60 @@ export function TableCell({
     )
   }
 
-  // ── Status ─────────────────────────────────────────────────────────────────
-  if (type === "Status") {
-    return (
-      <div className="px-2 py-1.5">
-        <Select value={value || ""} onValueChange={onChange}>
-          <SelectTrigger className="h-7 border-0 bg-transparent p-0 shadow-none focus:ring-0 text-xs w-full">
-            <SelectValue placeholder="—">
-              {value ? (
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[value] ?? "bg-muted text-muted-foreground"}`}
-                >
-                  {value}
-                </span>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[s]}`}
-                >
-                  {s}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    )
-  }
-
-  // ── Tag ────────────────────────────────────────────────────────────────────
-  if (type === "Tag") {
-    return (
-      <div className="px-2 py-1.5">
-        <Select value={value || ""} onValueChange={onChange}>
-          <SelectTrigger className="h-7 border-0 bg-transparent p-0 shadow-none focus:ring-0 text-xs w-full">
-            <SelectValue placeholder="—">
-              {value ? (
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${TAG_COLORS[value] ?? "bg-muted text-muted-foreground"}`}
-                >
-                  {value}
-                </span>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {TAG_OPTIONS.map((t) => (
-              <SelectItem key={t} value={t}>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${TAG_COLORS[t]}`}
-                >
-                  {t}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    )
-  }
-
-  // ── Payment Status ─────────────────────────────────────────────────────────
-  if (type === "Payment Status") {
-    return (
-      <div className="px-2 py-1.5">
-        <Select value={value || ""} onValueChange={onChange}>
-          <SelectTrigger className="h-7 border-0 bg-transparent p-0 shadow-none focus:ring-0 text-xs w-full">
-            <SelectValue placeholder="—">
-              {value ? (
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${PAYMENT_STATUS_COLORS[value] ?? "bg-muted text-muted-foreground"}`}
-                >
-                  {value}
-                </span>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {PAYMENT_STATUS_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${PAYMENT_STATUS_COLORS[s]}`}
-                >
-                  {s}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    )
-  }
-
-  // ── Dropdown ───────────────────────────────────────────────────────────────
-  if (type === "Dropdown") {
-    if (dropdownOptions.length === 0) {
-      return (
-        <div className="px-3 py-2 text-xs text-muted-foreground">
-          No options
-        </div>
-      )
+  const handleSelectKeyDown = (e) => {
+    if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
+      onNavigate(e.key.replace("Arrow", "").toLowerCase())
+      e.preventDefault()
+      e.stopPropagation()
     }
+  }
+
+  // ── Status / Tag / Payment Status / Dropdown ───────────────────────────────
+  if (
+    type === "Status" ||
+    type === "Tag" ||
+    type === "Payment Status" ||
+    type === "Dropdown"
+  ) {
+    const options =
+      type === "Status"
+        ? STATUS_OPTIONS
+        : type === "Tag"
+          ? TAG_OPTIONS
+          : type === "Payment Status"
+            ? PAYMENT_STATUS_OPTIONS
+            : dropdownOptions
+    const colors =
+      type === "Status"
+        ? STATUS_COLORS
+        : type === "Tag"
+          ? TAG_COLORS
+          : PAYMENT_STATUS_COLORS
+
+    const cellBg = (type !== "Dropdown" && value && colors?.[value])
+      ? colors[value]
+      : ""
+
     return (
-      <div className="px-2 py-1.5">
+      <div
+        className={`outline-none h-full w-full ${cellBg}`}
+        style={{ minHeight: "100%" }}
+      >
         <Select value={value || ""} onValueChange={onChange}>
-          <SelectTrigger className="h-7 border-0 bg-transparent p-0 shadow-none focus:ring-0 text-xs w-full">
+          <SelectTrigger
+            className="h-full w-full border-0 bg-transparent px-3 py-1.5 shadow-none focus:ring-0 text-xs font-medium rounded-none"
+            onKeyDown={handleSelectKeyDown}
+          >
             <SelectValue placeholder="—">
-              {value || <span className="text-muted-foreground">—</span>}
+              {value ? (
+                <span className="font-medium text-xs">{value}</span>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {dropdownOptions.map((opt) => (
+            {options.map((opt) => (
               <SelectItem key={opt} value={opt}>
                 {opt}
               </SelectItem>
@@ -256,10 +213,23 @@ export function TableCell({
     }
     return (
       <div
-        className="px-3 py-2 text-sm cursor-text min-h-[36px] hover:bg-muted/50 transition-colors rounded flex items-center gap-1.5"
+        tabIndex={0}
+        className="px-3 py-1 text-sm cursor-text min-h-[30px] hover:bg-muted/50 transition-colors rounded flex items-center gap-1.5 outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
         onClick={() => {
           setDraft(value ?? "")
           setEditing(true)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            setDraft(value ?? "")
+            setEditing(true)
+            e.preventDefault()
+          }
+          if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
+            onNavigate(e.key.replace("Arrow", "").toLowerCase())
+            e.preventDefault()
+            e.stopPropagation()
+          }
         }}
       >
         {value ? (
@@ -298,10 +268,23 @@ export function TableCell({
     }
     return (
       <div
-        className="px-3 py-2 text-sm cursor-text min-h-[36px] hover:bg-muted/50 transition-colors rounded"
+        tabIndex={0}
+        className="px-3 py-1 text-sm cursor-text min-h-[30px] hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
         onClick={() => {
           setDraft(value ?? "")
           setEditing(true)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            setDraft(value ?? "")
+            setEditing(true)
+            e.preventDefault()
+          }
+          if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
+            onNavigate(e.key.replace("Arrow", "").toLowerCase())
+            e.preventDefault()
+            e.stopPropagation()
+          }
         }}
       >
         {value ? (
@@ -366,10 +349,23 @@ export function TableCell({
 
   return (
     <div
-      className="px-3 py-2 text-sm cursor-text min-h-[36px] hover:bg-muted/50 transition-colors rounded"
+      tabIndex={0}
+      className="px-3 py-1 text-sm cursor-text min-h-[30px] hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
       onClick={() => {
         setDraft(value ?? "")
         setEditing(true)
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          setDraft(value ?? "")
+          setEditing(true)
+          e.preventDefault()
+        }
+        if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
+          onNavigate(e.key.replace("Arrow", "").toLowerCase())
+          e.preventDefault()
+          e.stopPropagation()
+        }
       }}
     >
       {displayValue ? (

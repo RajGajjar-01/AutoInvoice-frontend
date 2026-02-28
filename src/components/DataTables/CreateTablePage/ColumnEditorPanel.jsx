@@ -253,7 +253,19 @@ export function ColumnEditorPanel({ columns, setColumns, onAddColumn }) {
     }
 
     return (
-        <div className="w-80 flex-shrink-0 border-l border-border bg-background flex flex-col overflow-hidden">
+        <div
+            data-panel="side-column"
+            tabIndex={0}
+            className="w-80 flex-shrink-0 border-l border-border bg-background flex flex-col overflow-hidden outline-none focus:ring-2 focus:ring-primary/20"
+            onKeyDown={(e) => {
+                if (e.key === "ArrowLeft") {
+                    const headers = document.querySelectorAll("[data-col-id]")
+                    if (headers.length > 0) {
+                        headers[headers.length - 1].focus()
+                    }
+                }
+            }}
+        >
 
             {/* ── Panel Header ── */}
             <div className="px-4 py-3 border-b border-border shrink-0 flex items-center justify-between">
