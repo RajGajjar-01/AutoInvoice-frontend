@@ -136,3 +136,9 @@
     cursor: pointer;
   }
 }
+
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+}

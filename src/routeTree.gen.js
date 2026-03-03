@@ -15,11 +15,17 @@ import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LayoutTemplateBuilderRouteImport } from './routes/_layout/template-builder'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutInvoicesRouteImport } from './routes/_layout/invoices'
+import { Route as LayoutInvoiceTemplatesRouteImport } from './routes/_layout/invoice-templates'
+import { Route as LayoutInvoiceHistoryRouteImport } from './routes/_layout/invoice-history'
 import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutCustomersRouteImport } from './routes/_layout/customers'
+import { Route as LayoutCreateInvoiceRouteImport } from './routes/_layout/create-invoice'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutDataTablesIndexRouteImport } from './routes/_layout/data-tables/index'
 import { Route as LayoutDataTablesNewRouteImport } from './routes/_layout/data-tables.new'
@@ -54,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 })
+const LayoutTemplateBuilderRoute = LayoutTemplateBuilderRouteImport.update({
+  id: '/template-builder',
+  path: '/template-builder',
+  getParentRoute: () => LayoutRoute,
+})
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -69,6 +80,21 @@ const LayoutItemsRoute = LayoutItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => LayoutRoute,
 })
+const LayoutInvoicesRoute = LayoutInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutInvoiceTemplatesRoute = LayoutInvoiceTemplatesRouteImport.update({
+  id: '/invoice-templates',
+  path: '/invoice-templates',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutInvoiceHistoryRoute = LayoutInvoiceHistoryRouteImport.update({
+  id: '/invoice-history',
+  path: '/invoice-history',
+  getParentRoute: () => LayoutRoute,
+})
 const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
   id: '/data-tables',
   path: '/data-tables',
@@ -77,6 +103,16 @@ const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutCustomersRoute = LayoutCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutCreateInvoiceRoute = LayoutCreateInvoiceRouteImport.update({
+  id: '/create-invoice',
+  path: '/create-invoice',
   getParentRoute: () => LayoutRoute,
 })
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
@@ -111,11 +147,17 @@ const LayoutDataTablesRouteWithChildren =
 
 const LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutCreateInvoiceRoute: LayoutCreateInvoiceRoute,
+  LayoutCustomersRoute: LayoutCustomersRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutDataTablesRoute: LayoutDataTablesRouteWithChildren,
+  LayoutInvoiceHistoryRoute: LayoutInvoiceHistoryRoute,
+  LayoutInvoiceTemplatesRoute: LayoutInvoiceTemplatesRoute,
+  LayoutInvoicesRoute: LayoutInvoicesRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutProfileRoute: LayoutProfileRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutTemplateBuilderRoute: LayoutTemplateBuilderRoute,
 }
 
 const LayoutRouteWithChildren =

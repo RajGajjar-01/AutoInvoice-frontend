@@ -1,6 +1,8 @@
 import {
   ArrowRightToLine,
   Briefcase,
+  ContactRound,
+  FileText,
   Home,
   PanelLeft,
   Table2,
@@ -25,6 +27,8 @@ const baseItems = [
   { icon: Home, title: "Dashboard", path: "/dashboard" },
   { icon: Briefcase, title: "Items", path: "/items" },
   { icon: Table2, title: "Data Tables", path: "/data-tables" },
+  { icon: ContactRound, title: "Customers", path: "/customers" },
+  { icon: FileText, title: "Invoices", path: "/invoices" },
   { icon: UserCircle, title: "Account", path: "/profile" },
 ]
 
