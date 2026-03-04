@@ -28,9 +28,11 @@ import { Route as LayoutCustomersRouteImport } from './routes/_layout/customers'
 import { Route as LayoutCreateInvoiceRouteImport } from './routes/_layout/create-invoice'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutItemsIndexRouteImport } from './routes/_layout/items/index'
+import { Route as LayoutInvoiceHistoryIndexRouteImport } from './routes/_layout/invoice-history/index'
 import { Route as LayoutDataTablesIndexRouteImport } from './routes/_layout/data-tables/index'
 import { Route as LayoutCustomersIndexRouteImport } from './routes/_layout/customers/index'
 import { Route as LayoutItemsItemIdRouteImport } from './routes/_layout/items.$itemId'
+import { Route as LayoutInvoiceHistoryInvoiceIdRouteImport } from './routes/_layout/invoice-history.$invoiceId'
 import { Route as LayoutDataTablesNewRouteImport } from './routes/_layout/data-tables.new'
 import { Route as LayoutDataTablesTableIdRouteImport } from './routes/_layout/data-tables.$tableId'
 import { Route as LayoutCustomersCustomerIdRouteImport } from './routes/_layout/customers.$customerId'
@@ -129,6 +131,12 @@ const LayoutItemsIndexRoute = LayoutItemsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutItemsRoute,
 })
+const LayoutInvoiceHistoryIndexRoute =
+  LayoutInvoiceHistoryIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LayoutInvoiceHistoryRoute,
+  })
 const LayoutDataTablesIndexRoute = LayoutDataTablesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -144,6 +152,12 @@ const LayoutItemsItemIdRoute = LayoutItemsItemIdRouteImport.update({
   path: '/$itemId',
   getParentRoute: () => LayoutItemsRoute,
 })
+const LayoutInvoiceHistoryInvoiceIdRoute =
+  LayoutInvoiceHistoryInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => LayoutInvoiceHistoryRoute,
+  })
 const LayoutDataTablesNewRoute = LayoutDataTablesNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -179,6 +193,14 @@ const LayoutDataTablesRouteChildren = {
 const LayoutDataTablesRouteWithChildren =
   LayoutDataTablesRoute._addFileChildren(LayoutDataTablesRouteChildren)
 
+const LayoutInvoiceHistoryRouteChildren = {
+  LayoutInvoiceHistoryInvoiceIdRoute: LayoutInvoiceHistoryInvoiceIdRoute,
+  LayoutInvoiceHistoryIndexRoute: LayoutInvoiceHistoryIndexRoute,
+}
+
+const LayoutInvoiceHistoryRouteWithChildren =
+  LayoutInvoiceHistoryRoute._addFileChildren(LayoutInvoiceHistoryRouteChildren)
+
 const LayoutItemsRouteChildren = {
   LayoutItemsItemIdRoute: LayoutItemsItemIdRoute,
   LayoutItemsIndexRoute: LayoutItemsIndexRoute,
@@ -194,7 +216,7 @@ const LayoutRouteChildren = {
   LayoutCustomersRoute: LayoutCustomersRouteWithChildren,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutDataTablesRoute: LayoutDataTablesRouteWithChildren,
-  LayoutInvoiceHistoryRoute: LayoutInvoiceHistoryRoute,
+  LayoutInvoiceHistoryRoute: LayoutInvoiceHistoryRouteWithChildren,
   LayoutInvoiceTemplatesRoute: LayoutInvoiceTemplatesRoute,
   LayoutInvoicesRoute: LayoutInvoicesRoute,
   LayoutItemsRoute: LayoutItemsRouteWithChildren,
