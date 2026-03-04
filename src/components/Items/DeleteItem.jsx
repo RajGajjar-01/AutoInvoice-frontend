@@ -1,8 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { ItemsService } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,70 +11,71 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { LoadingButton } from "@/components/ui/loading-button"
+import useLocalStorage from "@/hooks/useLocalStorage"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
 
-const DeleteItem = ({ id, onSuccess }) => {
+/**
+ * DeleteItem supports two trigger variants:
+ *   variant="dropdown"  (default) → DropdownMenuItem
+ *   variant="button"              → standalone destructive outline Button
+ */
+const DeleteItem = ({ item, onSuccess, variant = "dropdown" }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const queryClient = useQueryClient()
-  const { showSuccessToast, showErrorToast } = useCustomToast()
-  const { handleSubmit } = useForm()
-  const deleteItem = async (id) => {
-    await ItemsService.deleteItem({ id: id })
+  const [, setItems] = useLocalStorage("items", [])
+  const { showSuccessToast } = useCustomToast()
+
+  const handleDelete = () => {
+    setItems((prev) => prev.filter((i) => i.id !== item.id))
+    showSuccessToast("Item deleted")
+    setIsOpen(false)
+    onSuccess?.()
   }
-  const mutation = useMutation({
-    mutationFn: deleteItem,
-    onSuccess: () => {
-      showSuccessToast("The item was deleted successfully")
-      setIsOpen(false)
-      onSuccess()
-    },
-    onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries()
-    },
-  })
-  const onSubmit = async () => {
-    mutation.mutate(id)
-  }
+
+  const trigger = variant === "button" ? (
+    <Button
+      variant="outline"
+      size="sm"
+      className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+      onClick={() => setIsOpen(true)}
+    >
+      <Trash2 className="mr-2 h-4 w-4" />
+      Delete
+    </Button>
+  ) : (
+    <DropdownMenuItem
+      className="text-destructive focus:text-destructive"
+      onSelect={(e) => e.preventDefault()}
+      onClick={() => setIsOpen(true)}
+    >
+      <Trash2 className="mr-2 h-4 w-4" />
+      Delete
+    </DropdownMenuItem>
+  )
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuItem
-        variant="destructive"
-        onSelect={(e) => e.preventDefault()}
-        onClick={() => setIsOpen(true)}
-      >
-        <Trash2 />
-        Delete Item
-      </DropdownMenuItem>
-      <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit(onSubmit)}>
+    <>
+      {trigger}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Delete Item</DialogTitle>
             <DialogDescription>
-              This item will be permanently deleted. Are you sure? You will not
-              be able to undo this action.
+              Are you sure you want to delete <span className="font-semibold text-foreground">"{item.name}"</span>? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-
-          <DialogFooter className="mt-4">
+          <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" disabled={mutation.isPending}>
-                Cancel
-              </Button>
+              <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <LoadingButton
-              variant="destructive"
-              type="submit"
-              loading={mutation.isPending}
-            >
+            <Button variant="destructive" onClick={handleDelete}>
+              <Trash2 className="mr-2 h-4 w-4" />
               Delete
-            </LoadingButton>
+            </Button>
           </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
+
 export default DeleteItem

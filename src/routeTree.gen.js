@@ -27,9 +27,13 @@ import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutCustomersRouteImport } from './routes/_layout/customers'
 import { Route as LayoutCreateInvoiceRouteImport } from './routes/_layout/create-invoice'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutItemsIndexRouteImport } from './routes/_layout/items/index'
 import { Route as LayoutDataTablesIndexRouteImport } from './routes/_layout/data-tables/index'
+import { Route as LayoutCustomersIndexRouteImport } from './routes/_layout/customers/index'
+import { Route as LayoutItemsItemIdRouteImport } from './routes/_layout/items.$itemId'
 import { Route as LayoutDataTablesNewRouteImport } from './routes/_layout/data-tables.new'
 import { Route as LayoutDataTablesTableIdRouteImport } from './routes/_layout/data-tables.$tableId'
+import { Route as LayoutCustomersCustomerIdRouteImport } from './routes/_layout/customers.$customerId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -120,10 +124,25 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 })
+const LayoutItemsIndexRoute = LayoutItemsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutItemsRoute,
+})
 const LayoutDataTablesIndexRoute = LayoutDataTablesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LayoutDataTablesRoute,
+})
+const LayoutCustomersIndexRoute = LayoutCustomersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutCustomersRoute,
+})
+const LayoutItemsItemIdRoute = LayoutItemsItemIdRouteImport.update({
+  id: '/$itemId',
+  path: '/$itemId',
+  getParentRoute: () => LayoutItemsRoute,
 })
 const LayoutDataTablesNewRoute = LayoutDataTablesNewRouteImport.update({
   id: '/new',
@@ -135,6 +154,21 @@ const LayoutDataTablesTableIdRoute = LayoutDataTablesTableIdRouteImport.update({
   path: '/$tableId',
   getParentRoute: () => LayoutDataTablesRoute,
 })
+const LayoutCustomersCustomerIdRoute =
+  LayoutCustomersCustomerIdRouteImport.update({
+    id: '/$customerId',
+    path: '/$customerId',
+    getParentRoute: () => LayoutCustomersRoute,
+  })
+
+const LayoutCustomersRouteChildren = {
+  LayoutCustomersCustomerIdRoute: LayoutCustomersCustomerIdRoute,
+  LayoutCustomersIndexRoute: LayoutCustomersIndexRoute,
+}
+
+const LayoutCustomersRouteWithChildren = LayoutCustomersRoute._addFileChildren(
+  LayoutCustomersRouteChildren,
+)
 
 const LayoutDataTablesRouteChildren = {
   LayoutDataTablesTableIdRoute: LayoutDataTablesTableIdRoute,
@@ -145,16 +179,25 @@ const LayoutDataTablesRouteChildren = {
 const LayoutDataTablesRouteWithChildren =
   LayoutDataTablesRoute._addFileChildren(LayoutDataTablesRouteChildren)
 
+const LayoutItemsRouteChildren = {
+  LayoutItemsItemIdRoute: LayoutItemsItemIdRoute,
+  LayoutItemsIndexRoute: LayoutItemsIndexRoute,
+}
+
+const LayoutItemsRouteWithChildren = LayoutItemsRoute._addFileChildren(
+  LayoutItemsRouteChildren,
+)
+
 const LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutCreateInvoiceRoute: LayoutCreateInvoiceRoute,
-  LayoutCustomersRoute: LayoutCustomersRoute,
+  LayoutCustomersRoute: LayoutCustomersRouteWithChildren,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutDataTablesRoute: LayoutDataTablesRouteWithChildren,
   LayoutInvoiceHistoryRoute: LayoutInvoiceHistoryRoute,
   LayoutInvoiceTemplatesRoute: LayoutInvoiceTemplatesRoute,
   LayoutInvoicesRoute: LayoutInvoicesRoute,
-  LayoutItemsRoute: LayoutItemsRoute,
+  LayoutItemsRoute: LayoutItemsRouteWithChildren,
   LayoutProfileRoute: LayoutProfileRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutTemplateBuilderRoute: LayoutTemplateBuilderRoute,
