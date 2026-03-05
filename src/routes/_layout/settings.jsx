@@ -28,7 +28,8 @@ function DemoDataTab() {
 
   const handleLoad = () => {
     seedDemoData()
-    showSuccessToast("Demo data loaded — refresh any page to see changes")
+    showSuccessToast("Demo data loaded — reloading…")
+    setTimeout(() => window.location.reload(), 800)
   }
 
   const handleClear = () => {
@@ -56,10 +57,11 @@ function DemoDataTab() {
         <Separator />
         <CardContent className="pt-4 space-y-3">
           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-            <li>8 customers &amp; suppliers (mix of types)</li>
-            <li>10 items across Electronics, Stationery, and Services</li>
-            <li>15 invoices over the past 5 months (paid, unpaid, overdue)</li>
-            <li>Full stock history for every item</li>
+            <li>20 customers & suppliers across India (mix of types)</li>
+            <li>20 items — Electronics, Stationery, Services, Printing, Furniture</li>
+            <li>25 invoices over 6 months (paid, unpaid, overdue)</li>
+            <li>4 data tables with realistic row data (Invoice Tracker, Client Directory, Expenses, Contracts)</li>
+            <li>Full stock history for every inventory item</li>
           </ul>
           <Dialog>
             <DialogTrigger asChild>

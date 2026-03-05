@@ -1,21 +1,26 @@
 import {
     ArrowRight,
+    CheckCircle2,
+    CircleDashed,
+    CircleX,
     Clock,
     FileText,
-    Receipt,
+    FilePlus,
 } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import useLocalStorage from "@/hooks/useLocalStorage"
 
-// Status badge variant map (reuse invoice statuses)
-const statusVariant = {
-    paid: "default",
-    unpaid: "secondary",
-    overdue: "destructive",
-    draft: "secondary",
+// Status config
+const statusVariant = { paid: "default", unpaid: "secondary", overdue: "destructive" }
+const statusIcon = { paid: CheckCircle2, unpaid: CircleDashed, overdue: CircleX }
+
+function fmt(num, currency = "INR") {
+    const cs = currency === "USD" ? "$" : currency === "EUR" ? "€" : currency === "GBP" ? "£" : "₹"
+    return `${cs}${Number(num || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 function EmptyTimeline() {
@@ -24,53 +29,77 @@ function EmptyTimeline() {
             <div className="rounded-full bg-muted p-4 mb-4">
                 <Clock className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="font-medium text-sm mb-1">No transactions yet</p>
-            <p className="text-xs text-muted-foreground max-w-xs">
-                Invoices and payments linked to this party will appear here.
+            <p className="font-medium text-sm mb-1">No invoices yet</p>
+            <p className="text-xs text-muted-foreground max-w-xs mb-4">
+                Invoices created for this party will appear here.
             </p>
+            <Link to="/create-invoice">
+                <Button variant="outline" size="sm">
+                    <FilePlus className="mr-2 h-3.5 w-3.5" />
+                    Create Invoice
+                </Button>
+            </Link>
         </div>
     )
 }
 
 function TimelineRow({ invoice }) {
-    const date = invoice.date
-        ? new Date(invoice.date).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
+    const StatusIcon = statusIcon[invoice.status] ?? CircleDashed
+
+    const date = invoice.invoiceDate
+        ? new Date(invoice.invoiceDate).toLocaleDateString("en-IN", {
+            day: "2-digit", month: "short", year: "numeric",
         })
         : "—"
 
-    const amount =
-        invoice.total != null
-            ? `₹${Number(invoice.total).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
-            : "—"
+    const dueDate = invoice.dueDate
+        ? new Date(invoice.dueDate).toLocaleDateString("en-IN", {
+            day: "2-digit", month: "short", year: "numeric",
+        })
+        : null
 
     return (
         <>
             <div className="flex items-center gap-4 py-3 group">
                 <div className="rounded-lg bg-muted p-2 shrink-0">
-                    <Receipt className="h-4 w-4 text-muted-foreground" />
+                    <FileText className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-sm truncate">
-                            {invoice.invoiceNumber || invoice.id || "Invoice"}
+                        <span className="font-medium text-sm font-mono truncate">
+                            {invoice.invoiceNumber || "Invoice"}
                         </span>
                         <Badge
                             variant={statusVariant[invoice.status] ?? "outline"}
-                            className="text-xs capitalize"
+                            className="text-xs capitalize gap-1"
                         >
+                            <StatusIcon className="h-3 w-3" />
                             {invoice.status ?? "unknown"}
                         </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{date}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-muted-foreground">Issued: {date}</p>
+                        {dueDate && (
+                            <p className={`text-xs ${invoice.status === "overdue" ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                                · Due: {dueDate}
+                            </p>
+                        )}
+                    </div>
+                    {invoice.items && invoice.items.length > 0 && (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                            {invoice.items.filter(i => i.name).map(i => i.name).join(", ")}
+                        </p>
+                    )}
                 </div>
                 <div className="text-right shrink-0">
-                    <p className="font-semibold text-sm">{amount}</p>
+                    <p className="font-semibold text-sm">{fmt(invoice.grandTotal, invoice.currency)}</p>
+                    {invoice.totalTax > 0 && (
+                        <p className="text-xs text-muted-foreground">+{fmt(invoice.totalTax, invoice.currency)} tax</p>
+                    )}
                 </div>
                 <Link
-                    to="/invoice-history"
+                    to="/invoice-history/$invoiceId"
+                    params={{ invoiceId: invoice.id }}
                     className="opacity-0 group-hover:opacity-100 transition-opacity"
                     title="View invoice"
                 >
@@ -86,33 +115,37 @@ function TimelineRow({ invoice }) {
 }
 
 /**
- * CustomerTimeline — shows all invoices from localStorage linked to a party.
- * Reads the global "invoices" key and filters by customerId.
+ * CustomerTimeline — shows all invoices from localStorage linked to this party.
+ * Matches by customer.name since invoices store a snapshot (not a customerId).
  */
-export function CustomerTimeline({ customerId }) {
-    // Read invoices from localStorage — same key used by the invoice pages
-    let invoices = []
-    try {
-        const raw = localStorage.getItem("invoices")
-        if (raw) invoices = JSON.parse(raw)
-    } catch {
-        invoices = []
-    }
+export function CustomerTimeline({ customer }) {
+    const [invoices] = useLocalStorage("invoices", [])
 
-    // Filter invoices that belong to this party
+    // Match invoices by customer ID (if saved) OR by customer name (snapshot match)
     const partyInvoices = invoices
-        .filter((inv) => inv.customerId === customerId || inv.partyId === customerId)
-        .sort((a, b) => new Date(b.date ?? 0) - new Date(a.date ?? 0))
+        .filter((inv) => {
+            if (!inv.customer) return false
+            // New invoices may store customerId directly
+            if (inv.customerId && inv.customerId === customer.id) return true
+            if (inv.partyId && inv.partyId === customer.id) return true
+            // Snapshot match by name (case-insensitive)
+            return inv.customer.name?.toLowerCase() === customer.name?.toLowerCase()
+        })
+        .sort((a, b) => {
+            const aDate = a.createdAt || a.invoiceDate || ""
+            const bDate = b.createdAt || b.invoiceDate || ""
+            return bDate.localeCompare(aDate)
+        })
 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                     <FileText className="h-4 w-4 text-primary" />
-                    Transaction Timeline
+                    Invoice History
                 </CardTitle>
                 <span className="text-xs text-muted-foreground">
-                    {partyInvoices.length} transaction{partyInvoices.length !== 1 ? "s" : ""}
+                    {partyInvoices.length} invoice{partyInvoices.length !== 1 ? "s" : ""}
                 </span>
             </CardHeader>
             <CardContent className="px-6 pt-0">

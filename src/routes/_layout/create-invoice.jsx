@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+﻿import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   ArrowLeft,
+  ChevronDown,
+  ChevronUp,
   Plus,
   Trash2,
   Eye,
@@ -8,6 +10,9 @@ import {
   Download,
   Send,
   Mail,
+  Percent,
+  Truck,
+  PackagePlus,
 } from "lucide-react"
 import { useState, useMemo, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -58,7 +63,7 @@ function generateInvoiceNumber() {
   return `INV-${y}${m}-${r}`
 }
 
-const emptyItem = { name: "", description: "", quantity: 1, price: 0, tax: 0 }
+const emptyItem = { name: "", description: "", quantity: 0, price: 0, tax: 0 }
 
 function CreateInvoicePage() {
   const [customers, setCustomers] = useLocalStorage("customers", [])
@@ -67,6 +72,7 @@ function CreateInvoicePage() {
   const [selectedTemplate] = useLocalStorage("selected-template", "minimal")
   const [customTemplate] = useLocalStorage("custom-template", null)
   const [importedTemplate] = useLocalStorage("imported-template", null)
+  const [companyDetails] = useLocalStorage("company-details", {})
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const savedRef = useRef(false)
   const { customerId: preselectedCustomerId, itemId: preselectedItemId } = Route.useSearch()
@@ -86,9 +92,21 @@ function CreateInvoicePage() {
   )
   const [dueDate, setDueDate] = useState("")
   const [currency, setCurrency] = useState("INR")
+  const [poNumber, setPoNumber] = useState("")
+  const [placeOfSupply, setPlaceOfSupply] = useState("")
+  const [reverseCharge, setReverseCharge] = useState(false)
   const [items, setItems] = useState([{ ...emptyItem }])
   const [notes, setNotes] = useState("")
   const [paymentTerms, setPaymentTerms] = useState("")
+  // Invoice-level adjustments
+  const [discountType, setDiscountType] = useState("percent") // "percent" | "flat"
+  const [discountValue, setDiscountValue] = useState(0)
+  const [shippingCharge, setShippingCharge] = useState(0)
+  const [extraChargeLabel, setExtraChargeLabel] = useState("Handling Charges")
+  const [extraChargeAmount, setExtraChargeAmount] = useState(0)
+  const [roundOff, setRoundOff] = useState(false)
+  const [showBankDetails, setShowBankDetails] = useState(false)
+  const [bankDetails, setBankDetails] = useState({ bankName: "", accountName: "", accountNumber: "", ifsc: "", branch: "", upi: "" })
   const [previewOpen, setPreviewOpen] = useState(false)
 
   // Pre-select customer and/or item if navigated from their detail pages
@@ -131,7 +149,7 @@ function CreateInvoicePage() {
           ? {
             ...item,
             [field]:
-              field === "quantity" || field === "price" || field === "tax"
+              field === "quantity" || field === "price" || field === "tax" || field === "discount"
                 ? Number(value) || 0
                 : value,
           }
@@ -165,17 +183,41 @@ function CreateInvoicePage() {
   const removeItem = (index) =>
     setItems((prev) => prev.filter((_, i) => i !== index))
 
-  const { subtotal, totalTax, grandTotal } = useMemo(() => {
+  const { subtotal, totalTax, itemsDiscount, invoiceDiscount, grandTotal } = useMemo(() => {
     let sub = 0
     let tax = 0
+    let itemDisc = 0
     for (const item of items) {
-      const lineTotal = item.quantity * item.price
-      const lineTax = (lineTotal * item.tax) / 100
-      sub += lineTotal
+      const lineBase = item.quantity * item.price
+      const disc = item.discountType === "flat"
+        ? Math.min(item.discount || 0, lineBase)
+        : lineBase * ((item.discount || 0) / 100)
+      const taxable = lineBase - disc
+      const lineTax = (taxable * item.tax) / 100
+      sub += lineBase
+      itemDisc += disc
       tax += lineTax
     }
-    return { subtotal: sub, totalTax: tax, grandTotal: sub + tax }
-  }, [items])
+    // Invoice-level discount
+    const taxableAfterItemDisc = sub - itemDisc
+    const invDisc = discountType === "flat"
+      ? Math.min(discountValue, taxableAfterItemDisc)
+      : taxableAfterItemDisc * (discountValue / 100)
+    const netBeforeTax = taxableAfterItemDisc - invDisc
+    // Recalculate tax on net if per-item tax is used (approximate redistribution)
+    const effectiveTaxRate = sub > 0 ? tax / sub : 0
+    const adjustedTax = netBeforeTax * effectiveTaxRate
+    const beforeAdjustments = netBeforeTax + adjustedTax + Number(shippingCharge || 0) + Number(extraChargeAmount || 0)
+    const rawGrand = beforeAdjustments
+    const grand = roundOff ? Math.round(rawGrand) : rawGrand
+    return {
+      subtotal: sub,
+      totalTax: adjustedTax,
+      itemsDiscount: itemDisc,
+      invoiceDiscount: invDisc,
+      grandTotal: grand,
+    }
+  }, [items, discountType, discountValue, shippingCharge, extraChargeAmount, roundOff])
 
   const currencySymbol =
     currency === "INR"
@@ -194,10 +236,22 @@ function CreateInvoicePage() {
     invoiceDate,
     dueDate,
     currency,
+    poNumber,
+    placeOfSupply,
+    reverseCharge,
     customer: customerDetails,
     items,
     subtotal,
     totalTax,
+    itemsDiscount,
+    invoiceDiscount,
+    discountType,
+    discountValue,
+    shippingCharge: Number(shippingCharge || 0),
+    extraChargeLabel,
+    extraChargeAmount: Number(extraChargeAmount || 0),
+    roundOff,
+    bankDetails: showBankDetails ? bankDetails : null,
     grandTotal,
     notes,
     paymentTerms,
@@ -274,14 +328,62 @@ function CreateInvoicePage() {
   const buildInvoiceHtml = () => {
     const cs = currencySymbol
     const cd = customerDetails
+    const biz = companyDetails || {}
     const validItems = items.filter((i) => i.name)
+
+    // Build company block for invoice sender section
+    const bizName = biz.name || 'Your Business'
+    const bizEmail = biz.email || ''
+    const bizPhone = biz.phone || ''
+    const bizAddress = [biz.address, biz.city, biz.state, biz.pincode].filter(Boolean).join(', ')
+    const bizGstin = biz.gstin || ''
+    const bizTagline = biz.tagline || ''
+    const bizLogo = biz.logo || null
+
+    // Bank details - use company bank if not overridden
+    const activeBankDetails = showBankDetails ? bankDetails : (
+      (biz.bankName || biz.accountNumber || biz.upi) ? {
+        bankName: biz.bankName || '',
+        accountName: biz.accountName || '',
+        accountNumber: biz.accountNumber || '',
+        ifsc: biz.ifsc || '',
+        branch: biz.branch || '',
+        upi: biz.upi || '',
+      } : null
+    )
+
+    const bankBlock = activeBankDetails && (activeBankDetails.bankName || activeBankDetails.accountNumber || activeBankDetails.upi) ? `
+      <div style="background:#f8f9fa;border-radius:6px;padding:12px 16px;margin-bottom:20px">
+        <p style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;color:#666">Bank / Payment Details</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;font-size:11px;color:#555">
+          ${activeBankDetails.bankName ? `<span>Bank: <strong>${activeBankDetails.bankName}</strong></span>` : ''}
+          ${activeBankDetails.accountName ? `<span>Account Name: <strong>${activeBankDetails.accountName}</strong></span>` : ''}
+          ${activeBankDetails.accountNumber ? `<span>Acc No: <strong>${activeBankDetails.accountNumber}</strong></span>` : ''}
+          ${activeBankDetails.ifsc ? `<span>IFSC: <strong>${activeBankDetails.ifsc}</strong></span>` : ''}
+          ${activeBankDetails.branch ? `<span>Branch: ${activeBankDetails.branch}</span>` : ''}
+          ${activeBankDetails.upi ? `<span>UPI: <strong>${activeBankDetails.upi}</strong></span>` : ''}
+        </div>
+      </div>` : ''
 
     // Shared helpers
     const metaRows = `
       <tr><td>Invoice #</td><td>${invoiceNumber}</td></tr>
       <tr><td>Date</td><td>${invoiceDate}</td></tr>
       ${dueDate ? `<tr><td>Due Date</td><td>${dueDate}</td></tr>` : ''}
-      <tr><td>Currency</td><td>${currency}</td></tr>`
+      <tr><td>Currency</td><td>${currency}</td></tr>
+      ${poNumber ? `<tr><td>PO #</td><td>${poNumber}</td></tr>` : ''}
+      ${placeOfSupply ? `<tr><td>Place of Supply</td><td>${placeOfSupply}</td></tr>` : ''}`
+
+    const bizBlock = `
+      ${bizLogo ? `<img src="${bizLogo}" style="height:40px;object-fit:contain;margin-bottom:4px" alt="logo">` : ''}
+      <p style="font-weight:700;font-size:14px">${bizName}</p>
+      ${bizTagline ? `<p style="color:#aaa;font-size:11px">${bizTagline}</p>` : ''}
+      ${bizAddress ? `<p style="color:#888;font-size:11px">${bizAddress}</p>` : ''}
+      ${bizGstin ? `<p style="color:#888;font-size:11px">GSTIN: ${bizGstin}</p>` : ''}
+      ${bizEmail ? `<p style="color:#888;font-size:11px">${bizEmail}</p>` : ''}
+      ${bizPhone ? `<p style="color:#888;font-size:11px">${bizPhone}</p>` : ''}`
+
+    const invoiceFooterNote = biz.invoiceFooter || 'Thank you for your business!'
 
     const notesBlock = (accentColor = '#217346') => (notes || paymentTerms) ? `
       <div style="background:#f6faf8;border-left:4px solid ${accentColor};padding:12px 16px;margin-bottom:20px">
@@ -289,289 +391,243 @@ function CreateInvoicePage() {
         ${paymentTerms ? `<p style="font-weight:700;font-size:12px;margin:8px 0 4px">Payment Terms</p><p style="color:#555;font-size:12px">${paymentTerms}</p>` : ''}
       </div>` : ''
 
-    const footer = `<div style="text-align:center;color:#aaa;font-size:11px;border-top:1px solid #e5e5e5;padding-top:14px">Thank you for your business &bull; Generated by AutoInvoice</div>`
+    const footer = `${bankBlock}<div style="text-align:center;color:#aaa;font-size:11px;border-top:1px solid #e5e5e5;padding-top:14px">${invoiceFooterNote} &bull; Generated by AutoInvoice</div>`
 
     const wrap = (title, style, body) => `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>${style}</style></head><body>${body}</body></html>`
 
-    // ── MINIMAL ──────────────────────────────────────────────────────────────
+    // ── Shared invoice builder — Navy Professional (matches reference design) ─
+    const buildProfessionalInvoice = (opts) => {
+      const {
+        label = 'INVOICE',
+        navyBg = '#1e2d5b',
+        accentOrange = '#f47321',
+      } = opts
+
+      const logoHtml = bizLogo
+        ? `<img src="${bizLogo}" style="height:36px;max-width:110px;object-fit:contain;display:block;margin-bottom:6px" alt="logo">`
+        : `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+             <div style="width:32px;height:32px;background:${accentOrange};border-radius:4px;display:flex;align-items:center;justify-content:center">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+             </div>
+             <div>
+               <p style="font-weight:800;font-size:15px;color:#fff;line-height:1.1">${bizName}</p>
+               ${bizTagline ? '<p style="font-size:9px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px">' + bizTagline + '</p>' : ''}
+             </div>
+           </div>`
+
+      const rows = validItems.filter(i => i.name).map((item, idx, arr) => {
+        const lineBase = item.quantity * item.price
+        const disc = item.discountType === 'flat'
+          ? Math.min(item.discount || 0, lineBase)
+          : lineBase * ((item.discount || 0) / 100)
+        const taxable = lineBase - disc
+        const lineTax = (taxable * item.tax) / 100
+        const lineTotal = taxable + lineTax
+        const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8f9fb'
+        return `<tr style="background:${rowBg}">
+          <td style="padding:9px 10px;border-bottom:1px solid #edf0f5;font-size:12px;color:#374151;text-align:center;width:32px;font-weight:500">${idx + 1}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #edf0f5;font-size:12px;color:#1e2d5b">
+            <div style="font-weight:500">${item.name}</div>
+            ${item.description ? '<div style="font-size:10.5px;color:#9ca3af;margin-top:1px">' + item.description + '</div>' : ''}
+            ${item.hsnCode ? '<div style="font-size:10px;color:#c4c9d4;margin-top:1px">HSN: ' + item.hsnCode + '</div>' : ''}
+          </td>
+          <td style="padding:9px 12px;border-bottom:1px solid #edf0f5;text-align:center;font-size:12px;color:#374151">${item.quantity}${item.unit ? ' ' + item.unit : ''}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #edf0f5;text-align:right;font-size:12px;color:#374151;font-family:ui-monospace,monospace">${cs}${Number(item.price).toFixed(2)}</td>
+          ${item.discount ? '<td style="padding:9px 12px;border-bottom:1px solid #edf0f5;text-align:right;font-size:12px;color:#ef4444;font-family:ui-monospace,monospace">-' + cs + disc.toFixed(2) + '</td>' : ''}
+          <td style="padding:9px 12px;border-bottom:1px solid #edf0f5;text-align:right;font-size:12px;color:#374151;font-family:ui-monospace,monospace">${cs}${lineTotal.toFixed(2)}</td>
+        </tr>`
+      }).join('')
+
+      const hasDiscount = validItems.filter(i => i.name).some(i => i.discount)
+
+      const summaryRows = [
+        { label: 'Subtotal', value: cs + subtotal.toFixed(2) },
+        itemsDiscount > 0 ? { label: 'Item Discounts', value: '-' + cs + itemsDiscount.toFixed(2), red: true } : null,
+        invoiceDiscount > 0 ? { label: 'Invoice Discount' + (discountType === 'percent' ? ' (' + discountValue + '%)' : ''), value: '-' + cs + invoiceDiscount.toFixed(2), red: true } : null,
+        totalTax > 0 ? { label: 'Tax', value: cs + totalTax.toFixed(2) } : null,
+        Number(shippingCharge) > 0 ? { label: 'Shipping', value: cs + Number(shippingCharge).toFixed(2) } : null,
+        Number(extraChargeAmount) > 0 ? { label: extraChargeLabel || 'Extra Charges', value: cs + Number(extraChargeAmount).toFixed(2) } : null,
+      ].filter(Boolean)
+
+      const summaryHtml = summaryRows.map(r =>
+        `<tr>
+          <td style="padding:5px 12px 5px 0;font-size:12px;color:#6b7280;text-align:right">${r.label}</td>
+          <td style="padding:5px 0;font-size:12px;text-align:right;font-family:ui-monospace,monospace;color:${r.red ? '#ef4444' : '#1e2d5b'}">${r.value}</td>
+        </tr>`
+      ).join('')
+
+      const bankSection = activeBankDetails && (activeBankDetails.bankName || activeBankDetails.accountNumber || activeBankDetails.upi) ? `
+        <div style="margin-top:28px">
+          <p style="font-size:12px;font-weight:700;color:#1e2d5b;margin-bottom:10px">Payment Info</p>
+          <table style="font-size:11.5px;border-collapse:collapse">
+            ${activeBankDetails.accountName ? '<tr><td style="color:#6b7280;padding-right:12px;padding-bottom:4px">Account Name</td><td style="color:#1e2d5b;font-weight:500">' + activeBankDetails.accountName + '</td></tr>' : ''}
+            ${activeBankDetails.bankName ? '<tr><td style="color:#6b7280;padding-right:12px;padding-bottom:4px">Bank</td><td style="color:#1e2d5b;font-weight:500">' + activeBankDetails.bankName + '</td></tr>' : ''}
+            ${activeBankDetails.accountNumber ? '<tr><td style="color:#6b7280;padding-right:12px;padding-bottom:4px">Account No.</td><td style="color:#1e2d5b;font-family:ui-monospace,monospace">' + activeBankDetails.accountNumber + '</td></tr>' : ''}
+            ${activeBankDetails.ifsc ? '<tr><td style="color:#6b7280;padding-right:12px;padding-bottom:4px">IFSC</td><td style="color:#1e2d5b;font-family:ui-monospace,monospace">' + activeBankDetails.ifsc + '</td></tr>' : ''}
+            ${activeBankDetails.upi ? '<tr><td style="color:#6b7280;padding-right:12px;padding-bottom:4px">UPI</td><td style="color:#1e2d5b;font-family:ui-monospace,monospace">' + activeBankDetails.upi + '</td></tr>' : ''}
+            ${dueDate ? '<tr><td style="color:#6b7280;padding-right:12px">Payment Due</td><td style="color:#1e2d5b;font-weight:600">' + dueDate + '</td></tr>' : ''}
+          </table>
+        </div>` : ''
+
+      const notesSection = (notes || paymentTerms) ? `
+        <div style="margin-top:28px">
+          <p style="font-size:12px;font-weight:700;color:#1e2d5b;margin-bottom:8px">Notes</p>
+          ${notes ? '<p style="font-size:11.5px;color:#6b7280;line-height:1.6">' + notes + '</p>' : ''}
+          ${paymentTerms ? '<p style="font-size:11.5px;color:#6b7280;margin-top:4px">' + paymentTerms + '</p>' : ''}
+        </div>` : ''
+
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${label} ${invoiceNumber}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;background:#fff;color:#1a1a1a;-webkit-font-smoothing:antialiased}
+    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  </style>
+</head>
+<body>
+<div style="max-width:800px;margin:0 auto;background:#fff">
+
+  <!-- ══ TOP HEADER BAND ══ -->
+  <div style="background:${navyBg};padding:28px 36px;position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:flex-start">
+    <!-- Diagonal stripe decoration -->
+    <div style="position:absolute;top:-30px;right:140px;width:160px;height:200px;opacity:0.08;transform:rotate(-15deg);background:repeating-linear-gradient(0deg,transparent,transparent 12px,#fff 12px,#fff 14px)"></div>
+    <div style="position:absolute;top:-30px;right:40px;width:100px;height:200px;opacity:0.06;transform:rotate(-15deg);background:repeating-linear-gradient(0deg,transparent,transparent 12px,#fff 12px,#fff 14px)"></div>
+
+    <!-- Left: Logo + company name -->
+    <div style="position:relative;z-index:1">
+      ${logoHtml}
+      ${bizLogo ? '<p style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9)">' + bizName + '</p>' : ''}
+    </div>
+
+    <!-- Right: INVOICE title + ref -->
+    <div style="text-align:right;position:relative;z-index:1">
+      <p style="font-size:36px;font-weight:900;color:#fff;letter-spacing:2px;line-height:1">${label}</p>
+      <p style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:6px">Ref No. <span style="font-family:ui-monospace,monospace;color:rgba(255,255,255,0.85)">${invoiceNumber}</span></p>
+      <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.7)">
+        <div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:3px">
+          <span style="color:rgba(255,255,255,0.5)">Invoice Date</span>
+          <span style="color:#fff;font-weight:600">${invoiceDate}</span>
+        </div>
+        ${dueDate ? '<div style="display:flex;justify-content:flex-end;gap:6px"><span style="color:rgba(255,255,255,0.5)">Due Date</span><span style="color:#f47321;font-weight:600">' + dueDate + '</span></div>' : ''}
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COMPANY DETAILS STRIP ══ -->
+  <div style="background:#eef1f7;padding:10px 36px;border-bottom:1px solid #dce1ed">
+    <p style="font-size:11px;font-weight:700;color:#1e2d5b;margin-bottom:2px">${bizName}</p>
+    <p style="font-size:10.5px;color:#6b7280">
+      ${[bizAddress, bizGstin ? 'GSTIN: ' + bizGstin : '', bizPhone ? 'Tel: ' + bizPhone : '', bizEmail ? 'Email: ' + bizEmail : ''].filter(Boolean).join('  |  ')}
+    </p>
+  </div>
+
+  <!-- ══ BODY ══ -->
+  <div style="padding:28px 36px">
+
+    <!-- Billed To -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #edf0f5">
+      <div>
+        <p style="font-size:11px;font-weight:700;color:#1e2d5b;border-bottom:1px solid #1e2d5b;padding-bottom:4px;margin-bottom:10px">Billed To:</p>
+        <p style="font-weight:700;font-size:12.5px;color:#1e2d5b;margin-bottom:3px">${cd.name || '—'}</p>
+        ${cd.address ? '<p style="font-size:11.5px;color:#6b7280;line-height:1.5">' + cd.address + '</p>' : ''}
+        ${cd.phone ? '<p style="font-size:11.5px;color:#6b7280">' + cd.phone + '</p>' : ''}
+        ${cd.email ? '<p style="font-size:11.5px;color:#6b7280">' + cd.email + '</p>' : ''}
+        ${cd.gst ? '<p style="font-size:11px;color:#6b7280;font-family:ui-monospace,monospace;margin-top:3px">GSTIN: ' + cd.gst + '</p>' : ''}
+        ${placeOfSupply ? '<p style="font-size:10.5px;color:#9ca3af;margin-top:3px">Place of Supply: ' + placeOfSupply + '</p>' : ''}
+      </div>
+      <div>
+        <p style="font-size:11px;font-weight:700;color:#1e2d5b;border-bottom:1px solid #1e2d5b;padding-bottom:4px;margin-bottom:10px">Invoice Details:</p>
+        <table style="font-size:11.5px;border-collapse:collapse;width:100%">
+          <tr><td style="color:#6b7280;padding-bottom:4px;width:50%">Invoice No.</td><td style="font-family:ui-monospace,monospace;color:#1e2d5b;font-weight:600">${invoiceNumber}</td></tr>
+          <tr><td style="color:#6b7280;padding-bottom:4px">Currency</td><td style="color:#1e2d5b">${currency}</td></tr>
+          ${poNumber ? '<tr><td style="color:#6b7280;padding-bottom:4px">PO Number</td><td style="color:#1e2d5b;font-family:ui-monospace,monospace">' + poNumber + '</td></tr>' : ''}
+          ${reverseCharge ? '<tr><td style="color:#6b7280">Reverse Charge</td><td style="color:#ef4444;font-weight:600">Applicable</td></tr>' : ''}
+        </table>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:0">
+      <thead>
+        <tr style="background:${navyBg}">
+          <th style="padding:10px 10px;text-align:center;font-size:11px;font-weight:600;color:#fff;width:32px">No.</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#fff">Description</th>
+          <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:600;color:#fff">Quantity</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;font-weight:600;color:#fff">Unit Price (${currency})</th>
+          ${hasDiscount ? '<th style="padding:10px 12px;text-align:right;font-size:11px;font-weight:600;color:#fff">Discount</th>' : ''}
+          <th style="padding:10px 12px;text-align:right;font-size:11px;font-weight:600;color:#fff">Amount (${currency})</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <!-- Summary Row -->
+    <div style="display:flex;justify-content:flex-end;margin-top:0">
+      <table style="border-collapse:collapse;min-width:240px">
+        ${summaryHtml}
+        <tr>
+          <td style="padding:10px 12px 10px 0;font-size:13px;font-weight:700;color:#1e2d5b;text-align:right;border-top:2px solid ${navyBg}">Amount Due</td>
+          <td style="padding:10px 12px;background:${navyBg};font-size:14px;font-weight:800;color:#fff;font-family:ui-monospace,monospace;text-align:right;border-top:2px solid ${navyBg};white-space:nowrap">${cs}${grandTotal.toFixed(2)}</td>
+        </tr>
+        ${roundOff ? '<tr><td colspan="2" style="padding:3px 0;font-size:10px;color:#9ca3af;text-align:right">* Amount rounded off</td></tr>' : ''}
+      </table>
+    </div>
+
+    <!-- Bank + Notes (side by side if both present) -->
+    <div style="display:grid;grid-template-columns:${(activeBankDetails && (activeBankDetails.bankName || activeBankDetails.accountNumber)) && (notes || paymentTerms) ? '1fr 1fr' : '1fr'};gap:28px;margin-top:24px;padding-top:20px;border-top:1px solid #edf0f5">
+      ${bankSection}
+      ${notesSection}
+    </div>
+
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <div style="background:#eef1f7;padding:12px 36px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid ${navyBg}">
+    <p style="font-size:11px;color:#6b7280;font-style:italic">${invoiceFooterNote}</p>
+    <p style="font-size:10px;color:#9ca3af">
+      ${[bizEmail ? 'Email: ' + bizEmail : '', bizEmail ? '' : '', bizPhone ? 'Tel: ' + bizPhone : ''].filter(Boolean).join('  |  ')}
+    </p>
+  </div>
+
+</div>
+</body>
+</html>`
+    }
+
+
+    // ── MINIMAL ─────────────────────────────────────────────────────────────
     if (selectedTemplate === 'minimal') {
-      const rows = validItems.map(item => `
-        <tr><td style="padding:7px 0;border-bottom:1px solid #f0f0f0;font-family:monospace">${item.name}</td>
-            <td style="padding:7px 0;border-bottom:1px solid #f0f0f0;color:#888">${item.description || ''}</td>
-            <td style="padding:7px 0;border-bottom:1px solid #f0f0f0;text-align:right">${item.quantity}</td>
-            <td style="padding:7px 0;border-bottom:1px solid #f0f0f0;text-align:right">${cs}${Number(item.price).toFixed(2)}</td>
-            <td style="padding:7px 0;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:700">${cs}${(item.quantity * item.price * (1 + item.tax / 100)).toFixed(2)}</td></tr>`
-      ).join('')
-      return wrap(`Invoice ${invoiceNumber}`,
-        `*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:36px;background:#fff}@media print{body{padding:0}}`,
-        `<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #ddd;padding-bottom:20px;margin-bottom:28px">
-          <div><p style="font-size:26px;font-weight:800;letter-spacing:4px;color:#222;font-family:monospace">INVOICE</p><p style="color:#aaa;margin-top:4px;font-family:monospace">${invoiceNumber}</p></div>
-          <div style="text-align:right"><p style="font-weight:700;color:#444">Your Business</p><p style="color:#aaa;font-size:12px">hello@yourbiz.com</p></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:28px">
-          <div><p style="font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">BILL TO</p>
-            <p style="font-weight:700">${cd.name || '—'}</p>
-            ${cd.address ? `<p style="color:#888">${cd.address}</p>` : ''}
-            ${cd.phone ? `<p style="color:#888">${cd.phone}</p>` : ''}
-            ${cd.email ? `<p style="color:#888">${cd.email}</p>` : ''}
-            ${cd.gst ? `<p style="color:#888">GST: ${cd.gst}</p>` : ''}
-          </div>
-          <div style="text-align:right"><table>${metaRows}</table></div>
-        </div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
-          <thead><tr style="border-bottom:2px solid #222">
-            <th style="text-align:left;padding-bottom:6px;font-size:11px;color:#888">ITEM</th>
-            <th style="text-align:left;padding-bottom:6px;font-size:11px;color:#888">DESC</th>
-            <th style="text-align:right;padding-bottom:6px;font-size:11px;color:#888">QTY</th>
-            <th style="text-align:right;padding-bottom:6px;font-size:11px;color:#888">RATE</th>
-            <th style="text-align:right;padding-bottom:6px;font-size:11px;color:#888">AMOUNT</th>
-          </tr></thead><tbody>${rows}</tbody>
-        </table>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:24px">
-          <div style="width:200px">
-            <div style="display:flex;justify-content:space-between;color:#888;font-size:12px;margin-bottom:4px"><span>Subtotal</span><span>${cs}${subtotal.toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;color:#888;font-size:12px;margin-bottom:8px"><span>Tax</span><span>${cs}${totalTax.toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;font-weight:800;border-top:1px solid #ddd;padding-top:8px"><span>TOTAL</span><span>${cs}${grandTotal.toFixed(2)}</span></div>
-          </div>
-        </div>
-        ${notesBlock('#555')}${footer}`)
+      return buildProfessionalInvoice({ label: 'INVOICE', navyBg: '#1e2d5b', accentOrange: '#f47321' })
     }
-
-    // ── GST ──────────────────────────────────────────────────────────────────
+    // ── GST ─────────────────────────────────────────────────────────────────
     if (selectedTemplate === 'gst') {
-      const rows = validItems.map(item => {
-        const taxable = item.quantity * item.price
-        const half = (taxable * item.tax) / 200
-        const total = taxable + taxable * item.tax / 100
-        return `<tr style="border-bottom:1px solid #e5e5e5">
-          <td style="padding:8px">${item.name}${item.hsnCode ? ` <span style="color:#aaa;font-size:10px">(HSN: ${item.hsnCode})</span>` : ''}<br><span style="color:#aaa;font-size:10px">${item.description || ''}</span></td>
-          <td style="padding:8px;text-align:right">${cs}${taxable.toFixed(2)}</td>
-          <td style="padding:8px;text-align:right">${cs}${half.toFixed(2)}</td>
-          <td style="padding:8px;text-align:right">${cs}${half.toFixed(2)}</td>
-          <td style="padding:8px;text-align:right;font-weight:700">${cs}${total.toFixed(2)}</td></tr>`
-      }).join('')
-      return wrap(`Tax Invoice ${invoiceNumber}`,
-        `*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:32px;background:#fff;border-top:5px solid #16a34a}@media print{body{padding:0}}`,
-        `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
-          <div><p style="font-size:22px;font-weight:800;color:#16a34a;letter-spacing:2px">TAX INVOICE</p>
-            <p style="color:#aaa;font-size:11px">${invoiceNumber}${cd.gst ? ` | GSTIN: ${cd.gst}` : ''}</p></div>
-          <div style="text-align:right"><p style="font-weight:700">Your Business</p><p style="color:#aaa;font-size:11px">GSTIN: ENTER YOUR GSTIN</p></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;background:#f0fdf4;padding:14px;border-radius:6px;margin-bottom:20px">
-          <div><p style="color:#16a34a;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px">Buyer Details</p>
-            <p style="font-weight:700">${cd.name || '—'}</p>
-            ${cd.gst ? `<p style="color:#666;font-size:11px">GSTIN: ${cd.gst}</p>` : ''}
-            ${cd.address ? `<p style="color:#666;font-size:11px">${cd.address}</p>` : ''}
-          </div>
-          <div style="text-align:right;font-size:11px;color:#666">
-            <p>Date: ${invoiceDate}</p>
-            ${dueDate ? `<p>Due: ${dueDate}</p>` : ''}
-            <p>Currency: ${currency}</p>
-          </div>
-        </div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-          <thead><tr style="background:#16a34a;color:#fff">
-            <th style="padding:9px 10px;text-align:left;font-size:12px">Description</th>
-            <th style="padding:9px 10px;text-align:right;font-size:12px">Taxable</th>
-            <th style="padding:9px 10px;text-align:right;font-size:12px">CGST</th>
-            <th style="padding:9px 10px;text-align:right;font-size:12px">SGST</th>
-            <th style="padding:9px 10px;text-align:right;font-size:12px">Total</th>
-          </tr></thead><tbody>${rows}</tbody>
-        </table>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:20px">
-          <div style="width:220px">
-            <div style="display:flex;justify-content:space-between;color:#666;font-size:12px;margin-bottom:3px"><span>Taxable Amount</span><span>${cs}${subtotal.toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;color:#666;font-size:12px;margin-bottom:3px"><span>CGST</span><span>${cs}${(totalTax / 2).toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;color:#666;font-size:12px;margin-bottom:8px"><span>SGST</span><span>${cs}${(totalTax / 2).toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;font-weight:800;color:#16a34a;border-top:2px solid #16a34a;padding-top:8px"><span>Grand Total</span><span>${cs}${grandTotal.toFixed(2)}</span></div>
-          </div>
-        </div>
-        ${notesBlock('#16a34a')}${footer}`)
+      return buildProfessionalInvoice({ label: 'TAX INVOICE', navyBg: '#14532d', accentOrange: '#22c55e' })
     }
-
-    // ── PROFESSIONAL ─────────────────────────────────────────────────────────
+    // ── PROFESSIONAL ────────────────────────────────────────────────────────
     if (selectedTemplate === 'professional') {
-      const rows = validItems.map(item => `
-        <tr style="border-bottom:1px solid #e5e5e5">
-          <td style="padding:9px 10px">${item.name}<br><span style="color:#aaa;font-size:11px">${item.description || ''}</span></td>
-          <td style="padding:9px 10px;text-align:right">${item.quantity}</td>
-          <td style="padding:9px 10px;text-align:right">${cs}${Number(item.price).toFixed(2)}</td>
-          <td style="padding:9px 10px;text-align:right">${item.tax}%</td>
-          <td style="padding:9px 10px;text-align:right;font-weight:700">${cs}${(item.quantity * item.price * (1 + item.tax / 100)).toFixed(2)}</td></tr>`
-      ).join('')
-      return wrap(`Invoice ${invoiceNumber}`,
-        `*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff}@media print{body{padding:0}}`,
-        `<div style="background:#111827;color:#fff;padding:28px 32px;display:flex;justify-content:space-between;align-items:center">
-          <div><div style="width:36px;height:36px;border-radius:6px;background:#f97316;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;margin-bottom:8px">A</div>
-            <p style="font-weight:700;font-size:16px">AutoInvoice</p><p style="color:#9ca3af;font-size:11px">Professional Services</p></div>
-          <div style="text-align:right"><p style="font-size:24px;font-weight:800;letter-spacing:3px;color:#f97316">INVOICE</p>
-            <p style="color:#9ca3af;font-size:11px">#${invoiceNumber}</p><p style="color:#9ca3af;font-size:11px">${invoiceDate}</p></div>
-        </div>
-        <div style="padding:28px 32px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
-            <div><p style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Billed To</p>
-              <p style="font-weight:700">${cd.name || '—'}</p>
-              ${cd.address ? `<p style="color:#6b7280;font-size:12px">${cd.address}</p>` : ''}
-              ${cd.phone ? `<p style="color:#6b7280;font-size:12px">${cd.phone}</p>` : ''}
-              ${cd.email ? `<p style="color:#6b7280;font-size:12px">${cd.email}</p>` : ''}</div>
-            <div style="background:#f9fafb;border-radius:6px;padding:12px">
-              <p style="font-weight:700;font-size:12px;margin-bottom:6px">Invoice Details</p>
-              <table style="font-size:11px;color:#6b7280"><tbody>${metaRows}</tbody></table>
-            </div>
-          </div>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-            <thead><tr style="border-bottom:2px solid #111827">
-              <th style="text-align:left;padding:8px 10px;font-size:11px;color:#374151">Service</th>
-              <th style="text-align:right;padding:8px 10px;font-size:11px;color:#374151">Qty</th>
-              <th style="text-align:right;padding:8px 10px;font-size:11px;color:#374151">Price</th>
-              <th style="text-align:right;padding:8px 10px;font-size:11px;color:#374151">Tax</th>
-              <th style="text-align:right;padding:8px 10px;font-size:11px;color:#374151">Amount</th>
-            </tr></thead><tbody>${rows}</tbody>
-          </table>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:24px">
-            <div style="width:220px">
-              <div style="display:flex;justify-content:space-between;color:#6b7280;font-size:12px;margin-bottom:4px"><span>Subtotal</span><span>${cs}${subtotal.toFixed(2)}</span></div>
-              <div style="display:flex;justify-content:space-between;color:#6b7280;font-size:12px;margin-bottom:4px"><span>Tax</span><span>${cs}${totalTax.toFixed(2)}</span></div>
-              <div style="background:#111827;color:#fff;display:flex;justify-content:space-between;padding:10px 14px;border-radius:6px;font-weight:800"><span>TOTAL</span><span>${cs}${grandTotal.toFixed(2)}</span></div>
-            </div>
-          </div>
-          ${notesBlock('#f97316')}${footer}
-        </div>`)
+      return buildProfessionalInvoice({ label: 'INVOICE', navyBg: '#111827', accentOrange: '#f97316' })
     }
-
-    // ── RETAIL ───────────────────────────────────────────────────────────────
+    // ── RETAIL ──────────────────────────────────────────────────────────────
     if (selectedTemplate === 'retail') {
-      const rows = validItems.map(item => {
-        const sku = item.sku || item.itemSku || '—'
-        const total = item.quantity * item.price * (1 + item.tax / 100)
-        return `<tr style="border-bottom:1px solid #e5e5e5">
-          <td style="padding:8px 10px">${item.name}</td>
-          <td style="padding:8px 10px;color:#9ca3af;font-family:monospace;font-size:11px">${sku}</td>
-          <td style="padding:8px 10px;text-align:right">${item.quantity}</td>
-          <td style="padding:8px 10px;text-align:right">${cs}${Number(item.price).toFixed(2)}</td>
-          <td style="padding:8px 10px;text-align:right;color:#ef4444">${item.tax}%</td>
-          <td style="padding:8px 10px;text-align:right;font-weight:700">${cs}${total.toFixed(2)}</td></tr>`
-      }).join('')
-      return wrap(`Retail Invoice ${invoiceNumber}`,
-        `*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:32px;background:#fff}@media print{body{padding:0}}`,
-        `<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #7c3aed;padding-bottom:14px;margin-bottom:20px">
-          <div><p style="font-size:20px;font-weight:800;color:#7c3aed">RETAIL INVOICE</p>
-            <p style="color:#aaa;font-size:11px">#${invoiceNumber} | ${invoiceDate}</p></div>
-          <div style="text-align:right"><p style="font-weight:700">Your Business</p>${cd.gst ? `<p style="color:#aaa;font-size:11px">GST: ${cd.gst}</p>` : ''}</div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px;color:#6b7280;margin-bottom:20px">
-          <div><p style="font-weight:700;color:#1a1a1a">${cd.name || '—'}</p>
-            ${cd.phone ? `<p>${cd.phone}</p>` : ''}
-            ${cd.address ? `<p>${cd.address}</p>` : ''}</div>
-          <div style="text-align:right"><table style="margin-left:auto"><tbody>${metaRows}</tbody></table></div>
-        </div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-          <thead><tr style="background:#7c3aed;color:#fff">
-            <th style="padding:9px 10px;text-align:left">Product</th>
-            <th style="padding:9px 10px;text-align:left">SKU</th>
-            <th style="padding:9px 10px;text-align:right">Qty</th>
-            <th style="padding:9px 10px;text-align:right">MRP</th>
-            <th style="padding:9px 10px;text-align:right">Tax</th>
-            <th style="padding:9px 10px;text-align:right">Total</th>
-          </tr></thead><tbody>${rows}</tbody>
-        </table>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:20px">
-          <div style="width:220px">
-            <div style="display:flex;justify-content:space-between;color:#6b7280;font-size:12px;margin-bottom:4px"><span>Subtotal</span><span>${cs}${subtotal.toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;color:#6b7280;font-size:12px;margin-bottom:8px"><span>Tax</span><span>${cs}${totalTax.toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;font-weight:800;color:#7c3aed;border-top:2px solid #7c3aed;padding-top:8px"><span>Grand Total</span><span>${cs}${grandTotal.toFixed(2)}</span></div>
-          </div>
-        </div>
-        ${notesBlock('#7c3aed')}${footer}`)
+      return buildProfessionalInvoice({ label: 'RETAIL INVOICE', navyBg: '#4c1d95', accentOrange: '#a78bfa' })
     }
-
-    // ── SERVICE ──────────────────────────────────────────────────────────────
+    // ── SERVICE ─────────────────────────────────────────────────────────────
     if (selectedTemplate === 'service') {
-      const rows = validItems.map(item => `
-        <tr style="border-bottom:1px solid #fde68a">
-          <td style="padding:8px 0">${item.name}<br><span style="color:#aaa;font-size:11px">${item.description || ''}</span></td>
-          <td style="padding:8px 0;text-align:right">${item.quantity}</td>
-          <td style="padding:8px 0;text-align:right">${cs}${Number(item.price).toFixed(2)}</td>
-          <td style="padding:8px 0;text-align:right;font-weight:700">${cs}${(item.quantity * item.price * (1 + item.tax / 100)).toFixed(2)}</td></tr>`
-      ).join('')
-      return wrap(`Service Invoice ${invoiceNumber}`,
-        `*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff}@media print{body{padding:0}}`,
-        `<div style="background:#fffbeb;border-bottom:4px solid #f59e0b;padding:24px 32px;display:flex;justify-content:space-between">
-          <div><p style="font-size:20px;font-weight:800;color:#92400e">SERVICE INVOICE</p>
-            <p style="color:#6b7280;font-size:11px">${invoiceNumber} | ${invoiceDate}</p></div>
-          <div style="text-align:right"><p style="font-weight:700">Your Business</p><p style="color:#9ca3af;font-size:11px">your@email.com</p></div>
-        </div>
-        <div style="padding:28px 32px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
-            <div><p style="font-size:10px;font-weight:700;color:#f59e0b;text-transform:uppercase;margin-bottom:4px">CLIENT</p>
-              <p style="font-weight:700">${cd.name || '—'}</p>
-              ${cd.address ? `<p style="color:#6b7280;font-size:12px">${cd.address}</p>` : ''}
-              ${cd.email ? `<p style="color:#6b7280;font-size:12px">${cd.email}</p>` : ''}
-              ${dueDate ? `<p style="color:#6b7280;font-size:12px">Due: ${dueDate}</p>` : ''}
-            </div>
-            <div style="background:#fffbeb;border-radius:6px;padding:12px">
-              <p style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;margin-bottom:4px">Invoice Details</p>
-              <table style="font-size:11px;color:#6b7280"><tbody>${metaRows}</tbody></table>
-            </div>
-          </div>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-            <thead><tr style="border-bottom:2px solid #f59e0b;color:#92400e">
-              <th style="text-align:left;padding-bottom:8px">Service / Item</th>
-              <th style="text-align:right;padding-bottom:8px">Qty / Hrs</th>
-              <th style="text-align:right;padding-bottom:8px">Rate</th>
-              <th style="text-align:right;padding-bottom:8px">Amount</th>
-            </tr></thead><tbody>${rows}</tbody>
-          </table>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:20px">
-            <div style="width:200px">
-              <div style="display:flex;justify-content:space-between;color:#6b7280;font-size:12px;margin-bottom:4px"><span>Subtotal</span><span>${cs}${subtotal.toFixed(2)}</span></div>
-              <div style="display:flex;justify-content:space-between;color:#6b7280;font-size:12px;margin-bottom:8px"><span>Tax</span><span>${cs}${totalTax.toFixed(2)}</span></div>
-              <div style="display:flex;justify-content:space-between;font-weight:800;color:#92400e;border-top:2px solid #f59e0b;padding-top:8px"><span>Total Due</span><span>${cs}${grandTotal.toFixed(2)}</span></div>
-            </div>
-          </div>
-          ${notesBlock('#f59e0b')}${footer}
-        </div>`)
+      return buildProfessionalInvoice({ label: 'SERVICE INVOICE', navyBg: '#78350f', accentOrange: '#f59e0b' })
     }
-
-    // ── IMPORTED (HTML) ───────────────────────────────────────────────────────
+    // ── IMPORTED ────────────────────────────────────────────────────────────
     if (selectedTemplate === 'imported' && importedTemplate?.html) {
       return importedTemplate.html
     }
-
-    // ── CUSTOM (template-builder) ─────────────────────────────────────────────
-    if (selectedTemplate === 'custom' && customTemplate) {
-      // Generate a basic rendering - custom templates store blocks
-      const rows = validItems.map(item => `
-        <tr><td style="padding:8px;border-bottom:1px solid #eee">${item.name}</td>
-            <td style="padding:8px;border-bottom:1px solid #eee;color:#888">${item.description || ''}</td>
-            <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${item.quantity}</td>
-            <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${cs}${Number(item.price).toFixed(2)}</td>
-            <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;font-weight:700">${cs}${(item.quantity * item.price * (1 + item.tax / 100)).toFixed(2)}</td></tr>`
-      ).join('')
-      return wrap(`Invoice ${invoiceNumber}`,
-        `*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:32px;background:#fff}@media print{body{padding:0}}`,
-        `<div style="display:flex;justify-content:space-between;margin-bottom:28px">
-          <div><p style="font-size:24px;font-weight:800;color:#1a1a1a">INVOICE</p><p style="color:#aaa">${invoiceNumber}</p></div>
-          <div style="text-align:right;font-size:11px;color:#6b7280"><p style="font-weight:700;font-size:14px;color:#1a1a1a">Your Business</p><p>${invoiceDate}</p>${dueDate ? `<p>Due: ${dueDate}</p>` : ''}</div>
-        </div>
-        <div style="margin-bottom:24px"><p style="font-weight:700">${cd.name || '—'}</p>${cd.address ? `<p style="color:#6b7280;font-size:12px">${cd.address}</p>` : ''}${cd.gst ? `<p style="color:#6b7280;font-size:12px">GST: ${cd.gst}</p>` : ''}</div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-          <thead><tr style="background:#1a1a1a;color:#fff"><th style="padding:9px;text-align:left">Item</th><th style="padding:9px;text-align:left">Desc</th><th style="padding:9px;text-align:right">Qty</th><th style="padding:9px;text-align:right">Price</th><th style="padding:9px;text-align:right">Total</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:20px">
-          <div style="width:200px">
-            <div style="display:flex;justify-content:space-between;color:#6b7280;margin-bottom:4px"><span>Subtotal</span><span>${cs}${subtotal.toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;color:#6b7280;margin-bottom:8px"><span>Tax</span><span>${cs}${totalTax.toFixed(2)}</span></div>
-            <div style="display:flex;justify-content:space-between;font-weight:800;border-top:2px solid #1a1a1a;padding-top:8px"><span>Total</span><span>${cs}${grandTotal.toFixed(2)}</span></div>
-          </div>
-        </div>
-        ${notesBlock()}${footer}`)
-    }
-
-    // ── FALLBACK (default Minimal) ────────────────────────────────────────────
-    return buildInvoiceHtml.call({ selectedTemplate: 'minimal' } /* re-use minimal */)
+    // ── CUSTOM / FALLBACK ────────────────────────────────────────────────────
+    return buildProfessionalInvoice({ label: 'INVOICE', navyBg: '#1e2d5b', accentOrange: '#f47321' })
   }
+
+
+
 
   const printInvoice = () => {
     const html = buildInvoiceHtml()
@@ -754,8 +810,42 @@ function CreateInvoicePage() {
                       <SelectItem value="USD">$ USD</SelectItem>
                       <SelectItem value="EUR">€ EUR</SelectItem>
                       <SelectItem value="GBP">£ GBP</SelectItem>
+                      <SelectItem value="AED">د.إ AED</SelectItem>
+                      <SelectItem value="SGD">S$ SGD</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+              {/* PO Number + Place of Supply + Reverse Charge */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                <div>
+                  <Label>PO / Reference No.</Label>
+                  <Input
+                    value={poNumber}
+                    onChange={(e) => setPoNumber(e.target.value)}
+                    placeholder="e.g. PO-00123"
+                  />
+                </div>
+                <div>
+                  <Label>Place of Supply</Label>
+                  <Input
+                    value={placeOfSupply}
+                    onChange={(e) => setPlaceOfSupply(e.target.value)}
+                    placeholder="e.g. Maharashtra"
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <Label className="mb-2">Reverse Charge</Label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setReverseCharge((v) => !v)}
+                      className={`relative w-10 h-5 rounded-full transition-colors ${reverseCharge ? "bg-primary" : "bg-muted"}`}
+                    >
+                      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${reverseCharge ? "left-5" : "left-0.5"}`} />
+                    </button>
+                    <span className="text-xs text-muted-foreground">{reverseCharge ? "Applicable" : "Not Applicable"}</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -771,128 +861,280 @@ function CreateInvoicePage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <table className="w-full table-fixed text-sm">
-                <colgroup>
-                  <col style={{ width: "22%" }} />
-                  <col style={{ width: "22%" }} />
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "16%" }} />
-                  <col style={{ width: "12%" }} />
-                  <col style={{ width: "14%" }} />
-                  <col style={{ width: "4%" }} />
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="py-2 px-2 text-left text-xs font-medium text-muted-foreground">Item</th>
-                    <th className="py-2 px-2 text-left text-xs font-medium text-muted-foreground">Description</th>
-                    <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Qty</th>
-                    <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Price</th>
-                    <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Tax %</th>
-                    <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Total</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item, index) => {
-                    const lineTotal = item.quantity * item.price * (1 + item.tax / 100)
-                    return (
-                      <tr key={index} className="border-b border-border last:border-0">
-                        <td className="py-1.5 px-1 pr-2 align-top pt-3">
-                          <Select
-                            value={item.itemId || ""}
-                            onValueChange={(val) => {
-                              if (val) handleItemSelect(index, val)
-                            }}
-                          >
-                            <SelectTrigger className="h-8 w-full border-dashed bg-muted/30">
-                              <SelectValue placeholder="Select item" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {inventoryItems.map((inv) => (
-                                <SelectItem key={inv.id} value={inv.id}>
-                                  {inv.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <div className="mt-2">
-                            <Input
-                              value={item.name}
-                              onChange={(e) => updateItem(index, "name", e.target.value)}
-                              placeholder="Or enter custom item name..."
-                              className="h-8 w-full text-xs"
-                            />
-                          </div>
-                        </td>
-                        <td className="py-1.5 px-1 align-top pt-3">
-                          <Input
-                            value={item.description}
-                            onChange={(e) => updateItem(index, "description", e.target.value)}
-                            placeholder="Description"
-                            className="h-8 w-full"
-                          />
-                        </td>
-                        <td className="py-1.5 px-1 align-top pt-3">
-                          <div className="relative">
-                            <Input
-                              type="number"
-                              min="1"
-                              value={item.quantity === 0 ? "" : item.quantity}
-                              placeholder="1"
-                              onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                              className="h-8 w-full pr-8 text-right"
-                            />
-                            {item.unit && (
-                              <span className="absolute right-2 top-1.5 text-xs text-muted-foreground pointer-events-none">
-                                {item.unit}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-1.5 px-1 align-top pt-3">
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.price === 0 ? "" : item.price}
-                            placeholder="0.00"
-                            onChange={(e) => updateItem(index, "price", e.target.value)}
-                            className="h-8 w-full text-right"
-                          />
-                        </td>
-                        <td className="py-1.5 px-1 align-top pt-3">
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.tax === 0 ? "" : item.tax}
-                            placeholder="0"
-                            onChange={(e) => updateItem(index, "tax", e.target.value)}
-                            className="h-8 w-full text-right"
-                          />
-                        </td>
-                        <td className="py-1.5 px-2 text-right font-medium whitespace-nowrap align-top pt-4">
-                          {currencySymbol}{lineTotal.toFixed(2)}
-                        </td>
-                        <td className="py-1.5 pl-1 align-top pt-3">
-                          {items.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => removeItem(index)}
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-sm" style={{ minWidth: 820 }}>
+                  <colgroup>
+                    <col style={{ width: "19%" }} />
+                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "11%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "11%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "3%" }} />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="py-2 px-2 text-left text-xs font-medium text-muted-foreground">Item / Select</th>
+                      <th className="py-2 px-2 text-left text-xs font-medium text-muted-foreground">Description</th>
+                      <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">HSN/SAC</th>
+                      <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Qty</th>
+                      <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Price</th>
+                      <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Tax %</th>
+                      <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Disc</th>
+                      <th className="py-2 px-2 text-right text-xs font-medium text-muted-foreground">Total</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, index) => {
+                      const lineBase = item.quantity * item.price
+                      const lineDisc = item.discountType === "flat"
+                        ? Math.min(item.discount || 0, lineBase)
+                        : lineBase * ((item.discount || 0) / 100)
+                      const lineTotal = (lineBase - lineDisc) * (1 + item.tax / 100)
+                      return (
+                        <tr key={index} className="border-b border-border last:border-0">
+                          {/* Item select + name */}
+                          <td className="py-1.5 px-1 pr-2 align-top pt-3">
+                            <Select
+                              value={item.itemId || ""}
+                              onValueChange={(val) => { if (val) handleItemSelect(index, val) }}
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-
+                              <SelectTrigger className="h-8 w-full border-dashed bg-muted/30">
+                                <SelectValue placeholder="Select item" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {inventoryItems.map((inv) => (
+                                  <SelectItem key={inv.id} value={inv.id}>{inv.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <div className="mt-2">
+                              <Input
+                                value={item.name}
+                                onChange={(e) => updateItem(index, "name", e.target.value)}
+                                placeholder="Or enter name…"
+                                className="h-8 w-full text-xs"
+                              />
+                            </div>
+                          </td>
+                          {/* Description */}
+                          <td className="py-1.5 px-1 align-top pt-3">
+                            <Input
+                              value={item.description}
+                              onChange={(e) => updateItem(index, "description", e.target.value)}
+                              placeholder="Description"
+                              className="h-8 w-full"
+                            />
+                          </td>
+                          {/* HSN/SAC */}
+                          <td className="py-1.5 px-1 align-top pt-3">
+                            <Input
+                              value={item.hsnCode || ""}
+                              onChange={(e) => updateItem(index, "hsnCode", e.target.value)}
+                              placeholder="HSN"
+                              className="h-8 w-full text-right text-xs"
+                            />
+                          </td>
+                          {/* Qty */}
+                          <td className="py-1.5 px-1 align-top pt-3">
+                            <div>
+                              <Input
+                                type="number" min="1"
+                                value={item.quantity === 0 ? "" : item.quantity}
+                                placeholder="Qty"
+                                onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                                className="h-8 w-full text-right"
+                              />
+                              {item.unit && (
+                                <span className="block text-center text-xs text-muted-foreground mt-0.5 leading-none">{item.unit}</span>
+                              )}
+                            </div>
+                          </td>
+                          {/* Price */}
+                          <td className="py-1.5 px-1 align-top pt-3">
+                            <Input
+                              type="number" min="0" step="0.01"
+                              value={item.price === 0 ? "" : item.price}
+                              placeholder="0.00"
+                              onChange={(e) => updateItem(index, "price", e.target.value)}
+                              className="h-8 w-full text-right"
+                            />
+                          </td>
+                          {/* Tax */}
+                          <td className="py-1.5 px-1 align-top pt-3">
+                            <Input
+                              type="number" min="0" step="0.1"
+                              value={item.tax === 0 ? "" : item.tax}
+                              placeholder="0"
+                              onChange={(e) => updateItem(index, "tax", e.target.value)}
+                              className="h-8 w-full text-right"
+                            />
+                          </td>
+                          {/* Per-item discount */}
+                          <td className="py-1.5 px-1 align-top pt-3">
+                            <div className="flex gap-0.5">
+                              <button
+                                type="button"
+                                onClick={() => updateItem(index, "discountType", item.discountType === "flat" ? "percent" : "flat")}
+                                className="h-8 px-1.5 rounded border border-border bg-muted/50 text-[10px] font-medium hover:bg-accent shrink-0"
+                                title={item.discountType === "flat" ? "Flat ₹" : "Percent %"}
+                              >
+                                {item.discountType === "flat" ? "₹" : "%"}
+                              </button>
+                              <Input
+                                type="number" min="0" step="0.01"
+                                value={item.discount === 0 || !item.discount ? "" : item.discount}
+                                placeholder="0"
+                                onChange={(e) => updateItem(index, "discount", e.target.value)}
+                                className="h-8 w-full text-right"
+                              />
+                            </div>
+                          </td>
+                          {/* Line total */}
+                          <td className="py-1.5 px-2 text-right font-medium whitespace-nowrap align-top pt-4 text-sm">
+                            {currencySymbol}{lineTotal.toFixed(2)}
+                          </td>
+                          {/* Remove */}
+                          <td className="py-1.5 pl-1 align-top pt-3">
+                            {items.length > 1 && (
+                              <Button
+                                variant="ghost" size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => removeItem(index)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
+          </Card>
+
+          {/* Invoice-level Adjustments */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Adjustments &amp; Charges</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Invoice discount */}
+                <div>
+                  <Label className="flex items-center gap-1"><Percent className="h-3 w-3" /> Invoice Discount</Label>
+                  <div className="flex gap-1 mt-1">
+                    <Select value={discountType} onValueChange={setDiscountType}>
+                      <SelectTrigger className="w-20 h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percent">%</SelectItem>
+                        <SelectItem value="flat">₹ Flat</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number" min="0" step="0.01"
+                      value={discountValue === 0 ? "" : discountValue}
+                      placeholder="0"
+                      onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
+                      className="flex-1 h-9"
+                    />
+                  </div>
+                </div>
+                {/* Shipping */}
+                <div>
+                  <Label className="flex items-center gap-1"><Truck className="h-3 w-3" /> Shipping / Freight</Label>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={shippingCharge === 0 ? "" : shippingCharge}
+                    placeholder="0.00"
+                    onChange={(e) => setShippingCharge(Number(e.target.value) || 0)}
+                    className="mt-1 h-9"
+                  />
+                </div>
+                {/* Extra charge */}
+                <div>
+                  <Label className="flex items-center gap-1"><PackagePlus className="h-3 w-3" /> Other Charges</Label>
+                  <div className="flex gap-1 mt-1">
+                    <Input
+                      value={extraChargeLabel}
+                      onChange={(e) => setExtraChargeLabel(e.target.value)}
+                      placeholder="Label"
+                      className="flex-1 h-9 text-xs"
+                    />
+                    <Input
+                      type="number" min="0" step="0.01"
+                      value={extraChargeAmount === 0 ? "" : extraChargeAmount}
+                      placeholder="0.00"
+                      onChange={(e) => setExtraChargeAmount(Number(e.target.value) || 0)}
+                      className="w-24 h-9"
+                    />
+                  </div>
+                </div>
+              </div>
+              {/* Round off toggle */}
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setRoundOff((v) => !v)}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${roundOff ? "bg-primary" : "bg-muted"}`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${roundOff ? "left-5" : "left-0.5"}`} />
+                </button>
+                <Label className="cursor-pointer" onClick={() => setRoundOff((v) => !v)}>Round off grand total to nearest ₹</Label>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bank / Payment Details */}
+          <Card>
+            <CardHeader>
+              <button
+                type="button"
+                className="flex items-center justify-between w-full"
+                onClick={() => setShowBankDetails((v) => !v)}
+              >
+                <CardTitle className="text-lg">Bank &amp; Payment Details</CardTitle>
+                {showBankDetails ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </button>
+            </CardHeader>
+            {showBankDetails && (
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Bank Name</Label>
+                    <Input value={bankDetails.bankName} onChange={(e) => setBankDetails(p => ({ ...p, bankName: e.target.value }))} placeholder="e.g. HDFC Bank" />
+                  </div>
+                  <div>
+                    <Label>Account Holder Name</Label>
+                    <Input value={bankDetails.accountName} onChange={(e) => setBankDetails(p => ({ ...p, accountName: e.target.value }))} placeholder="Name on account" />
+                  </div>
+                  <div>
+                    <Label>Account Number</Label>
+                    <Input value={bankDetails.accountNumber} onChange={(e) => setBankDetails(p => ({ ...p, accountNumber: e.target.value }))} placeholder="XXXXXXXXXXXX" />
+                  </div>
+                  <div>
+                    <Label>IFSC Code</Label>
+                    <Input value={bankDetails.ifsc} onChange={(e) => setBankDetails(p => ({ ...p, ifsc: e.target.value }))} placeholder="e.g. HDFC0000123" className="font-mono" />
+                  </div>
+                  <div>
+                    <Label>Branch</Label>
+                    <Input value={bankDetails.branch} onChange={(e) => setBankDetails(p => ({ ...p, branch: e.target.value }))} placeholder="Branch name" />
+                  </div>
+                  <div>
+                    <Label>UPI ID</Label>
+                    <Input value={bankDetails.upi} onChange={(e) => setBankDetails(p => ({ ...p, upi: e.target.value }))} placeholder="yourname@upi" />
+                  </div>
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* Notes */}
@@ -932,10 +1174,40 @@ function CreateInvoicePage() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{currencySymbol}{subtotal.toFixed(2)}</span>
               </div>
+              {itemsDiscount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Item Discounts</span>
+                  <span className="text-emerald-600">−{currencySymbol}{itemsDiscount.toFixed(2)}</span>
+                </div>
+              )}
+              {invoiceDiscount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Invoice Discount</span>
+                  <span className="text-emerald-600">−{currencySymbol}{invoiceDiscount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tax / GST</span>
                 <span>{currencySymbol}{totalTax.toFixed(2)}</span>
               </div>
+              {Number(shippingCharge) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span>+{currencySymbol}{Number(shippingCharge).toFixed(2)}</span>
+                </div>
+              )}
+              {Number(extraChargeAmount) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{extraChargeLabel || "Other Charges"}</span>
+                  <span>+{currencySymbol}{Number(extraChargeAmount).toFixed(2)}</span>
+                </div>
+              )}
+              {roundOff && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Round Off</span>
+                  <span className="text-muted-foreground">{Math.round(grandTotal) - grandTotal >= 0 ? "+" : ""}{(Math.round(grandTotal) - grandTotal).toFixed(2)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
