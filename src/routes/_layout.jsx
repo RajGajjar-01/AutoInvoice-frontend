@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Outlet, useNavigate, useLocation } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { Footer } from "@/components/Common/Footer"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_layout")({
 function Layout() {
   const { isLoading, user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -31,14 +32,16 @@ function Layout() {
     return null
   }
 
+  const isDataTablePage = location.pathname.startsWith('/data-tables')
+
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="overflow-hidden flex flex-col">
-        <main className="flex-1 p-4 flex flex-col">
+        <main className={`flex-1 flex flex-col ${!isDataTablePage ? 'p-4' : ''}`}>
           <Outlet />
         </main>
-        <Footer />
+        {!isDataTablePage && <Footer />}
       </SidebarInset>
     </SidebarProvider>
   )

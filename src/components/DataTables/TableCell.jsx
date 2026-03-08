@@ -1,5 +1,5 @@
 import { CalendarDays, Check, X } from "lucide-react"
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -62,13 +62,18 @@ function isPastDate(dateStr) {
  *   suggestions     – string[]  (for Text type datalist)
  *   dropdownOptions – string[]  (for Dropdown type)
  */
+import { evaluateFormula } from "@/lib/formula-engine"
+
 export function TableCell({
   type,
   value,
   onChange,
   onNavigate,
+  onFocus, // Added this
   suggestions = [],
   dropdownOptions = [],
+  allRows = [], // For formula evaluation
+  cols = [],    // For formula evaluation
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value ?? "")
@@ -76,7 +81,23 @@ export function TableCell({
   const datalistId = useId()
 
   useEffect(() => {
-    if (editing && inputRef.current) inputRef.current.focus()
+    setDraft(value ?? "")
+  }, [value])
+
+  const isFormula = typeof value === 'string' && value.startsWith('=')
+  
+  const computedValue = useMemo(() => {
+    if (isFormula) {
+      return evaluateFormula(value, allRows, cols)
+    }
+    return value
+  }, [value, allRows, cols, isFormula])
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+        inputRef.current.focus()
+        if (inputRef.current.select) inputRef.current.select()
+    }
   }, [editing])
 
   const commit = () => {
@@ -98,11 +119,11 @@ export function TableCell({
     }
     if (onNavigate && (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown")) {
       const dir = e.key.replace("Arrow", "").toLowerCase()
-      // Only commit and move if navigation is possible
-      const moved = onNavigate(dir)
-      if (moved) {
-        commit()
-      }
+      
+      // If navigating while editing, commit first
+      if (editing) commit()
+      
+      onNavigate(dir)
       e.preventDefault()
       e.stopPropagation()
     }
@@ -113,13 +134,8 @@ export function TableCell({
     return (
       <div
         className="flex items-center justify-center px-3 py-2 outline-none focus-within:bg-muted/30 h-full"
-        onKeyDown={(e) => {
-          if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
-            onNavigate(e.key.replace("Arrow", "").toLowerCase())
-            e.preventDefault()
-            e.stopPropagation()
-          }
-        }}
+        onKeyDown={handleKeyDown}
+        onFocus={onFocus}
       >
         <Checkbox
           checked={!!value}
@@ -154,10 +170,10 @@ export function TableCell({
             : dropdownOptions
     const colors =
       type === "Status"
-        ? STATUS_COLORS
+        ? STATUS_OPTIONS.reduce((acc, opt) => ({ ...acc, [opt]: STATUS_COLORS[opt] }), {})
         : type === "Tag"
-          ? TAG_COLORS
-          : PAYMENT_STATUS_COLORS
+          ? TAG_OPTIONS.reduce((acc, opt) => ({ ...acc, [opt]: TAG_COLORS[opt] }), {})
+          : PAYMENT_STATUS_OPTIONS.reduce((acc, opt) => ({ ...acc, [opt]: PAYMENT_STATUS_COLORS[opt] }), {})
 
     const cellBg = (type !== "Dropdown" && value && colors?.[value])
       ? colors[value]
@@ -172,6 +188,7 @@ export function TableCell({
           <SelectTrigger
             className="h-full w-full border-0 bg-transparent px-3 py-1.5 shadow-none focus:ring-0 text-xs font-medium rounded-none"
             onKeyDown={handleSelectKeyDown}
+            onFocus={onFocus}
           >
             <SelectValue placeholder="—">
               {value ? (
@@ -225,11 +242,7 @@ export function TableCell({
             setEditing(true)
             e.preventDefault()
           }
-          if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
-            onNavigate(e.key.replace("Arrow", "").toLowerCase())
-            e.preventDefault()
-            e.stopPropagation()
-          }
+          handleKeyDown(e)
         }}
       >
         {value ? (
@@ -280,11 +293,7 @@ export function TableCell({
             setEditing(true)
             e.preventDefault()
           }
-          if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
-            onNavigate(e.key.replace("Arrow", "").toLowerCase())
-            e.preventDefault()
-            e.stopPropagation()
-          }
+          handleKeyDown(e)
         }}
       >
         {value ? (
@@ -308,8 +317,11 @@ export function TableCell({
           : "text"
 
     return (
-      <div className="flex items-center px-1 py-1 w-full">
-        {type === "Text" ? (
+      <div 
+        className="flex items-center px-1 py-1 w-full bg-white shadow-sm ring-1 ring-primary rounded z-10 relative"
+        onFocus={onFocus}
+      >
+        {type === "Text" || isFormula ? (
           <div className="w-full">
             <input
               ref={inputRef}
@@ -318,14 +330,16 @@ export function TableCell({
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={commit}
-              className="flex h-7 w-full rounded-md border border-primary bg-background px-2 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              className="flex h-7 w-full border-0 bg-transparent px-2 py-1 text-xs focus:outline-none"
               placeholder=""
             />
-            <datalist id={`dl-${datalistId}`}>
-              {suggestions.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
+            {type === "Text" && (
+                <datalist id={`dl-${datalistId}`}>
+                {suggestions.map((s) => (
+                    <option key={s} value={s} />
+                ))}
+                </datalist>
+            )}
           </div>
         ) : (
           <Input
@@ -335,7 +349,7 @@ export function TableCell({
             onKeyDown={handleKeyDown}
             onBlur={commit}
             type={inputType}
-            className="h-7 text-xs border-primary focus:ring-1 focus:ring-primary w-full"
+            className="h-7 text-xs border-0 bg-transparent focus-visible:ring-0 w-full"
           />
         )}
       </div>
@@ -343,38 +357,41 @@ export function TableCell({
   }
 
   const displayValue =
-    type === "Amount (₹)" && value
-      ? `₹${Number(value).toLocaleString("en-IN")}`
-      : value || ""
+    type === "Amount (₹)" && computedValue && !isNaN(computedValue)
+      ? `₹${Number(computedValue).toLocaleString("en-IN")}`
+      : computedValue || ""
 
   return (
     <div
       tabIndex={0}
-      className="px-3 py-1 text-sm cursor-text min-h-[30px] hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
+      className={`px-3 py-1 text-sm cursor-text min-h-[30px] hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30 relative flex items-center ${isFormula ? 'bg-blue-50/30' : ''}`}
       onClick={() => {
         setDraft(value ?? "")
         setEditing(true)
+        onFocus && onFocus()
       }}
+      onFocus={onFocus}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           setDraft(value ?? "")
           setEditing(true)
+          onFocus && onFocus()
           e.preventDefault()
         }
-        if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
-          onNavigate(e.key.replace("Arrow", "").toLowerCase())
-          e.preventDefault()
-          e.stopPropagation()
-        }
+        handleKeyDown(e)
       }}
     >
+      {isFormula && (
+        <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[#3B82F6] opacity-50" />
+      )}
       {displayValue ? (
-        <span>{displayValue}</span>
+        <span className={isFormula ? "font-mono text-[#1a5c38]" : ""}>{displayValue}</span>
       ) : (
         <span className="text-muted-foreground/40 select-none">—</span>
       )}
     </div>
   )
 }
+
 
 export default TableCell

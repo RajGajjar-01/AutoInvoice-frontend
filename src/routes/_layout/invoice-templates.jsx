@@ -41,380 +41,451 @@ export const Route = createFileRoute("/_layout/invoice-templates")({
   }),
 })
 
-// ─── Template definitions ────────────────────────────────────────────────────
+// ─── Template definitions ────────────────────────────────────────────
 
 const builtInTemplates = [
   {
-    id: "minimal",
-    name: "Minimal",
-    description: "Clean white layout, timeless typography, nothing extra",
+    id: "clean-teal",
+    name: "Clean Teal",
+    description: "Bold teal heading with From/Bill To columns and a note footer",
     icon: FileText,
-    cardColor: "bg-slate-500/10 text-slate-500",
-    features: ["Clean layout", "Monospace #", "Essential fields"],
-    preview: MinimalPreview,
+    cardColor: "bg-cyan-500/10 text-cyan-600",
+    features: ["Teal header", "From/Bill To", "Note section"],
+    preview: CleanTealPreview,
   },
   {
-    id: "gst",
-    name: "GST Invoice",
-    description: "Full GST-compliant with CGST / SGST / IGST breakdown",
-    icon: Receipt,
-    cardColor: "bg-emerald-500/10 text-emerald-500",
-    features: ["GSTIN", "HSN/SAC codes", "Tax split"],
-    preview: GSTPreview,
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    description: "Dark branded header with bank & payment details section",
+    id: "geometric",
+    name: "Geometric",
+    description: "Modern with teal and pink corner accents, signature line",
     icon: Briefcase,
-    cardColor: "bg-primary/10 text-primary",
-    features: ["Branded header", "Bank details", "Logo area"],
-    preview: ProfessionalPreview,
+    cardColor: "bg-pink-500/10 text-pink-600",
+    features: ["Corner accents", "QTY + Price", "Signature"],
+    preview: GeometricPreview,
   },
   {
-    id: "retail",
-    name: "Retail",
-    description: "Bold product grid for product-based businesses",
+    id: "circle-studio",
+    name: "Circle Studio",
+    description: "Minimalist black and white with centered logo and thank-you script",
+    icon: Receipt,
+    cardColor: "bg-slate-500/10 text-slate-600",
+    features: ["Circle logo", "Unit Price + QTY", "Bank details"],
+    preview: CircleStudioPreview,
+  },
+  {
+    id: "aizen-bold",
+    name: "Aizen Bold",
+    description: "Bold company branding with red and black geometric design",
     icon: ShoppingBag,
-    cardColor: "bg-purple-500/10 text-purple-500",
-    features: ["SKU column", "Discount", "Product grid"],
-    preview: RetailPreview,
+    cardColor: "bg-red-500/10 text-red-600",
+    features: ["Geometric accents", "Pink total row", "Sub-total + Tax"],
+    preview: AizenBoldPreview,
   },
   {
-    id: "service",
-    name: "Service",
-    description: "Soft blue, hours-based billing for freelancers",
+    id: "simple-boxed",
+    name: "Simple Boxed",
+    description: "Clean bordered corporate style with a prominent total row",
     icon: Wrench,
-    cardColor: "bg-amber-500/10 text-amber-500",
-    features: ["Hours/rate", "Milestones", "Terms section"],
-    preview: ServicePreview,
+    cardColor: "bg-teal-500/10 text-teal-600",
+    features: ["Bordered table", "SL + Amount", "Grand Total"],
+    preview: SimpleBoxedPreview,
   },
 ]
 
 // ─── Individual themed previews ───────────────────────────────────────────────
 
-function MinimalPreview() {
+// Template 1 — Clean Teal
+function CleanTealPreview() {
   return (
-    <div className="bg-white text-gray-900 p-6 rounded-lg font-mono text-xs space-y-4">
-      <div className="flex justify-between items-start border-b border-gray-200 pb-4">
-        <div>
-          <p className="text-2xl font-bold tracking-widest text-gray-800">INVOICE</p>
-          <p className="text-gray-400 mt-1">INV-2601-001</p>
-        </div>
-        <div className="text-right">
-          <p className="font-bold text-gray-700">Your Business</p>
-          <p className="text-gray-400">hello@yourbiz.com</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-gray-400 text-[10px] mb-1">BILL TO</p>
-          <p className="font-bold">Sample Client</p>
-          <p className="text-gray-400">123 Client St</p>
-        </div>
-        <div className="text-right">
-          <p className="text-gray-400 text-[10px]">DATE</p>
-          <p>2026-03-03</p>
-          <p className="text-gray-400 text-[10px] mt-1">DUE</p>
-          <p>2026-04-03</p>
-        </div>
-      </div>
-      <table className="w-full text-[10px]">
-        <thead>
-          <tr className="border-b border-gray-200 text-gray-400">
-            <th className="pb-1 text-left">Item</th>
-            <th className="pb-1 text-right">Qty</th>
-            <th className="pb-1 text-right">Rate</th>
-            <th className="pb-1 text-right">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b border-gray-100">
-            <td className="py-1">Design Work</td>
-            <td className="py-1 text-right">1</td>
-            <td className="py-1 text-right">₹5,000</td>
-            <td className="py-1 text-right font-bold">₹5,000</td>
-          </tr>
-          <tr>
-            <td className="py-1">Consultation</td>
-            <td className="py-1 text-right">2</td>
-            <td className="py-1 text-right">₹1,500</td>
-            <td className="py-1 text-right font-bold">₹3,000</td>
-          </tr>
-        </tbody>
-      </table>
-      <div className="flex justify-end">
-        <div className="w-32 space-y-1">
-          <div className="flex justify-between text-gray-400 text-[10px]">
-            <span>Subtotal</span><span>₹8,000</span>
-          </div>
-          <div className="flex justify-between font-bold border-t border-gray-200 pt-1">
-            <span>Total</span><span>₹8,000</span>
+    <div style={{fontFamily:'Arial,sans-serif',background:'#fff',fontSize:12,color:'#1a1a1a',minHeight:480,display:'flex',flexDirection:'column'}}>
+      {/* Body */}
+      <div style={{padding:'28px 28px 0',flex:1}}>
+        {/* Header */}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
+          <p style={{fontSize:36,fontWeight:900,color:'#0E7490',letterSpacing:-1,lineHeight:1}}>INVOICE</p>
+          <div style={{textAlign:'right',border:'1px solid #e2e8f0',padding:'8px 12px',fontSize:10,color:'#555',minWidth:150}}>
+            <div style={{marginBottom:3}}><span style={{color:'#94a3b8'}}>Date:</span> 12/07/2025</div>
+            <div style={{marginBottom:3}}><span style={{color:'#94a3b8'}}>Invoice No:</span> 123456789</div>
+            <div><span style={{color:'#94a3b8'}}>Due:</span> 11/08/2025</div>
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function GSTPreview() {
-  return (
-    <div className="bg-white text-gray-900 p-6 rounded-lg text-xs space-y-4 border-t-4 border-emerald-600">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-xl font-extrabold text-emerald-700 tracking-wide">TAX INVOICE</p>
-          <p className="text-gray-400 text-[10px]">INV-2601-001 | GSTIN: 27AAPFU0939F1ZV</p>
-        </div>
-        <div className="text-right">
-          <p className="font-bold text-gray-800">Your Business</p>
-          <p className="text-gray-400 text-[10px]">GSTIN: 27XXXXX1234</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4 bg-emerald-50 p-3 rounded">
-        <div>
-          <p className="text-emerald-700 font-bold text-[10px] mb-1">BUYER DETAILS</p>
-          <p className="font-bold">Sample Ltd.</p>
-          <p className="text-gray-500 text-[10px]">GSTIN: 29AAACR5055K1ZK</p>
-          <p className="text-gray-500 text-[10px]">HSN: 998314</p>
-        </div>
-        <div className="text-right text-[10px] text-gray-500">
-          <p>Date: 03-03-2026</p>
-          <p>Place of Supply: Maharashtra</p>
-        </div>
-      </div>
-      <table className="w-full text-[10px]">
-        <thead>
-          <tr className="bg-emerald-600 text-white">
-            <th className="px-2 py-1 text-left">Description</th>
-            <th className="px-2 py-1 text-right">Amount</th>
-            <th className="px-2 py-1 text-right">CGST 9%</th>
-            <th className="px-2 py-1 text-right">SGST 9%</th>
-            <th className="px-2 py-1 text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b border-gray-100">
-            <td className="px-2 py-1">Design Services</td>
-            <td className="px-2 py-1 text-right">₹5,000</td>
-            <td className="px-2 py-1 text-right">₹450</td>
-            <td className="px-2 py-1 text-right">₹450</td>
-            <td className="px-2 py-1 text-right font-bold">₹5,900</td>
-          </tr>
-        </tbody>
-      </table>
-      <div className="flex justify-end">
-        <div className="w-36 space-y-1 text-[10px]">
-          <div className="flex justify-between"><span className="text-gray-400">Taxable</span><span>₹5,000</span></div>
-          <div className="flex justify-between"><span className="text-gray-400">CGST</span><span>₹450</span></div>
-          <div className="flex justify-between"><span className="text-gray-400">SGST</span><span>₹450</span></div>
-          <div className="flex justify-between font-bold border-t border-gray-200 pt-1 text-emerald-700">
-            <span>Grand Total</span><span>₹5,900</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ProfessionalPreview() {
-  return (
-    <div className="bg-white text-gray-900 rounded-lg text-xs overflow-hidden">
-      {/* Dark header */}
-      <div className="bg-gray-900 text-white p-6 flex justify-between items-center">
-        <div>
-          <div className="w-10 h-10 rounded bg-primary flex items-center justify-center text-white font-bold text-sm mb-2">
-            A
-          </div>
-          <p className="font-bold text-lg">AutoInvoice</p>
-          <p className="text-gray-400 text-[10px]">Professional Services</p>
-        </div>
-        <div className="text-right">
-          <p className="text-2xl font-extrabold tracking-wider text-primary">INVOICE</p>
-          <p className="text-gray-400 text-[10px] mt-1">#INV-2601-001</p>
-          <p className="text-gray-400 text-[10px]">Date: 03 Mar 2026</p>
-        </div>
-      </div>
-      <div className="p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        {/* FROM / BILL TO */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,marginBottom:18}}>
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Billed To</p>
-            <p className="font-bold text-gray-800">Global Corp Ltd.</p>
-            <p className="text-gray-500 text-[10px]">456 Corporate Blvd</p>
+            <div style={{fontSize:9,fontWeight:700,color:'#555',borderBottom:'2px solid #0E7490',paddingBottom:3,marginBottom:7,textTransform:'uppercase'}}>From</div>
+            <p style={{fontWeight:700,fontSize:11}}>INGOUDE COMPANY</p>
+            <p style={{color:'#64748b',fontSize:9,marginTop:2}}>123-456-7890</p>
+            <p style={{color:'#64748b',fontSize:9}}>123 Anywhere St., Any City, ST 12345</p>
+            <p style={{color:'#64748b',fontSize:9}}>hello@ingoude.com</p>
           </div>
-          <div className="bg-gray-50 rounded p-2 text-[10px]">
-            <p className="font-bold text-gray-700 mb-1">Bank Details</p>
-            <p className="text-gray-500">Bank: HDFC Bank</p>
-            <p className="text-gray-500">A/C: 0012345678</p>
-            <p className="text-gray-500">IFSC: HDFC0000123</p>
+          <div>
+            <div style={{fontSize:9,fontWeight:700,color:'#555',borderBottom:'2px solid #0E7490',paddingBottom:3,marginBottom:7,textTransform:'uppercase'}}>Bill To</div>
+            <p style={{fontWeight:700,fontSize:11}}>AARON LOEB</p>
+            <p style={{color:'#64748b',fontSize:9,marginTop:2}}>123-456-7890</p>
+            <p style={{color:'#64748b',fontSize:9}}>456 Client Ave., Metro City, ST 54321</p>
+            <p style={{color:'#64748b',fontSize:9}}>aaron@client.com</p>
           </div>
         </div>
-        <table className="w-full text-[10px]">
+        {/* Table */}
+        <table style={{width:'100%',borderCollapse:'collapse',border:'1px solid #cbd5e1',fontSize:10}}>
           <thead>
-            <tr className="border-b-2 border-gray-900 text-gray-700">
-              <th className="pb-1 text-left">Service</th>
-              <th className="pb-1 text-right">Amount</th>
+            <tr style={{background:'#0E7490',color:'#fff'}}>
+              <th style={{padding:'7px 8px',textAlign:'center',width:30}}>SL</th>
+              <th style={{padding:'7px 10px',textAlign:'left'}}>Description</th>
+              <th style={{padding:'7px 10px',textAlign:'right'}}>Amount</th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-gray-100">
-              <td className="py-1">Strategy Consulting</td>
-              <td className="py-1 text-right font-bold">₹25,000</td>
+            {[['Design Work','₹5,000'],['Consultation','₹3,000'],['Development','₹8,000']].map(([d,a],i)=>(
+              <tr key={i} style={{borderBottom:'1px solid #e2e8f0',background:i%2===0?'#fff':'#f0fdfe'}}>
+                <td style={{padding:'6px 8px',textAlign:'center',color:'#555'}}>{i+1}</td>
+                <td style={{padding:'6px 10px'}}>{d}</td>
+                <td style={{padding:'6px 10px',textAlign:'right',fontWeight:600}}>{a}</td>
+              </tr>
+            ))}
+            <tr style={{borderTop:'2px solid #0E7490',background:'#f0fdfe'}}>
+              <td colSpan={2} style={{padding:'8px 10px',fontWeight:700,textAlign:'right',fontSize:11}}>Total</td>
+              <td style={{padding:'8px 10px',textAlign:'right',fontWeight:900,color:'#0E7490',fontSize:12}}>₹16,000</td>
             </tr>
           </tbody>
         </table>
-        <div className="flex justify-end">
-          <div className="w-36">
-            <div className="bg-gray-900 text-white flex justify-between px-3 py-2 rounded font-bold">
-              <span>TOTAL</span><span>₹25,000</span>
-            </div>
-          </div>
+        {/* Note box */}
+        <div style={{border:'1px solid #e2e8f0',padding:'8px 12px',marginTop:12,fontSize:9,color:'#64748b',background:'#f8fafc'}}>
+          <strong style={{color:'#1a1a1a'}}>Note:</strong> Please send payment within 30 days. Late payments attract 10% interest/month.
         </div>
+        {/* Bank details */}
+        <div style={{marginTop:10,fontSize:9,color:'#64748b'}}>Bank: HDFC &nbsp;|&nbsp; A/C: 0012345678 &nbsp;|&nbsp; IFSC: HDFC0000123</div>
+      </div>
+      {/* Footer */}
+      <div style={{background:'#0E7490',marginTop:20,padding:'10px 28px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <p style={{color:'rgba(255,255,255,0.85)',fontSize:9,fontStyle:'italic'}}>Thank you for your business!</p>
+        <p style={{color:'rgba(255,255,255,0.6)',fontSize:8}}>Generated by AutoInvoice</p>
       </div>
     </div>
   )
 }
 
-function RetailPreview() {
+// Template 2 — Geometric
+function GeometricPreview() {
   return (
-    <div className="bg-white text-gray-900 p-6 rounded-lg text-xs space-y-4">
-      <div className="flex justify-between items-center border-b-2 border-purple-600 pb-3">
-        <div>
-          <p className="text-xl font-extrabold text-purple-700">RETAIL INVOICE</p>
-          <p className="text-gray-400 text-[10px]">#INV-2601-001 | 03/03/2026</p>
-        </div>
-        <div className="text-right">
-          <p className="font-bold">RetailShop</p>
-          <p className="text-gray-400 text-[10px]">GST: 27XXXXXX</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-500">
-        <div>
-          <p className="font-bold text-gray-800">Customer: Sample Store</p>
-          <p>Ph: +91 98765 43210</p>
-        </div>
-        <div className="text-right">
-          <p>PO #: PO-0042</p>
-          <p>Salesperson: Rahul</p>
-        </div>
-      </div>
-      <table className="w-full text-[10px]">
-        <thead>
-          <tr className="bg-purple-600 text-white">
-            <th className="px-2 py-1 text-left">Product</th>
-            <th className="px-2 py-1 text-left">SKU</th>
-            <th className="px-2 py-1 text-right">Qty</th>
-            <th className="px-2 py-1 text-right">MRP</th>
-            <th className="px-2 py-1 text-right">Disc</th>
-            <th className="px-2 py-1 text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b border-gray-100 bg-purple-50">
-            <td className="px-2 py-1">Blue Pen Box</td>
-            <td className="px-2 py-1 text-gray-400">SKU-001</td>
-            <td className="px-2 py-1 text-right">10</td>
-            <td className="px-2 py-1 text-right">₹50</td>
-            <td className="px-2 py-1 text-right text-red-500">5%</td>
-            <td className="px-2 py-1 text-right font-bold">₹475</td>
-          </tr>
-          <tr className="border-b border-gray-100">
-            <td className="px-2 py-1">A4 Ream</td>
-            <td className="px-2 py-1 text-gray-400">SKU-002</td>
-            <td className="px-2 py-1 text-right">5</td>
-            <td className="px-2 py-1 text-right">₹200</td>
-            <td className="px-2 py-1 text-right text-red-500">0%</td>
-            <td className="px-2 py-1 text-right font-bold">₹1,000</td>
-          </tr>
-        </tbody>
-      </table>
-      <div className="flex justify-between items-end">
-        <p className="text-gray-400 text-[10px]">Total items: 2 | Units: 15</p>
-        <div className="w-36 space-y-1 text-[10px]">
-          <div className="flex justify-between"><span className="text-gray-400">Subtotal</span><span>₹1,475</span></div>
-          <div className="flex justify-between text-purple-700 font-bold border-t border-gray-200 pt-1">
-            <span>Grand Total</span><span>₹1,475</span>
+    <div style={{fontFamily:'Arial,sans-serif',background:'#fff',fontSize:12,color:'#1a1a1a',minHeight:500,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
+      {/* Corner accents */}
+      <div style={{position:'absolute',top:0,right:0,width:0,height:0,borderLeft:'70px solid transparent',borderTop:'70px solid #0F766E'}} />
+      <div style={{position:'absolute',top:0,right:38,width:0,height:0,borderLeft:'36px solid transparent',borderTop:'36px solid #EC4899'}} />
+      <div style={{position:'absolute',bottom:0,left:0,width:0,height:0,borderRight:'56px solid transparent',borderBottom:'56px solid #EC4899'}} />
+      {/* Body */}
+      <div style={{padding:'28px 28px 0',flex:1}}>
+        <p style={{fontSize:32,fontWeight:900,letterSpacing:-1,color:'#1a1a1a',marginBottom:20}}>INVOICE</p>
+        {/* Date + From/Issued To */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:18}}>
+          <div style={{fontSize:10,color:'#555'}}>
+            <p style={{marginBottom:3}}><span style={{color:'#94a3b8'}}>Date Issued:</span> 01 January 2025</p>
+            <p style={{marginBottom:3}}><span style={{color:'#94a3b8'}}>Invoice No:</span> 01234</p>
+            <p><span style={{color:'#94a3b8'}}>Due Date:</span> 31 January 2025</p>
+          </div>
+          <div style={{fontSize:10}}>
+            <p style={{color:'#94a3b8',fontSize:9,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>Issued By</p>
+            <p style={{fontWeight:700}}>INGOUDE COMPANY</p>
+            <p style={{color:'#64748b',fontSize:9}}>123 Anywhere St., Any City</p>
+            <p style={{color:'#94a3b8',fontSize:9,textTransform:'uppercase',letterSpacing:1,marginTop:8,marginBottom:4}}>Issued To</p>
+            <p style={{fontWeight:700}}>Sacha Dubois</p>
+            <p style={{color:'#64748b',fontSize:9}}>456 Client Ave., Metro City</p>
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function ServicePreview() {
-  return (
-    <div className="bg-white text-gray-900 rounded-lg text-xs overflow-hidden">
-      <div className="bg-amber-50 border-b-4 border-amber-400 p-6 flex justify-between">
-        <div>
-          <p className="text-xl font-extrabold text-amber-700">SERVICE INVOICE</p>
-          <p className="text-gray-500 text-[10px]">INV-2601-001 | 03 Mar 2026</p>
-        </div>
-        <div className="text-right">
-          <p className="font-bold text-gray-800">Freelancer Co.</p>
-          <p className="text-gray-400 text-[10px]">freelancer@email.com</p>
-        </div>
-      </div>
-      <div className="p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4 text-[10px]">
-          <div>
-            <p className="font-bold text-amber-700 mb-1">CLIENT</p>
-            <p className="font-bold text-gray-800">Startup Inc.</p>
-            <p className="text-gray-400">Due: 03 Apr 2026</p>
-          </div>
-          <div className="bg-amber-50 rounded p-2">
-            <p className="font-bold text-amber-700 mb-1">MILESTONES</p>
-            <p className="text-gray-500">✓ Design Phase</p>
-            <p className="text-gray-500">✓ Development</p>
-            <p className="text-gray-400">○ Testing (pending)</p>
-          </div>
-        </div>
-        <table className="w-full text-[10px]">
+        {/* Table */}
+        <table style={{width:'100%',borderCollapse:'collapse',border:'1px solid #e2e8f0',fontSize:10}}>
           <thead>
-            <tr className="border-b-2 border-amber-400 text-amber-700">
-              <th className="pb-1 text-left">Service</th>
-              <th className="pb-1 text-right">Hours</th>
-              <th className="pb-1 text-right">Rate/hr</th>
-              <th className="pb-1 text-right">Amount</th>
+            <tr style={{background:'#f8f8f8',fontWeight:700,fontSize:9,textTransform:'uppercase',letterSpacing:0.5,color:'#666'}}>
+              <th style={{padding:'8px 8px',textAlign:'center',width:30}}>NO</th>
+              <th style={{padding:'8px 10px',textAlign:'left'}}>DESCRIPTION</th>
+              <th style={{padding:'8px 10px',textAlign:'center'}}>QTY</th>
+              <th style={{padding:'8px 10px',textAlign:'right'}}>PRICE</th>
+              <th style={{padding:'8px 10px',textAlign:'right'}}>SUBTOTAL</th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-gray-100">
-              <td className="py-1">UI/UX Design</td>
-              <td className="py-1 text-right">20h</td>
-              <td className="py-1 text-right">₹500</td>
-              <td className="py-1 text-right font-bold">₹10,000</td>
-            </tr>
-            <tr className="border-b border-gray-100">
-              <td className="py-1">Development</td>
-              <td className="py-1 text-right">40h</td>
-              <td className="py-1 text-right">₹800</td>
-              <td className="py-1 text-right font-bold">₹32,000</td>
-            </tr>
+            {[[1,'Design Work',1,'$100','$200'],[2,'Development',2,'$50','$100'],[3,'Consulting',1,'$80','$80']].map(([n,d,q,p,s],i)=>(
+              <tr key={i} style={{borderBottom:'1px solid #e2e8f0',background:i%2===0?'#fff':'#f8fffe'}}>
+                <td style={{padding:'7px 8px',textAlign:'center',color:'#555'}}>{n}</td>
+                <td style={{padding:'7px 10px'}}>{d}</td>
+                <td style={{padding:'7px 10px',textAlign:'center'}}>{q}</td>
+                <td style={{padding:'7px 10px',textAlign:'right',fontFamily:'monospace'}}>{p}</td>
+                <td style={{padding:'7px 10px',textAlign:'right',fontWeight:600,color:'#0F766E',fontFamily:'monospace'}}>{s}</td>
+              </tr>
+            ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={3} />
+              <td style={{padding:'8px 10px',textAlign:'right',fontWeight:700,fontSize:10}}>Grand Total</td>
+              <td style={{padding:'8px 10px',textAlign:'right',fontWeight:900,color:'#0F766E',fontFamily:'monospace',fontSize:12}}>$380</td>
+            </tr>
+          </tfoot>
         </table>
-        <div className="flex justify-end">
-          <div className="w-36 space-y-1 text-[10px]">
-            <div className="flex justify-between"><span className="text-gray-400">60 hrs total</span><span>₹42,000</span></div>
-            <div className="flex justify-between font-bold text-amber-700 border-t border-amber-200 pt-1">
-              <span>Total Due</span><span>₹42,000</span>
-            </div>
+        {/* Bank + Signature */}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:14}}>
+          <div style={{fontSize:9,color:'#64748b'}}>
+            <p style={{fontWeight:700,color:'#1a1a1a',marginBottom:2}}>Bank Details</p>
+            <p>Bank: Rimberio &nbsp;|&nbsp; Acc: 0123 4567 8901</p>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <p style={{fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:18,color:'#374151'}}>Claudia</p>
+            <div style={{borderTop:'1px solid #1a1a1a',paddingTop:3,fontSize:9,color:'#555'}}>Finance Manager</div>
           </div>
         </div>
-        <div className="bg-amber-50 rounded p-2 text-[10px] text-gray-500">
-          <span className="font-bold text-amber-700">Terms: </span>
-          Net 30 • Late fee 2%/mo • Cheque payable to Freelancer Co.
-        </div>
+      </div>
+      {/* Footer */}
+      <div style={{background:'#0F766E',marginTop:20,padding:'10px 28px',display:'flex',justifyContent:'space-between',alignItems:'center',position:'relative',zIndex:2}}>
+        <p style={{color:'rgba(255,255,255,0.85)',fontSize:9,fontStyle:'italic'}}>Thank you for your business!</p>
+        <p style={{color:'rgba(255,255,255,0.6)',fontSize:8}}>Generated by AutoInvoice</p>
       </div>
     </div>
   )
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+// Template 3 — Circle Studio
+function CircleStudioPreview() {
+  return (
+    <div style={{fontFamily:'Arial,sans-serif',background:'#fff',fontSize:12,color:'#1a1a1a',minHeight:500,display:'flex',flexDirection:'column'}}>
+      {/* Body */}
+      <div style={{padding:'24px 28px 0',flex:1}}>
+        {/* Centered circle logo */}
+        <div style={{textAlign:'center',marginBottom:20}}>
+          <div style={{width:60,height:60,borderRadius:'50%',border:'2px solid #1a1a1a',display:'inline-flex',flexDirection:'column',alignItems:'center',justifyContent:'center',marginBottom:4}}>
+            <span style={{fontStyle:'italic',fontSize:8,fontFamily:'Georgia,serif',color:'#555'}}>the</span>
+            <span style={{fontWeight:900,fontSize:9,letterSpacing:3}}>CIRCLE</span>
+            <span style={{fontSize:6,letterSpacing:2,color:'#9ca3af',textTransform:'uppercase'}}>studio</span>
+          </div>
+          <p style={{fontSize:9,color:'#9ca3af',letterSpacing:1,textTransform:'uppercase'}}>hello@circlestudio.com</p>
+        </div>
+        {/* Issued to + Invoice no */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:16}}>
+          <div>
+            <p style={{fontWeight:700,fontSize:8,textTransform:'uppercase',letterSpacing:1,marginBottom:5}}>ISSUED TO:</p>
+            <p style={{fontWeight:700,fontSize:11}}>Olivia Smith</p>
+            <p style={{color:'#6b7280',fontSize:9}}>Really Great Company</p>
+            <p style={{color:'#6b7280',fontSize:9}}>hello@reallygreatsite.com</p>
+            <p style={{color:'#6b7280',fontSize:9}}>+1 234 567 8901</p>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <p style={{fontWeight:700,fontSize:8,textTransform:'uppercase',letterSpacing:1,marginBottom:5}}>INVOICE NO:</p>
+            <p style={{fontWeight:900,fontSize:20,fontFamily:'monospace'}}>#012345</p>
+            <p style={{color:'#6b7280',fontSize:9,marginTop:3}}>12.06.2024</p>
+            <p style={{color:'#6b7280',fontSize:9}}>Due: 12.07.2024</p>
+          </div>
+        </div>
+        {/* Table */}
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:10}}>
+          <thead>
+            <tr style={{borderTop:'2px solid #1a1a1a',borderBottom:'2px solid #1a1a1a',fontWeight:700,fontSize:8,textTransform:'uppercase',letterSpacing:0.5}}>
+              <th style={{padding:'7px 10px',textAlign:'left'}}>Description</th>
+              <th style={{padding:'7px 10px',textAlign:'right'}}>Unit Price</th>
+              <th style={{padding:'7px 10px',textAlign:'right'}}>QTY</th>
+              <th style={{padding:'7px 10px',textAlign:'right'}}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[['Logo Design',200,1,'$200'],['Brand Guide',150,1,'$150'],['Social Kit',100,2,'$200'],['Consultation',80,1,'$80'],['Revisions',60,1,'$60']].map(([d,p,q,t],i)=>(
+              <tr key={i} style={{borderBottom:'1px solid #e5e7eb'}}>
+                <td style={{padding:'6px 10px'}}>{d}</td>
+                <td style={{padding:'6px 10px',textAlign:'right',fontFamily:'monospace'}}>{p}</td>
+                <td style={{padding:'6px 10px',textAlign:'right'}}>{q}</td>
+                <td style={{padding:'6px 10px',textAlign:'right',fontFamily:'monospace',fontWeight:600}}>{t}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {/* Total */}
+        <div style={{borderTop:'2px solid #1a1a1a',borderBottom:'2px solid #1a1a1a',padding:'8px 0',display:'flex',justifyContent:'space-between',fontWeight:700,fontSize:11,marginTop:0}}>
+          <span>TOTAL</span><span style={{fontFamily:'monospace'}}>$690</span>
+        </div>
+        {/* Bank + Thank you */}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:16}}>
+          <div style={{fontSize:9,color:'#6b7280'}}>
+            <p style={{fontWeight:700,color:'#1a1a1a',marginBottom:3,fontSize:9}}>BANK DETAILS</p>
+            <p>Borcele Bank &nbsp;|&nbsp; Avery Davis</p>
+            <p>Acc No.: 123-456-7890</p>
+            <p>Pay by: 12 July 2024</p>
+          </div>
+          <p style={{fontFamily:'Georgia,serif',fontSize:24,fontStyle:'italic',color:'#374151'}}>thank you</p>
+        </div>
+      </div>
+      {/* Footer */}
+      <div style={{borderTop:'2px solid #1a1a1a',marginTop:20,padding:'10px 28px',display:'flex',justifyContent:'space-between',alignItems:'center',background:'#f9fafb'}}>
+        <p style={{color:'#6b7280',fontSize:9,fontStyle:'italic'}}>We appreciate your business</p>
+        <p style={{color:'#9ca3af',fontSize:8}}>Generated by AutoInvoice</p>
+      </div>
+    </div>
+  )
+}
+
+// Template 4 — Aizen Bold
+function AizenBoldPreview() {
+  return (
+    <div style={{fontFamily:'Arial,sans-serif',background:'#fff',fontSize:12,color:'#1a1a1a',minHeight:500,display:'flex',flexDirection:'column'}}>
+      {/* Company header + geometric accents */}
+      <div style={{padding:'18px 24px 14px',position:'relative',overflow:'hidden',display:'flex',alignItems:'center',gap:12,background:'#fff',borderBottom:'1px solid #e5e7eb'}}>
+        <div style={{position:'absolute',top:0,right:0,width:0,height:0,borderLeft:'56px solid transparent',borderTop:'56px solid #1a1a1a'}} />
+        <div style={{position:'absolute',top:0,right:30,width:0,height:0,borderLeft:'28px solid transparent',borderTop:'28px solid #ef4444'}} />
+        <div style={{width:36,height:36,background:'#ef4444',borderRadius:4,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',fontSize:16,flexShrink:0}}>A</div>
+        <div>
+          <p style={{fontWeight:900,fontSize:13,lineHeight:1.1}}>AIZEN COMPANY</p>
+          <p style={{fontSize:8,color:'#9ca3af',letterSpacing:2,textTransform:'uppercase'}}>Creative Agency</p>
+        </div>
+      </div>
+      {/* Centered INVOICE title */}
+      <p style={{textAlign:'center',fontWeight:900,fontSize:22,letterSpacing:6,borderBottom:'1px solid #e5e7eb',padding:'10px 0',margin:0}}>INVOICE</p>
+      {/* Invoice meta 3 cols */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12,padding:'12px 24px',borderBottom:'1px solid #e5e7eb',fontSize:9}}>
+        <div>
+          <p style={{color:'#9ca3af',marginBottom:2}}>INVOICE TO:</p>
+          <p style={{fontWeight:700,fontSize:10}}>DILUC STEINER</p>
+          <p style={{color:'#6b7280'}}>456 Corporate Blvd</p>
+          <p style={{color:'#6b7280'}}>info@diluc.com</p>
+        </div>
+        <div>
+          <p style={{color:'#9ca3af',marginBottom:2}}>FROM:</p>
+          <p style={{fontWeight:700,fontSize:10}}>AIZEN COMPANY</p>
+          <p style={{color:'#6b7280'}}>123 Studio Lane</p>
+        </div>
+        <div style={{textAlign:'right'}}>
+          <p style={{color:'#9ca3af'}}>Date: 12/07/2021</p>
+          <p style={{fontFamily:'monospace'}}>INV: 12345678</p>
+          <p style={{color:'#6b7280'}}>Due: 11/08/2021</p>
+          <p style={{fontWeight:700,color:'#ef4444',marginTop:3}}>USD: $1,500</p>
+        </div>
+      </div>
+      {/* Items table */}
+      <div style={{padding:'0 24px',flex:1}}>
+        <table style={{width:'100%',borderCollapse:'collapse',marginTop:12,fontSize:10}}>
+          <thead>
+            <tr style={{background:'#f3f4f6',fontWeight:700,fontSize:9,textTransform:'uppercase',letterSpacing:0.5,color:'#6b7280'}}>
+              <th style={{padding:'7px 10px',textAlign:'left'}}>Description</th>
+              <th style={{padding:'7px 10px',textAlign:'center'}}>Qty</th>
+              <th style={{padding:'7px 10px',textAlign:'right'}}>Price</th>
+              <th style={{padding:'7px 10px',textAlign:'right'}}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[['Brand Identity Design',2,'$120','$240'],['Social Media Package',4,'$100','$400'],['Website Mockup',2,'$120','$240'],['Content Strategy',1,'$380','$380'],['Consultation',3,'$80','$240']].map(([d,q,p,t],i)=>(
+              <tr key={i} style={{borderBottom:'1px solid #e5e7eb',background:i%2===0?'#f9fafb':'#fff'}}>
+                <td style={{padding:'6px 10px'}}>{d}</td>
+                <td style={{padding:'6px 10px',textAlign:'center'}}>{q}</td>
+                <td style={{padding:'6px 10px',textAlign:'right',fontFamily:'monospace'}}>{p}</td>
+                <td style={{padding:'6px 10px',textAlign:'right',fontFamily:'monospace',fontWeight:700}}>{t}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {/* Totals + red badge */}
+        <div style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:20,marginTop:10,paddingBottom:12}}>
+          <div style={{fontSize:9,color:'#6b7280',textAlign:'right'}}>
+            <p>Sub-total: $1,500 &nbsp;|&nbsp; Tax: $0</p>
+          </div>
+          <div style={{background:'#ef4444',color:'#fff',fontWeight:900,fontSize:11,padding:'8px 16px',borderRadius:4}}>
+            Total: $1,500
+          </div>
+        </div>
+      </div>
+      {/* Footer */}
+      <div style={{background:'#1a1a1a',padding:'10px 24px',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto'}}>
+        <p style={{color:'rgba(255,255,255,0.7)',fontSize:9,fontStyle:'italic'}}>Thank you for your business!</p>
+        <p style={{color:'rgba(255,255,255,0.4)',fontSize:8}}>Generated by AutoInvoice</p>
+      </div>
+    </div>
+  )
+}
+
+// Template 5 — Simple Boxed (Navy Corporate)
+function SimpleBoxedPreview() {
+  return (
+    <div style={{fontFamily:'Arial,sans-serif',background:'#fff',fontSize:12,color:'#1a1a1a',minHeight:500,display:'flex',flexDirection:'column'}}>
+      {/* Navy header */}
+      <div style={{background:'#1e2d5b',padding:'20px 28px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <div style={{width:32,height:32,background:'#f47321',borderRadius:4,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',fontSize:15,marginBottom:6}}>B</div>
+          <p style={{color:'#fff',fontWeight:700,fontSize:11}}>Your Business</p>
+          <p style={{color:'rgba(255,255,255,0.55)',fontSize:9}}>Professional Services</p>
+          <p style={{color:'rgba(255,255,255,0.5)',fontSize:8}}>hello@yourbiz.com</p>
+        </div>
+        <div style={{textAlign:'right'}}>
+          <p style={{fontWeight:900,fontSize:28,color:'#fff',letterSpacing:3,lineHeight:1}}>INVOICE</p>
+          <p style={{fontSize:9,color:'rgba(255,255,255,0.6)',marginTop:5}}>Ref No. INV-2601-001</p>
+          <p style={{fontSize:9,color:'rgba(255,255,255,0.6)'}}>Invoice Date: 01 Jan 2025</p>
+          <p style={{fontSize:9,color:'#f47321'}}>Due: 31 Jan 2025</p>
+        </div>
+      </div>
+      {/* Company strip */}
+      <div style={{background:'#eef1f7',padding:'6px 28px',borderBottom:'1px solid #dce1ed',fontSize:9,color:'#6b7280'}}>
+        <span style={{fontWeight:700,color:'#1e2d5b'}}>Your Business</span> &nbsp;|&nbsp; 123 Anywhere St., Any City &nbsp;|&nbsp; GSTIN: 27XXXXX1234
+      </div>
+      {/* Body */}
+      <div style={{padding:'20px 28px',flex:1}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:16,paddingBottom:14,borderBottom:'1px solid #edf0f5'}}>
+          <div>
+            <p style={{fontSize:8,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:'#9ca3af',marginBottom:6}}>Billed To</p>
+            <p style={{fontWeight:700,fontSize:11,color:'#1e2d5b'}}>Global Corp Ltd.</p>
+            <p style={{color:'#6b7280',fontSize:9,marginTop:2}}>456 Corporate Blvd, Metro City</p>
+            <p style={{color:'#6b7280',fontSize:9}}>info@globalcorp.com</p>
+            <p style={{color:'#6b7280',fontSize:9}}>GSTIN: 29AAACR5055K1ZK</p>
+          </div>
+          <div>
+            <p style={{fontSize:8,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:'#9ca3af',marginBottom:6}}>Invoice Details</p>
+            <table style={{fontSize:9,borderCollapse:'collapse'}}>
+              <tbody>
+                <tr><td style={{color:'#6b7280',paddingRight:10,paddingBottom:3}}>Invoice No.</td><td style={{fontFamily:'monospace',color:'#1e2d5b',fontWeight:600}}>INV-2601-001</td></tr>
+                <tr><td style={{color:'#6b7280',paddingBottom:3}}>Currency</td><td style={{color:'#1e2d5b'}}>INR</td></tr>
+                <tr><td style={{color:'#6b7280',paddingBottom:3}}>PO Number</td><td style={{color:'#1e2d5b',fontFamily:'monospace'}}>PO-0042</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {/* Table */}
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:10}}>
+          <thead>
+            <tr style={{background:'#1e2d5b'}}>
+              <th style={{padding:'8px 8px',textAlign:'center',color:'#fff',fontSize:10,width:30}}>No.</th>
+              <th style={{padding:'8px 10px',textAlign:'left',color:'#fff',fontSize:10}}>Description</th>
+              <th style={{padding:'8px 10px',textAlign:'center',color:'#fff',fontSize:10}}>Quantity</th>
+              <th style={{padding:'8px 10px',textAlign:'right',color:'#fff',fontSize:10}}>Unit Price</th>
+              <th style={{padding:'8px 10px',textAlign:'right',color:'#fff',fontSize:10}}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[[1,'Strategy Consulting',1,'₹25,000','₹25,000'],[2,'UI/UX Design',3,'₹5,000','₹15,000'],[3,'Development',2,'₹10,000','₹20,000']].map(([n,d,q,p,a],i)=>(
+              <tr key={i} style={{borderBottom:'1px solid #edf0f5',background:i%2===0?'#fff':'#f8f9fb'}}>
+                <td style={{padding:'7px 8px',textAlign:'center',color:'#6b7280'}}>{n}</td>
+                <td style={{padding:'7px 10px',color:'#1e2d5b',fontWeight:500}}>{d}</td>
+                <td style={{padding:'7px 10px',textAlign:'center'}}>{q}</td>
+                <td style={{padding:'7px 10px',textAlign:'right',fontFamily:'monospace'}}>{p}</td>
+                <td style={{padding:'7px 10px',textAlign:'right',fontFamily:'monospace',fontWeight:700,color:'#1e2d5b'}}>{a}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {/* Amount Due badge */}
+        <div style={{display:'flex',justifyContent:'flex-end',marginTop:8}}>
+          <div style={{background:'#1e2d5b',color:'#fff',fontWeight:900,fontSize:12,padding:'10px 20px',borderRadius:0,display:'flex',gap:20,alignItems:'center'}}>
+            <span>Amount Due</span>
+            <span style={{fontFamily:'monospace',fontSize:14}}>₹60,000</span>
+          </div>
+        </div>
+      </div>
+      {/* Footer */}
+      <div style={{background:'#eef1f7',borderTop:'2px solid #1e2d5b',padding:'10px 28px',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto'}}>
+        <p style={{color:'#6b7280',fontSize:9,fontStyle:'italic'}}>Thank you for your business!</p>
+        <p style={{color:'#9ca3af',fontSize:8}}>Generated by AutoInvoice</p>
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 function InvoiceTemplatesPage() {
   const [previewTemplate, setPreviewTemplate] = useState(null)
   const [selectedTemplate, setSelectedTemplate] = useLocalStorage(
     "selected-template",
-    "minimal",
+    "clean-teal",
   )
   const [customTemplate] = useLocalStorage("custom-template", null)
   const [importedTemplate, setImportedTemplate] = useLocalStorage("imported-template", null)
@@ -433,7 +504,7 @@ function InvoiceTemplatesPage() {
     if (!file) return
     const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf")
     const isHtml = file.type === "text/html" || file.name.endsWith(".html")
-    if (!isPdf && !isHtml) {
+        if (!isPdf && !isHtml) {
       showErrorToast("Please upload a PDF (.pdf) or HTML (.html) file")
       return
     }
@@ -483,7 +554,7 @@ function InvoiceTemplatesPage() {
 
   const handleDeleteImported = () => {
     setImportedTemplate(null)
-    if (selectedTemplate === "imported") setSelectedTemplate("minimal")
+    if (selectedTemplate === "imported") setSelectedTemplate("clean-teal")
     showSuccessToast("Imported template removed")
   }
 
