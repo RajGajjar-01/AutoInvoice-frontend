@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TableCell } from "@/components/DataTables/TableCell"
-import { tablesStore } from "@/components/DataTables/tableStore"
 import { Separator } from "@/components/ui/separator"
 
 export function MobileEntryView({ tableId, table, rows, cols, onDeleteRow, suggestionsMap, onSetReminder, onAddRowWithData, onUpdateCell }) {

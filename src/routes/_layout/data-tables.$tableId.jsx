@@ -1,11 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, Bell, Filter, Plus, Trash2 } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
 import { ReminderModal } from "@/components/DataTables/ReminderModal"
 import { TableCell } from "@/components/DataTables/TableCell"
 import { MobileEntryView } from "@/components/DataTables/MobileEntryView"
-import { tablesStore } from "@/components/DataTables/tableStore"
 import { useIsMobile } from "@/hooks/useMobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,6 +18,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { TablesService } from "@/client"
+import { queryClient } from "@/queryClient"
+import { tableDetailQueryOptions, tablesQueryKeys } from "@/features/data-tables/queries"
 import {
   Sheet,
   SheetContent,
@@ -37,35 +41,24 @@ import {
 import { evaluateFormula } from "@/lib/formula-engine"
 
 export const Route = createFileRoute("/_layout/data-tables/$tableId")({
-  component: TableViewPage,
+  component: TableViewRouteComponent,
+  loader: ({ params }) => {
+    return queryClient.ensureQueryData(tableDetailQueryOptions(params.tableId))
+  },
   head: () => ({
     meta: [{ title: "Table View" }],
   }),
 })
 
-// ─── Type badge colours ────────────────────────────────────────────────────────
-const TYPE_BADGE_COLORS = {
-  Text: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-  Number: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  Date: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
-  Status:
-    "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  Tag: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
-  "Amount (₹)":
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-  Checkbox: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300",
-  "Payment Status":
-    "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300",
-  "Due Date":
-    "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
-  "Expiry Date":
-    "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
-  Attachment:
-    "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-  Dropdown: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
+function TableViewRouteComponent() {
+  return (
+    <Suspense fallback={null}>
+      <TableViewPage />
+    </Suspense>
+  )
 }
 
-const OPTION_FILTER_TYPES = new Set([
+ const OPTION_FILTER_TYPES = new Set([
   "Status",
   "Payment Status",
   "Tag",
@@ -78,9 +71,6 @@ function TableViewPage() {
   const isMobile = useIsMobile()
   const { tableId } = Route.useParams()
   const navigate = useNavigate()
-
-  const [_tick, setTick] = useState(0)
-  const refresh = () => setTick((t) => t + 1)
 
   const [selectedRows, setSelectedRows] = useState(new Set())
   const [reminderState, setReminderState] = useState({
@@ -122,7 +112,8 @@ function TableViewPage() {
     }
   }, [])
 
-  const table = tablesStore.getById(tableId)
+  const { data: currentTable } = useSuspenseQuery(tableDetailQueryOptions(tableId))
+  const table = currentTable
 
   // ── Table not found ────────────────────────────────────────────────────────
   if (!table) {
@@ -142,36 +133,133 @@ function TableViewPage() {
     )
   }
 
+  const uiRowToApiData = (row, cols, patch) => {
+    const data = {}
+    for (const col of cols) {
+      data[col.name] = row?.[col.name]
+    }
+    if (patch) {
+      for (const [k, v] of Object.entries(patch)) {
+        data[k] = v
+      }
+    }
+    return data
+  }
+
+  const createRowMutation = useMutation({
+    mutationFn: async (data) => {
+      return TablesService.createTableRow({
+        tableId,
+        requestBody: {
+          data,
+        },
+      })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(tableId) })
+    },
+    onError: () => {
+      toast.error("Failed to add row")
+    },
+  })
+
+  const updateRowMutation = useMutation({
+    mutationFn: async ({ rowId, apiData }) => {
+      return TablesService.updateTableRow({
+        tableId,
+        rowId,
+        requestBody: {
+          data: apiData,
+        },
+      })
+    },
+    onMutate: async ({ rowId, uiPatch }) => {
+      await queryClient.cancelQueries({ queryKey: tablesQueryKeys.detail(tableId) })
+      const previous = queryClient.getQueryData(tablesQueryKeys.detail(tableId))
+      queryClient.setQueryData(tablesQueryKeys.detail(tableId), (old) => {
+        if (!old) return old
+        const patch = uiPatch ?? {}
+        const nextRows = (old.rows ?? []).map((r) => {
+          if (r.id !== rowId) return r
+          return {
+            ...r,
+            ...patch,
+          }
+        })
+        return {
+          ...old,
+          rows: nextRows,
+        }
+      })
+      return { previous }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(tablesQueryKeys.detail(tableId), ctx.previous)
+      }
+      toast.error("Failed to update row")
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(tableId) })
+    },
+  })
+
+  const deleteRowMutation = useMutation({
+    mutationFn: async (rowId) => {
+      return TablesService.deleteTableRow({ tableId, rowId })
+    },
+    onSuccess: async (_res, rowId) => {
+      setSelectedRows((prev) => {
+        const next = new Set(prev)
+        next.delete(rowId)
+        return next
+      })
+      await queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(tableId) })
+    },
+    onError: () => {
+      toast.error("Failed to delete row")
+    },
+  })
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (rowIds) => {
+      return TablesService.bulkDeleteTableRows({
+        tableId,
+        requestBody: rowIds,
+      })
+    },
+    onSuccess: async () => {
+      setSelectedRows(new Set())
+      await queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(tableId) })
+    },
+    onError: () => {
+      toast.error("Failed to bulk delete rows")
+    },
+  })
+
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCellChange = (rowId, colName, value) => {
-    tablesStore.updateCell(tableId, rowId, colName, value)
-    refresh()
+    const row = currentTable.rows.find((r) => r.id === rowId)
+    const uiPatch = { [colName]: value }
+    const apiData = uiRowToApiData(row, cols, uiPatch)
+    updateRowMutation.mutate({ rowId, apiData, uiPatch })
   }
 
   const handleAddRow = () => {
-    tablesStore.addRow(tableId)
-    refresh()
+    createRowMutation.mutate({})
   }
 
-  const handleAddRowWithData = (data) => {
-    tablesStore.addRowWithData(tableId, data)
-    refresh()
+  const handleAddRowWithData = (rowLike) => {
+    const nextData = uiRowToApiData(rowLike, cols)
+    createRowMutation.mutate(nextData)
   }
 
   const handleDeleteRow = (rowId) => {
-    tablesStore.deleteRow(tableId, rowId)
-    setSelectedRows((prev) => {
-      const next = new Set(prev)
-      next.delete(rowId)
-      return next
-    })
-    refresh()
+    deleteRowMutation.mutate(rowId)
   }
 
   const handleBulkDelete = () => {
-    tablesStore.bulkDeleteRows(tableId, [...selectedRows])
-    setSelectedRows(new Set())
-    refresh()
+    bulkDeleteMutation.mutate([...selectedRows])
   }
 
   const handleNavigate = (rowIndex, colIndex, direction) => {
@@ -220,7 +308,6 @@ function TableViewPage() {
   }
 
   // ── Re-read after mutations ────────────────────────────────────────────────
-  const currentTable = tablesStore.getById(tableId)
   const allRows = currentTable.rows
   const cols = currentTable.columns
 

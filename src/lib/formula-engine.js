@@ -1,120 +1,150 @@
-/**
- * Basic spreadsheet formula engine
- * Supports: 
- * - Cell references: A1, B5, etc.
- * - Basic math: +, -, *, /, ( )
- * - Functions: SUM, AVG, COUNT, MIN, MAX
- */
+import FormulaParser from "fast-formula-parser"
 
-const getCellValue = (ref, rows, cols) => {
-    const match = ref.match(/^([A-Z]+)([0-9]+)$/)
-    if (!match) return 0
-
-    const colStr = match[1]
-    const rowIdx = parseInt(match[2], 10) - 1
-
-    // Convert A, B, C... to 0, 1, 2...
-    let colIdx = 0
-    for (let i = 0; i < colStr.length; i++) {
-        colIdx = colIdx * 26 + (colStr.charCodeAt(i) - 64)
-    }
-    colIdx -= 1
-
-    const row = rows[rowIdx]
-    const col = cols[colIdx]
-
-    if (!row || !col) return 0
-    const val = row[col.name]
-    return isNaN(parseFloat(val)) ? 0 : parseFloat(val)
+const toNumberOrZero = (value) => {
+  const n = typeof value === "number" ? value : Number.parseFloat(String(value))
+  return Number.isFinite(n) ? n : 0
 }
 
-const resolveRange = (range, rows, cols) => {
-    const [start, end] = range.split(':')
-    if (!start || !end) return []
+const isBlank = (value) => value == null || String(value).trim() === ""
 
-    const startMatch = start.match(/^([A-Z]+)([0-9]+)$/)
-    const endMatch = end.match(/^([A-Z]+)([0-9]+)$/)
-    if (!startMatch || !endMatch) return []
+const pad2 = (n) => String(n).padStart(2, "0")
 
-    const startCol = startMatch[1]
-    const startRow = parseInt(startMatch[2], 10) - 1
-    const endCol = endMatch[1]
-    const endRow = parseInt(endMatch[2], 10) - 1
+const toIsoDate = (d) => {
+  const yyyy = d.getFullYear()
+  const mm = pad2(d.getMonth() + 1)
+  const dd = pad2(d.getDate())
+  return `${yyyy}-${mm}-${dd}`
+}
 
-    const getColIdx = (s) => {
-        let idx = 0
-        for (let i = 0; i < s.length; i++) idx = idx * 26 + (s.charCodeAt(i) - 64)
-        return idx - 1
+const parseFlexibleDate = (input) => {
+  if (input == null) return null
+  if (input instanceof Date) return Number.isNaN(input.getTime()) ? null : input
+
+  if (typeof input === "number") {
+    const d = new Date(input)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+
+  const s = String(input).trim()
+  if (!s) return null
+
+  // ISO date / datetime
+  const iso = new Date(s)
+  if (!Number.isNaN(iso.getTime())) return iso
+
+  // DD/MM/YYYY or MM/DD/YYYY (we prefer DD/MM/YYYY for ambiguous cases)
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  if (m) {
+    const a = Number.parseInt(m[1], 10)
+    const b = Number.parseInt(m[2], 10)
+    const y = Number.parseInt(m[3], 10)
+
+    // Prefer DD/MM/YYYY; if that looks invalid, fallback to MM/DD/YYYY.
+    const asDmy = new Date(y, b - 1, a)
+    if (asDmy.getFullYear() === y && asDmy.getMonth() === b - 1 && asDmy.getDate() === a) {
+      return asDmy
     }
+    const asMdy = new Date(y, a - 1, b)
+    if (asMdy.getFullYear() === y && asMdy.getMonth() === a - 1 && asMdy.getDate() === b) {
+      return asMdy
+    }
+  }
 
-    const sColIdx = getColIdx(startCol)
-    const eColIdx = getColIdx(endCol)
+  return null
+}
 
-    const values = []
-    for (let r = Math.min(startRow, endRow); r <= Math.max(startRow, endRow); r++) {
-        for (let c = Math.min(sColIdx, eColIdx); c <= Math.max(sColIdx, eColIdx); c++) {
-            const row = rows[r]
-            const col = cols[c]
-            if (row && col) {
-                const val = parseFloat(row[col.name])
-                if (!isNaN(val)) values.push(val)
-            }
+const buildParser = (rows, cols) => {
+  const maxRow = rows?.length ?? 0
+  const maxCol = cols?.length ?? 0
+
+  return new FormulaParser({
+    onCell: ({ row, col }) => {
+      if (row < 1 || col < 1 || row > maxRow || col > maxCol) return 0
+      const r = rows[row - 1]
+      const c = cols[col - 1]
+      if (!r || !c) return 0
+      const v = r[c.name]
+      // Keep raw values (strings/booleans) so IF/AND/OR can work.
+      // Numeric operations will coerce as needed.
+      return v ?? 0
+    },
+    onRange: (ref) => {
+      const fromRow = Math.max(1, ref.from.row)
+      const toRow = Math.min(maxRow, ref.to.row)
+      const fromCol = Math.max(1, ref.from.col)
+      const toCol = Math.min(maxCol, ref.to.col)
+
+      const arr = []
+      for (let r = fromRow; r <= toRow; r++) {
+        const rowVals = []
+        for (let c = fromCol; c <= toCol; c++) {
+          const rowObj = rows[r - 1]
+          const colObj = cols[c - 1]
+          rowVals.push(rowObj && colObj ? (rowObj[colObj.name] ?? 0) : 0)
         }
-    }
-    return values
+        arr.push(rowVals)
+      }
+      return arr
+    },
+    functions: {
+      TODAY: () => toIsoDate(new Date()),
+      NOW: () => new Date().toISOString(),
+      DATE: (year, month, day) => {
+        const y = Math.trunc(toNumberOrZero(year))
+        const m = Math.trunc(toNumberOrZero(month))
+        const d = Math.trunc(toNumberOrZero(day))
+        const dt = new Date(y, m - 1, d)
+        if (Number.isNaN(dt.getTime())) return "#VALUE!"
+        return toIsoDate(dt)
+      },
+      YEAR: (value) => {
+        const dt = parseFlexibleDate(value)
+        return dt ? dt.getFullYear() : "#VALUE!"
+      },
+      MONTH: (value) => {
+        const dt = parseFlexibleDate(value)
+        return dt ? dt.getMonth() + 1 : "#VALUE!"
+      },
+      DAY: (value) => {
+        const dt = parseFlexibleDate(value)
+        return dt ? dt.getDate() : "#VALUE!"
+      },
+      COUNTA: (...args) => {
+        let count = 0
+        const stack = [...args]
+        while (stack.length) {
+          const v = stack.shift()
+          if (Array.isArray(v)) {
+            stack.unshift(...v.flat(Infinity))
+            continue
+          }
+          if (!isBlank(v)) count++
+        }
+        return count
+      },
+    },
+  })
 }
 
 export const evaluateFormula = (formula, rows, cols) => {
-    if (!formula || typeof formula !== 'string' || !formula.startsWith('=')) {
-        return formula
+  if (!formula || typeof formula !== "string" || !formula.startsWith("=")) {
+    return formula
+  }
+
+  try {
+    const parser = buildParser(rows ?? [], cols ?? [])
+    const position = { row: 1, col: 1, sheet: "Sheet1" }
+    const res = parser.parse(formula.substring(1), position, true)
+
+    // Array results: show the first scalar cell
+    if (Array.isArray(res)) {
+      const first = res.flat(Infinity)[0]
+      return first ?? "#VALUE!"
     }
 
-    try {
-        let expression = formula.substring(1).toUpperCase()
-
-        // 1. Handle Ranges in functions: SUM(A1:C1) -> SUM([vals])
-        expression = expression.replace(/([A-Z]+[0-9]+:[A-Z]+[0-9]+)/g, (match) => {
-            const vals = resolveRange(match, rows, cols)
-            return `[${vals.join(',')}]`
-        })
-
-        // 2. Handle single cell references: A1 -> 10
-        expression = expression.replace(/([A-Z]+[0-9]+)/g, (match) => {
-            return getCellValue(match, rows, cols)
-        })
-
-        // 3. Basic Functions
-        const functions = {
-            SUM: (arr) => arr.reduce((a, b) => a + b, 0),
-            AVG: (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0,
-            COUNT: (arr) => arr.length,
-            MIN: (arr) => Math.min(...arr),
-            MAX: (arr) => Math.max(...arr),
-        }
-
-        Object.keys(functions).forEach(fn => {
-            const regex = new RegExp(`${fn}\\(\\[(.*?)\\]\\)`, 'g')
-            expression = expression.replace(regex, (_, args) => {
-                const vals = args.split(',').map(Number).filter(n => !isNaN(n))
-                return functions[fn](vals)
-            })
-            
-            // Also handle comma separated values SUM(1,2,3)
-            const regexComma = new RegExp(`${fn}\\((.*?)\\)`, 'g')
-            expression = expression.replace(regexComma, (_, args) => {
-                const vals = args.split(',').map(v => {
-                   try { return eval(v) } catch { return 0 }
-                }).map(Number)
-                return functions[fn](vals)
-            })
-        })
-
-        // 4. Final Math expression evaluation
-        // eslint-disable-next-line no-eval
-        const result = eval(expression)
-        return isFinite(result) ? result : '#VALUE!'
-    } catch (err) {
-        console.error("Formula Error:", err)
-        return '#ERROR!'
-    }
+    return res
+  } catch (err) {
+    console.error("Formula Error:", err)
+    return "#ERROR!"
+  }
 }

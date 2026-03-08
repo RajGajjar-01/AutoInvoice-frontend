@@ -222,10 +222,6 @@ export const PREDEFINED_TEMPLATES = [
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 function loadInitialTables() {
-  try {
-    const seeded = localStorage.getItem("demo-tables")
-    if (seeded) return JSON.parse(seeded)
-  } catch (_) { /* ignore */ }
   return [
     {
       id: "1",

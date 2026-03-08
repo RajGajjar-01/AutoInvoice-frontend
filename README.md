@@ -4,13 +4,13 @@ The frontend is built with [Vite](https://vitejs.dev/), [React](https://reactjs.
 
 ## Requirements
 
-- [Bun](https://bun.sh/) (recommended) or [Node.js](https://nodejs.org/)
+- [Node.js](https://nodejs.org/) (recommended: latest LTS)
 
 ## Quick Start
 
 ```bash
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 * Then open your browser at http://localhost:5173/.
@@ -62,7 +62,7 @@ bash ./scripts/generate-client.sh
 * To generate the frontend client, run:
 
 ```bash
-bun run generate-client
+npm run generate-client
 ```
 
 * Commit the changes.
@@ -101,13 +101,13 @@ docker compose up -d --wait backend
 Then, you can run the tests with the following command:
 
 ```bash
-bunx playwright test
+npx playwright test
 ```
 
 You can also run your tests in UI mode to see the browser and interact with it running:
 
 ```bash
-bunx playwright test --ui
+npx playwright test --ui
 ```
 
 To stop and remove the Docker Compose stack and clean the data created in tests, use the following command:

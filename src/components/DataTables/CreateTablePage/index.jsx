@@ -13,15 +13,17 @@ import {
     User,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { ColumnEditorPanel } from "@/components/DataTables/CreateTablePage/ColumnEditorPanel"
 import { TablePreview } from "@/components/DataTables/CreateTablePage/TablePreview"
-import { PREDEFINED_TEMPLATES, tablesStore } from "@/components/DataTables/tableStore"
+import { PREDEFINED_TEMPLATES } from "@/components/DataTables/tableStore"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
+import { TablesService } from "@/client"
 
 // ─── Quick Add field presets ──────────────────────────────────────────────────
 const QUICK_ADD_FIELDS = [
@@ -38,6 +40,7 @@ const QUICK_ADD_FIELDS = [
 // ─── CreateTablePage ──────────────────────────────────────────────────────────
 export function CreateTablePage({ templateId }) {
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
     const tableNameRef = useRef(null)
 
     const [tableName, setTableName] = useState("")
@@ -113,12 +116,34 @@ export function CreateTablePage({ templateId }) {
         return true
     }
 
+    const createTableMutation = useMutation({
+        mutationFn: async ({ name, description, columns }) => {
+            return TablesService.createTable({
+                requestBody: {
+                    name,
+                    description: description || undefined,
+                    columns,
+                },
+            })
+        },
+        onSuccess: async (createdTable) => {
+            await queryClient.invalidateQueries({ queryKey: ["tables"] })
+            toast.success(`Table "${createdTable.name}" created successfully!`)
+            navigate({ to: "/data-tables/$tableId", params: { tableId: createdTable.id } })
+        },
+        onError: () => {
+            toast.error("Failed to create table")
+        },
+    })
+
     const handleSave = () => {
         if (!validate()) return
         const cleanedColumns = columns.map(({ _id, _isBlank, _isDuplicate, ...rest }) => rest)
-        tablesStore.add({ name: tableName.trim(), description: description.trim(), columns: cleanedColumns })
-        toast.success(`Table "${tableName.trim()}" created successfully!`)
-        navigate({ to: "/data-tables" })
+        createTableMutation.mutate({
+            name: tableName.trim(),
+            description: description.trim(),
+            columns: cleanedColumns,
+        })
     }
 
     const handleCancel = () => navigate({ to: "/data-tables" })

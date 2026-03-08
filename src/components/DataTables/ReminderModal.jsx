@@ -2,9 +2,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Bell, MessageSquare, Phone } from "lucide-react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { z } from "zod"
-import { tablesStore } from "@/components/DataTables/tableStore"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,6 +26,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TablesService } from "@/client"
+import { queryClient } from "@/queryClient"
+import { tablesQueryKeys } from "@/features/data-tables/queries"
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 const reminderSchema = z.object({
@@ -74,16 +77,33 @@ export function ReminderModal({
 
   const { isSubmitting } = form.formState
 
+  const createReminderMutation = useMutation({
+    mutationFn: async (reminderData) => {
+      return TablesService.createTableReminder({
+        tableId,
+        requestBody: {
+          reminder_data: reminderData,
+        },
+      })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(tableId) })
+      toast.success("Reminder set successfully")
+      onOpenChange(false)
+    },
+    onError: () => {
+      toast.error("Failed to set reminder")
+    },
+  })
+
   const onSubmit = (data) => {
-    tablesStore.addReminder(tableId, {
-      rowId,
+    createReminderMutation.mutate({
+      row_id: rowId,
       title: data.title,
       description: data.description ?? "",
       date: data.date,
       notificationType: data.notificationType,
     })
-    toast.success("Reminder set successfully")
-    onOpenChange(false)
   }
 
   return (

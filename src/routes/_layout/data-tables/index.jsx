@@ -14,7 +14,6 @@ import { useState } from "react"
 import { EmptyState } from "@/components/DataTables/EmptyState"
 import { TableCard } from "@/components/DataTables/TableCard"
 import { TemplateSelector } from "@/components/DataTables/TemplateSelector"
-import { tablesStore } from "@/components/DataTables/tableStore"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -36,10 +35,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { TablesService } from "@/client"
+import { tablesListQueryOptions } from "@/features/data-tables/queries"
+import { queryClient } from "@/queryClient"
 
 export const Route = createFileRoute("/_layout/data-tables/")(
     {
         component: DataTablesPage,
+        loader: () => {
+            queryClient.ensureQueryData(tablesListQueryOptions({}))
+        },
         head: () => ({
             meta: [{ title: "Data Tables" }],
         }),
@@ -49,12 +56,11 @@ export const Route = createFileRoute("/_layout/data-tables/")(
 
 function DataTablesPage() {
     const navigate = useNavigate()
-    const [_tick, setTick] = useState(0)
-    const refresh = () => setTick((t) => t + 1)
     const [view, setView] = useState("list")
     const [search, setSearch] = useState("")
 
-    const allTables = tablesStore.getAll()
+    const { data } = useQuery(tablesListQueryOptions({}))
+    const allTables = data?.data ?? []
     const q = search.trim().toLowerCase()
     const tables = q
         ? allTables.filter(
@@ -80,6 +86,53 @@ function DataTablesPage() {
         renameValue: "",
     })
 
+    const deleteTableMutation = useMutation({
+        mutationFn: async (tableId) => {
+            return TablesService.deleteTable({ tableId })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["tables"] })
+            toast.success("Table deleted")
+        },
+        onError: () => {
+            toast.error("Failed to delete table")
+        },
+    })
+
+    const renameTableMutation = useMutation({
+        mutationFn: async ({ tableId, name }) => {
+            return TablesService.updateTable({
+                tableId,
+                requestBody: {
+                    name,
+                },
+            })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["tables"] })
+            toast.success("Table renamed")
+        },
+        onError: () => {
+            toast.error("Failed to rename table")
+        },
+    })
+
+    const duplicateTableMutation = useMutation({
+        mutationFn: async (tableId) => {
+            return TablesService.duplicateTable({ tableId })
+        },
+        onSuccess: async (createdTable) => {
+            await queryClient.invalidateQueries({ queryKey: ["tables"] })
+            toast.success("Table duplicated")
+            if (createdTable?.id) {
+                navigate({ to: "/data-tables/$tableId", params: { tableId: createdTable.id } })
+            }
+        },
+        onError: () => {
+            toast.error("Failed to duplicate table")
+        },
+    })
+
     // ── Handlers ────────────────────────────────────────────────────────────
     const openCreateBlank = () => navigate({ to: "/data-tables/new" })
 
@@ -87,19 +140,20 @@ function DataTablesPage() {
         navigate({ to: "/data-tables/new", search: { templateId: template.id } })
 
     const handleDeleteRequest = (id) => {
-        const t = tablesStore.getById(id)
+        const t = allTables.find((x) => x.id === id)
         if (!t) return
         setDeleteDialog({ open: true, tableId: id, tableName: t.name, confirmInput: "" })
     }
 
     const handleDeleteConfirm = () => {
-        tablesStore.remove(deleteDialog.tableId)
-        refresh()
+        if (deleteDialog.tableId) {
+            deleteTableMutation.mutate(deleteDialog.tableId)
+        }
         setDeleteDialog({ open: false, tableId: null, tableName: "", confirmInput: "" })
     }
 
     const handleRenameRequest = (id) => {
-        const t = tablesStore.getById(id)
+        const t = allTables.find((x) => x.id === id)
         if (!t) return
         setRenameDialog({ open: true, tableId: id, tableName: t.name, renameValue: t.name })
     }
@@ -107,13 +161,16 @@ function DataTablesPage() {
     const handleRenameConfirm = () => {
         const trimmed = renameDialog.renameValue.trim()
         if (trimmed && trimmed !== renameDialog.tableName) {
-            tablesStore.update(renameDialog.tableId, { name: trimmed })
-            refresh()
+            if (renameDialog.tableId) {
+                renameTableMutation.mutate({ tableId: renameDialog.tableId, name: trimmed })
+            }
         }
         setRenameDialog({ open: false, tableId: null, tableName: "", renameValue: "" })
     }
 
-    const handleDuplicate = (id) => { tablesStore.duplicate(id); refresh() }
+    const handleDuplicate = (id) => {
+        duplicateTableMutation.mutate(id)
+    }
     const handleOpen = (id) => navigate({ to: "/data-tables/$tableId", params: { tableId: id } })
 
     const deleteNameMatches = deleteDialog.confirmInput.trim() === deleteDialog.tableName

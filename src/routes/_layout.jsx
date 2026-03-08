@@ -32,16 +32,14 @@ function Layout() {
     return null
   }
 
-  const isDataTablePage = location.pathname.startsWith('/data-tables')
-
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="overflow-hidden flex flex-col">
-        <main className={`flex-1 flex flex-col ${!isDataTablePage ? 'p-4' : ''}`}>
+        <main className="flex-1 flex flex-col p-4">
           <Outlet />
         </main>
-        {!isDataTablePage && <Footer />}
+        <Footer />
       </SidebarInset>
     </SidebarProvider>
   )
