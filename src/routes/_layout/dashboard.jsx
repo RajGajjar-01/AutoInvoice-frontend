@@ -33,6 +33,9 @@ import {
 } from "@/components/ui/table"
 import useLocalStorage from "@/hooks/useLocalStorage"
 import useAuth from "@/hooks/useAuth"
+import { useQuery } from "@tanstack/react-query"
+import { invoicesListQueryOptions, invoicesStatsQueryOptions } from "@/features/invoices/queries"
+import { customersListQueryOptions } from "@/features/customers/queries"
 
 export const Route = createFileRoute("/_layout/dashboard")({
   component: Dashboard,
@@ -128,9 +131,13 @@ function QuickActionRow({ icon: Icon, iconClass, title, description, to }) {
 
 function Dashboard() {
   const { user: currentUser } = useAuth()
-  const [invoices] = useLocalStorage("invoices", [])
-  const [customers] = useLocalStorage("customers", [])
   const [items] = useLocalStorage("items", [])
+
+  const { data: statsRes } = useQuery(invoicesStatsQueryOptions())
+  const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
+  const { data: customersRes } = useQuery(customersListQueryOptions())
+  const invoices = invoicesRes?.data ?? []
+  const customers = customersRes?.data ?? []
 
   // ── Date helpers ────────────────────────────────────────────────────────
   const now = new Date()
@@ -141,37 +148,9 @@ function Dashboard() {
 
   // ── Computed KPIs ───────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    // Revenue: this month vs prev month
-    const thisMonthInv = invoices.filter((i) => {
-      const d = new Date(i.createdAt || i.invoiceDate)
-      return d >= thirtyDaysAgo
-    })
-    const prevMonthInv = invoices.filter((i) => {
-      const d = new Date(i.createdAt || i.invoiceDate)
-      return d >= sixtyDaysAgo && d < thirtyDaysAgo
-    })
-    const thisRevenue = thisMonthInv.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-    const prevRevenue = prevMonthInv.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-
-    // Total revenue (all time)
-    const totalRevenue = invoices.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-
-    // Invoice counts
-    const totalInvoices = invoices.length
-    const thisMonthCount = thisMonthInv.length
-    const prevMonthCount = prevMonthInv.length
     const overdueCount = invoices.filter((i) => i.status === "overdue").length
     const unpaidCount = invoices.filter((i) => i.status === "unpaid").length
 
-    // Outstanding amount
-    const outstanding = invoices
-      .filter((i) => i.status === "unpaid" || i.status === "overdue")
-      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-
-    // Customers
-    const totalCustomers = customers.filter((c) => c.partyType === "customer" || c.partyType === "both").length
-
-    // Items
     const inStockItems = items.filter((it) => (it.stock ?? 0) > (it.lowStockThreshold ?? 5)).length
     const lowStockItems = items.filter((it) => {
       const s = it.stock ?? 0
@@ -180,21 +159,20 @@ function Dashboard() {
     const outItems = items.filter((it) => (it.stock ?? 0) === 0).length
 
     return {
-      totalRevenue,
-      thisRevenue,
-      prevRevenue,
-      totalInvoices,
-      thisMonthCount,
-      prevMonthCount,
-      outstanding,
-      overdueCount,
-      unpaidCount,
-      totalCustomers,
+      totalRevenue: Number(statsRes?.total_revenue ?? 0),
+      totalInvoices: Number(statsRes?.total_invoices ?? 0),
+      paidCount: Number(statsRes?.paid_count ?? 0),
+      unpaidCount: Number(statsRes?.unpaid_count ?? unpaidCount),
+      overdueCount: Number(statsRes?.overdue_count ?? overdueCount),
+      totalCustomers: Number(statsRes?.total_customers ?? 0),
+      outstanding: invoices
+        .filter((i) => i.status === "unpaid" || i.status === "overdue")
+        .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
       inStockItems,
       lowStockItems,
       outItems,
     }
-  }, [invoices, customers, items])
+  }, [invoices, items, statsRes])
 
   // ── Recent invoices (last 5) ────────────────────────────────────────────
   const recent = useMemo(
@@ -206,8 +184,8 @@ function Dashboard() {
   )
 
   // ── Revenue trend ────────────────────────────────────────────────────────
-  const revTrend = pct(stats.thisRevenue, stats.prevRevenue)
-  const countTrend = pct(stats.thisMonthCount, stats.prevMonthCount)
+  const revTrend = undefined
+  const countTrend = undefined
 
   // ── Greeting ─────────────────────────────────────────────────────────────
   const hour = now.getHours()
@@ -215,7 +193,7 @@ function Dashboard() {
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
   const firstName = currentUser?.full_name?.split(" ")[0] || currentUser?.email || "there"
 
-  const hasData = invoices.length > 0 || customers.length > 0 || items.length > 0
+  const hasData = invoices.length > 0 || Number(statsRes?.total_customers ?? 0) > 0 || items.length > 0
 
   return (
     <div className="flex flex-col gap-6">
@@ -264,7 +242,7 @@ function Dashboard() {
           icon={Users}
           title="Active Customers"
           value={stats.totalCustomers}
-          sub={`${customers.length} total parties`}
+          sub={`${customers.length || stats.totalCustomers} total parties`}
           iconClass="bg-blue-500/10 text-blue-500"
         />
         <KpiCard

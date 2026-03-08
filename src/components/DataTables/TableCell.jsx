@@ -1,5 +1,6 @@
 import { CalendarDays, Check, X } from "lucide-react"
 import { useEffect, useId, useRef, useState, useMemo } from "react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -10,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { evaluateFormula } from "@/lib/formula-engine"
 
 // ─── Status ───────────────────────────────────────────────────────────────────
 const STATUS_OPTIONS = ["Todo", "In Progress", "Done", "Blocked"]
@@ -62,8 +64,6 @@ function isPastDate(dateStr) {
  *   suggestions     – string[]  (for Text type datalist)
  *   dropdownOptions – string[]  (for Dropdown type)
  */
-import { evaluateFormula } from "@/lib/formula-engine"
-
 export function TableCell({
   type,
   value,
@@ -231,7 +231,7 @@ export function TableCell({
     return (
       <div
         tabIndex={0}
-        className="px-3 py-1 text-sm cursor-text min-h-[30px] hover:bg-muted/50 transition-colors rounded flex items-center gap-1.5 outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
+        className="px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded flex items-center gap-1.5 outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
         onClick={() => {
           setDraft(value ?? "")
           setEditing(true)
@@ -282,7 +282,7 @@ export function TableCell({
     return (
       <div
         tabIndex={0}
-        className="px-3 py-1 text-sm cursor-text min-h-[30px] hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
+        className="px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
         onClick={() => {
           setDraft(value ?? "")
           setEditing(true)
@@ -364,7 +364,10 @@ export function TableCell({
   return (
     <div
       tabIndex={0}
-      className={`px-3 py-1 text-sm cursor-text min-h-[30px] hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30 relative flex items-center ${isFormula ? 'bg-blue-50/30' : ''}`}
+      className={cn(
+        "px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30 relative flex items-center",
+        isFormula && "bg-primary/5",
+      )}
       onClick={() => {
         setDraft(value ?? "")
         setEditing(true)
@@ -382,10 +385,10 @@ export function TableCell({
       }}
     >
       {isFormula && (
-        <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[#3B82F6] opacity-50" />
+        <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-primary/50 opacity-50" />
       )}
       {displayValue ? (
-        <span className={isFormula ? "font-mono text-[#1a5c38]" : ""}>{displayValue}</span>
+        <span className={cn(isFormula && "font-mono text-primary")}>{displayValue}</span>
       ) : (
         <span className="text-muted-foreground/40 select-none">—</span>
       )}

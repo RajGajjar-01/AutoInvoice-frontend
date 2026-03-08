@@ -3,7 +3,8 @@ import { AlertTriangle, ArrowLeft } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import { CustomerDetail } from "@/components/Customers/CustomerDetail"
 import { Button } from "@/components/ui/button"
-import useLocalStorage from "@/hooks/useLocalStorage"
+import { useQuery } from "@tanstack/react-query"
+import { customerDetailQueryOptions } from "@/features/customers/queries"
 
 export const Route = createFileRoute("/_layout/customers/$customerId")({
     component: CustomerDetailPage,
@@ -34,18 +35,19 @@ function NotFound() {
 
 function CustomerDetailPage() {
     const { customerId } = Route.useParams()
-    const [customers] = useLocalStorage("customers", [])
     const navigate = useNavigate()
 
-    const customer = customers.find((c) => c.id === customerId)
+    const { data: customer, isLoading } = useQuery(customerDetailQueryOptions(customerId))
 
-    if (!customer) {
+    if (!isLoading && !customer) {
         return <NotFound />
     }
 
     const handleDeleted = () => {
         navigate({ to: "/customers" })
     }
+
+    if (!customer) return null
 
     return <CustomerDetail customer={customer} onDeleted={handleDeleted} />
 }

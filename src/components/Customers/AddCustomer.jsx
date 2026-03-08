@@ -33,7 +33,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
+import { useMutation } from "@tanstack/react-query"
+import { CustomersService } from "@/client/sdk.gen"
+import { queryClient } from "@/queryClient"
+import { customersQueryKeys } from "@/features/customers/queries"
 
 // GSTIN: 15-char Indian GST number or empty
 const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
@@ -91,10 +94,23 @@ function SectionHeading({ children }) {
 
 const AddCustomer = () => {
     const [isOpen, setIsOpen] = useState(false)
-    const [, setCustomers] = useLocalStorage("customers", [])
     const { showSuccessToast } = useCustomToast()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const submitLock = useRef(false)
+
+    const createCustomerMutation = useMutation({
+        mutationFn: async (payload) => {
+            return CustomersService.createCustomer({
+                requestBody: payload,
+            })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: customersQueryKeys.all })
+            showSuccessToast("Customer added successfully")
+            form.reset(defaultValues)
+            setIsOpen(false)
+        },
+    })
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -109,24 +125,28 @@ const AddCustomer = () => {
         setIsSubmitting(true)
 
         try {
-            const newCustomer = {
-                ...data,
-                gstin: data.gstin ? data.gstin.toUpperCase() : "",
+            const payload = {
+                name: data.name,
+                party_type: data.partyType,
+                phone: data.phone || null,
+                whatsapp: data.whatsapp || null,
+                email: data.email || null,
+                gstin: data.gstin ? data.gstin.toUpperCase() : null,
+                billing_address: data.billingAddress || null,
+                shipping_address: data.shippingAddress || null,
+                opening_balance: data.openingBalance ? Number(data.openingBalance) : 0,
+                credit_limit: data.creditLimit ? Number(data.creditLimit) : null,
+                payment_terms: data.paymentTerms || null,
                 tags: data.tags
                     ? data.tags
                         .split(",")
                         .map((t) => t.trim())
                         .filter(Boolean)
                     : [],
-                openingBalance: data.openingBalance ? Number(data.openingBalance) : 0,
-                creditLimit: data.creditLimit ? Number(data.creditLimit) : null,
-                id: crypto.randomUUID(),
-                createdAt: new Date().toISOString(),
+                notes: data.notes || null,
             }
-            setCustomers((prev) => [...prev, newCustomer])
-            showSuccessToast("Customer added successfully")
-            form.reset(defaultValues)
-            setIsOpen(false)
+
+            createCustomerMutation.mutate(payload)
         } finally {
             setTimeout(() => {
                 submitLock.current = false

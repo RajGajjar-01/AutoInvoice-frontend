@@ -26,6 +26,8 @@ import { Separator } from "@/components/ui/separator"
 import EditCustomer from "./EditCustomer"
 import DeleteCustomer from "./DeleteCustomer"
 import { CustomerTimeline } from "./CustomerTimeline"
+import { useQuery } from "@tanstack/react-query"
+import { invoicesListQueryOptions } from "@/features/invoices/queries"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -74,17 +76,12 @@ function StatCard({ icon: Icon, label, value, iconClass, valueClass, sub }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function CustomerDetail({ customer, onDeleted }) {
-    // Read invoices and compute real stats
-    let invoices = []
-    try {
-        const raw = localStorage.getItem("invoices")
-        if (raw) invoices = JSON.parse(raw)
-    } catch { invoices = [] }
+    const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
+    const invoices = invoicesRes?.data ?? []
 
     const partyInvoices = invoices.filter((inv) => {
-        if (!inv.customer) return false
-        if (inv.customerId === customer.id || inv.partyId === customer.id) return true
-        return inv.customer.name?.toLowerCase() === customer.name?.toLowerCase()
+        const cid = inv.customerId ?? inv.customer_id
+        return cid === customer.id
     })
 
     const totalInvoiced = partyInvoices.reduce((s, inv) => s + (Number(inv.grandTotal) || 0), 0)

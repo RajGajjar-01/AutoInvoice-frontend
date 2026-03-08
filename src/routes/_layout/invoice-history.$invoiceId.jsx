@@ -41,9 +41,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import useLocalStorage from "@/hooks/useLocalStorage"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useState } from "react"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { InvoicesService } from "@/client/sdk.gen"
+import { queryClient } from "@/queryClient"
+import { invoiceDetailQueryOptions, invoicesQueryKeys } from "@/features/invoices/queries"
 
 export const Route = createFileRoute("/_layout/invoice-history/$invoiceId")({
     component: InvoiceDetailPage,
@@ -123,14 +126,37 @@ function NotFound() {
 
 function InvoiceDetailPage() {
     const { invoiceId } = Route.useParams()
-    const [invoices, setInvoices] = useLocalStorage("invoices", [])
     const { showSuccessToast } = useCustomToast()
     const navigate = useNavigate()
     const [deleteOpen, setDeleteOpen] = useState(false)
 
-    const invoice = invoices.find((i) => i.id === invoiceId)
+    const { data: invoice, isLoading } = useQuery(invoiceDetailQueryOptions(invoiceId))
 
-    if (!invoice) return <NotFound />
+    const updateInvoiceMutation = useMutation({
+        mutationFn: async ({ id, patch }) => {
+            return InvoicesService.updateInvoice({
+                id,
+                requestBody: patch,
+            })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
+        },
+    })
+
+    const deleteInvoiceMutation = useMutation({
+        mutationFn: async (id) => {
+            return InvoicesService.deleteInvoice({ id })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
+            showSuccessToast("Invoice deleted")
+            navigate({ to: "/invoice-history" })
+        },
+    })
+
+    if (!isLoading && !invoice) return <NotFound />
+    if (!invoice) return null
 
     const cs = getCurrencySymbol(invoice.currency)
     const StatusIcon = statusIcon[invoice.status] ?? CircleDashed
@@ -143,16 +169,12 @@ function InvoiceDetailPage() {
                 : invoice.status === "unpaid"
                     ? "overdue"
                     : "paid"
-        setInvoices((prev) =>
-            prev.map((i) => (i.id === invoice.id ? { ...i, status: next } : i)),
-        )
+        updateInvoiceMutation.mutate({ id: invoice.id, patch: { status: next } })
         showSuccessToast(`Status changed to ${next}`)
     }
 
     const handleDelete = () => {
-        setInvoices((prev) => prev.filter((i) => i.id !== invoice.id))
-        showSuccessToast("Invoice deleted")
-        navigate({ to: "/invoice-history" })
+        deleteInvoiceMutation.mutate(invoice.id)
     }
 
     const handleWhatsApp = () => {

@@ -6,6 +6,7 @@ import { DataTable } from "@/components/Common/DataTable"
 import AddCustomer from "@/components/Customers/AddCustomer"
 import { columns } from "@/components/Customers/columns"
 import { Input } from "@/components/ui/input"
+import { useQuery } from "@tanstack/react-query"
 import {
     Select,
     SelectContent,
@@ -13,7 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import useLocalStorage from "@/hooks/useLocalStorage"
+import { customersListQueryOptions } from "@/features/customers/queries"
 
 export const Route = createFileRoute("/_layout/customers/")({
     component: CustomersPage,
@@ -56,7 +57,8 @@ function StatsCard({ icon: Icon, title, value, iconClass, valueClass }) {
 }
 
 function CustomersPage() {
-    const [customers] = useLocalStorage("customers", [])
+    const { data, isLoading } = useQuery(customersListQueryOptions())
+    const customers = data?.data ?? []
     const [search, setSearch] = useState("")
     const [typeFilter, setTypeFilter] = useState("all")
 
@@ -125,7 +127,7 @@ function CustomersPage() {
             </div>
 
             {/* Content */}
-            {customers.length === 0 ? (
+            {isLoading ? null : customers.length === 0 ? (
                 <CustomersEmptyState />
             ) : (
                 <>

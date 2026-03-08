@@ -45,8 +45,11 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import useLocalStorage from "@/hooks/useLocalStorage"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { InvoicesService } from "@/client/sdk.gen"
+import { queryClient } from "@/queryClient"
+import { invoicesListQueryOptions, invoicesQueryKeys } from "@/features/invoices/queries"
 
 export const Route = createFileRoute("/_layout/invoices")({
     component: InvoicesPage,
@@ -141,9 +144,32 @@ function RecentInvoicesEmpty() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 function InvoicesPage() {
-    const [invoices, setInvoices] = useLocalStorage("invoices", [])
+    const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
+    const invoices = invoicesRes?.data ?? []
     const { showSuccessToast } = useCustomToast()
     const [deleteTarget, setDeleteTarget] = useState(null)
+
+    const updateInvoiceMutation = useMutation({
+        mutationFn: async ({ id, patch }) => {
+            return InvoicesService.updateInvoice({
+                id,
+                requestBody: patch,
+            })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
+        },
+    })
+
+    const deleteInvoiceMutation = useMutation({
+        mutationFn: async (id) => {
+            return InvoicesService.deleteInvoice({ id })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
+            showSuccessToast("Invoice deleted")
+        },
+    })
 
     // ── Computed stats ──────────────────────────────────────────────────────
     const totalCount = invoices.length
@@ -170,14 +196,16 @@ function InvoicesPage() {
     // ── Actions ─────────────────────────────────────────────────────────────
     const handleToggleStatus = (inv) => {
         const next = inv.status === "paid" ? "unpaid" : inv.status === "unpaid" ? "overdue" : "paid"
-        setInvoices((prev) => prev.map((i) => (i.id === inv.id ? { ...i, status: next } : i)))
+        updateInvoiceMutation.mutate({
+            id: inv.id,
+            patch: { status: next },
+        })
         showSuccessToast(`Status changed to ${next}`)
     }
 
     const handleDelete = () => {
         if (!deleteTarget) return
-        setInvoices((prev) => prev.filter((i) => i.id !== deleteTarget.id))
-        showSuccessToast("Invoice deleted")
+        deleteInvoiceMutation.mutate(deleteTarget.id)
         setDeleteTarget(null)
     }
 

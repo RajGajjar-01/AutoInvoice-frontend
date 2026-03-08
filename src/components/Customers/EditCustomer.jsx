@@ -33,7 +33,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
+import { useMutation } from "@tanstack/react-query"
+import { CustomersService } from "@/client/sdk.gen"
+import { queryClient } from "@/queryClient"
+import { customersQueryKeys } from "@/features/customers/queries"
 
 const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
 
@@ -78,8 +81,22 @@ function SectionHeading({ children }) {
  */
 const EditCustomer = ({ customer, onSuccess, variant = "dropdown" }) => {
     const [isOpen, setIsOpen] = useState(false)
-    const [customers, setCustomers] = useLocalStorage("customers", [])
     const { showSuccessToast } = useCustomToast()
+
+    const updateCustomerMutation = useMutation({
+        mutationFn: async (payload) => {
+            return CustomersService.updateCustomer({
+                id: customer.id,
+                requestBody: payload,
+            })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: customersQueryKeys.all })
+            showSuccessToast("Customer updated successfully")
+            setIsOpen(false)
+            onSuccess?.()
+        },
+    })
 
     // Normalize stored tags (array → comma string for the input)
     const tagsStr = Array.isArray(customer?.tags)
@@ -108,23 +125,28 @@ const EditCustomer = ({ customer, onSuccess, variant = "dropdown" }) => {
     })
 
     const onSubmit = (data) => {
-        const updated = {
-            ...customer,
-            ...data,
-            gstin: data.gstin ? data.gstin.toUpperCase() : "",
+        const payload = {
+            name: data.name,
+            party_type: data.partyType,
+            phone: data.phone || null,
+            whatsapp: data.whatsapp || null,
+            email: data.email || null,
+            gstin: data.gstin ? data.gstin.toUpperCase() : null,
+            billing_address: data.billingAddress || null,
+            shipping_address: data.shippingAddress || null,
+            opening_balance: data.openingBalance ? Number(data.openingBalance) : 0,
+            credit_limit: data.creditLimit ? Number(data.creditLimit) : null,
+            payment_terms: data.paymentTerms || null,
             tags: data.tags
                 ? data.tags
                     .split(",")
                     .map((t) => t.trim())
                     .filter(Boolean)
                 : [],
-            openingBalance: data.openingBalance ? Number(data.openingBalance) : 0,
-            creditLimit: data.creditLimit ? Number(data.creditLimit) : null,
+            notes: data.notes || null,
         }
-        setCustomers((prev) => prev.map((c) => (c.id === customer.id ? updated : c)))
-        showSuccessToast("Customer updated successfully")
-        setIsOpen(false)
-        onSuccess?.()
+
+        updateCustomerMutation.mutate(payload)
     }
 
 

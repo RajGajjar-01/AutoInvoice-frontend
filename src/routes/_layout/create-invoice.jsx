@@ -46,6 +46,11 @@ import { Separator } from "@/components/ui/separator"
 import useCustomToast from "@/hooks/useCustomToast"
 import useLocalStorage from "@/hooks/useLocalStorage"
 import { ModernExcelTable } from "@/components/modern-excel-table"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { CustomersService, InvoicesService } from "@/client/sdk.gen"
+import { queryClient } from "@/queryClient"
+import { customersListQueryOptions, customersQueryKeys } from "@/features/customers/queries"
+import { invoicesQueryKeys } from "@/features/invoices/queries"
 
 export const Route = createFileRoute("/_layout/create-invoice")({
   component: CreateInvoicePage,
@@ -69,9 +74,7 @@ function generateInvoiceNumber() {
 const emptyItem = { name: "", description: "", quantity: 0, price: 0, tax: 0 }
 
 function CreateInvoicePage() {
-  const [customers, setCustomers] = useLocalStorage("customers", [])
   const [inventoryItems, setInventoryItems] = useLocalStorage("items", [])
-  const [, setInvoices] = useLocalStorage("invoices", [])
   const [selectedTemplate] = useLocalStorage("selected-template", "clean-teal")
   const [customTemplate] = useLocalStorage("custom-template", null)
   const [importedTemplate] = useLocalStorage("imported-template", null)
@@ -79,6 +82,9 @@ function CreateInvoicePage() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const savedRef = useRef(false)
   const { customerId: preselectedCustomerId, itemId: preselectedItemId } = Route.useSearch()
+
+  const { data: customersRes } = useQuery(customersListQueryOptions())
+  const customers = customersRes?.data ?? []
 
   const [selectedCustomerId, setSelectedCustomerId] = useState("")
   const [customerDetails, setCustomerDetails] = useState({
@@ -111,6 +117,28 @@ function CreateInvoicePage() {
   const [showBankDetails, setShowBankDetails] = useState(false)
   const [bankDetails, setBankDetails] = useState({ bankName: "", accountName: "", accountNumber: "", ifsc: "", branch: "", upi: "" })
   const [previewOpen, setPreviewOpen] = useState(false)
+
+  const createCustomerMutation = useMutation({
+    mutationFn: async (payload) => {
+      return CustomersService.createCustomer({
+        requestBody: payload,
+      })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: customersQueryKeys.all })
+    },
+  })
+
+  const createInvoiceMutation = useMutation({
+    mutationFn: async (payload) => {
+      return InvoicesService.createInvoice({
+        requestBody: payload,
+      })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
+    },
+  })
 
   // Pre-select customer and/or item if navigated from their detail pages
   useEffect(() => {
@@ -234,35 +262,28 @@ function CreateInvoicePage() {
             : currency
 
   const buildInvoiceData = () => ({
-    id: crypto.randomUUID(),
-    invoiceNumber,
-    invoiceDate,
-    dueDate,
+    invoice_number: invoiceNumber,
+    invoice_date: invoiceDate,
+    due_date: dueDate || null,
     currency,
-    poNumber,
-    placeOfSupply,
-    reverseCharge,
-    customer: customerDetails,
-    items,
     subtotal,
-    totalTax,
-    itemsDiscount,
-    invoiceDiscount,
-    discountType,
-    discountValue,
-    shippingCharge: Number(shippingCharge || 0),
-    extraChargeLabel,
-    extraChargeAmount: Number(extraChargeAmount || 0),
-    roundOff,
-    bankDetails: showBankDetails ? bankDetails : null,
-    grandTotal,
-    notes,
-    paymentTerms,
+    total_tax: totalTax,
+    grand_total: grandTotal,
+    notes: notes || null,
+    payment_terms: paymentTerms || null,
     status: "unpaid",
-    createdAt: new Date().toISOString(),
+    // customer_id will be set in handleSave after resolving __new__
+    customer_id: "",
+    items: (items ?? []).filter((i) => i.name).map((i) => ({
+      name: i.name,
+      description: i.description || null,
+      quantity: Number(i.quantity) || 0,
+      price: Number(i.price) || 0,
+      tax: Number(i.tax) || 0,
+    })),
   })
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!customerDetails.name) {
       showErrorToast("Please select or enter a customer")
       return
@@ -273,18 +294,31 @@ function CreateInvoicePage() {
     }
     if (savedRef.current) return
     savedRef.current = true
-    const inv = buildInvoiceData()
-    setInvoices((prev) => [...prev, inv])
 
-    // Update customer's saved notes and payment terms
-    if (selectedCustomerId && selectedCustomerId !== "__new__") {
-      setCustomers((prev) =>
-        prev.map((c) =>
-          c.id === selectedCustomerId
-            ? { ...c, notes, paymentTerms }
-            : c
-        )
-      )
+    try {
+      let customerId = selectedCustomerId
+
+      if (!customerId || customerId === "__new__") {
+        const created = await createCustomerMutation.mutateAsync({
+          name: customerDetails.name,
+          phone: customerDetails.phone || null,
+          email: customerDetails.email || null,
+          address: customerDetails.address || null,
+          gst: customerDetails.gst || null,
+          notes: notes || null,
+        })
+        customerId = created.id
+        setSelectedCustomerId(created.id)
+      }
+
+      const payload = buildInvoiceData()
+      payload.customer_id = customerId
+
+      await createInvoiceMutation.mutateAsync(payload)
+
+      showSuccessToast("Invoice saved successfully")
+    } catch (_err) {
+      showErrorToast("Failed to save invoice")
     }
 
     // Deduct stock for items that have an itemId linked
@@ -316,12 +350,6 @@ function CreateInvoicePage() {
       })
       return newInventory
     })
-
-    if (stockDeducted) {
-      showSuccessToast("Invoice saved and stock updated")
-    } else {
-      showSuccessToast("Invoice saved successfully")
-    }
 
     // Reset guard after short delay so user can save again if needed
     setTimeout(() => { savedRef.current = false }, 1000)

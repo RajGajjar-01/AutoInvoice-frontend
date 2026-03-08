@@ -13,7 +13,10 @@ import {
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
+import { useMutation } from "@tanstack/react-query"
+import { CustomersService } from "@/client/sdk.gen"
+import { queryClient } from "@/queryClient"
+import { customersQueryKeys } from "@/features/customers/queries"
 
 /**
  * DeleteCustomer
@@ -22,14 +25,22 @@ import useLocalStorage from "@/hooks/useLocalStorage"
  */
 const DeleteCustomer = ({ customer, onSuccess, variant = "dropdown" }) => {
     const [isOpen, setIsOpen] = useState(false)
-    const [, setCustomers] = useLocalStorage("customers", [])
     const { showSuccessToast } = useCustomToast()
 
+    const deleteCustomerMutation = useMutation({
+        mutationFn: async () => {
+            return CustomersService.deleteCustomer({ id: customer.id })
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: customersQueryKeys.all })
+            showSuccessToast("Customer deleted successfully")
+            setIsOpen(false)
+            onSuccess?.()
+        },
+    })
+
     const handleDelete = () => {
-        setCustomers((prev) => prev.filter((c) => c.id !== customer.id))
-        showSuccessToast("Customer deleted successfully")
-        setIsOpen(false)
-        onSuccess?.()
+        deleteCustomerMutation.mutate()
     }
 
     const trigger =
@@ -72,7 +83,7 @@ const DeleteCustomer = ({ customer, onSuccess, variant = "dropdown" }) => {
                         </DialogClose>
                         <LoadingButton
                             variant="destructive"
-                            loading={false}
+                            loading={deleteCustomerMutation.isPending}
                             onClick={handleDelete}
                         >
                             Delete
