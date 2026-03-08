@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, Bell, Filter, Plus, Trash2 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
 import { ReminderModal } from "@/components/DataTables/ReminderModal"
 import { TableCell } from "@/components/DataTables/TableCell"
@@ -33,6 +33,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
+import { evaluateFormula } from "@/lib/formula-engine"
 
 export const Route = createFileRoute("/_layout/data-tables/$tableId")({
   component: TableViewPage,
@@ -90,6 +92,35 @@ function TableViewPage() {
   const [filters, setFilters] = useState({})
   const [pendingFilters, setPendingFilters] = useState({})
   const [search, setSearch] = useState("")
+  const [focusedCell, setFocusedCell] = useState(null)  // { rowId, colName, value } for Formula Bar
+  const [activeColumnName, setActiveColumnName] = useState(null) // column header click for Status Bar
+
+  // ── Cell-range selection (like Excel drag/Ctrl+Shift+Arrow)
+  const [cellSelection, setCellSelection] = useState(null) // { colName, startRow, endRow } indices into filteredRows
+  const cellDragRef = useRef({ active: false, colName: null, startRow: null })
+  const tableContainerRef = useRef(null)
+
+  // Clear selection on global mouseup (for drag stop)
+  useEffect(() => {
+    const stop = () => { cellDragRef.current.active = false }
+    const handleClickOutside = (e) => {
+      // If clicking completely outside the table container area, clear selection
+      if (tableContainerRef.current && !tableContainerRef.current.contains(e.target)) {
+        // Only clear if we're not currently dragging and not clicking on the Formula Bar or Toolbar
+        // checking for closest selectors to find if the user is interacting with filters or formula bar
+        if (!e.target.closest('.formula-bar') && !e.target.closest('.table-toolbar')) {
+          setCellSelection(null)
+          setActiveColumnName(null)
+        }
+      }
+    }
+    window.addEventListener('mouseup', stop)
+    window.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      window.removeEventListener('mouseup', stop)
+      window.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const table = tablesStore.getById(tableId)
 
@@ -329,8 +360,9 @@ function TableViewPage() {
   const colSpanTotal = cols.length + 4 // checkbox + # + cols + bell + delete
 
   return (
-    <>
-      {/* ── Sub-header ───────────────────────────────────────────────── */}
+    <div className="flex flex-col h-full min-h-[calc(100vh)]">
+      <div className="flex-1 p-4 flex flex-col">
+        {/* ── Sub-header ───────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-5">
         <Button
           variant="ghost"
@@ -357,7 +389,7 @@ function TableViewPage() {
       </div>
 
       {/* ── Toolbar ───────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-4 table-toolbar">
         <div className="flex items-center gap-2">
           <Input
             placeholder="Search rows…"
@@ -392,6 +424,30 @@ function TableViewPage() {
           </Button>
         </div>
       </div>
+
+      {/* ── Formula Bar ─────────────────────────────────────────────── */}
+      {!isMobile && (
+        <div className="flex items-center gap-0 border border-[#E5E7EB] bg-white rounded-lg mb-4 overflow-hidden shadow-sm h-10 group focus-within:ring-1 focus-within:ring-[#1a5c38]/20 focus-within:border-[#1a5c38] formula-bar">
+          <div className="bg-[#F8F9FA] px-1 h-full flex items-center border-r border-[#E5E7EB] text-[10px] font-bold text-muted-foreground w-12 justify-center shrink-0">
+            {focusedCell ? String.fromCharCode(65 + cols.findIndex(c => c.name === focusedCell.colName)) + (filteredRows.findIndex(r => r.id === focusedCell.rowId) + 1) : "fx"}
+          </div>
+          <div className="px-3 text-[#1a5c38] font-mono font-bold text-lg border-r border-[#E5E7EB] flex items-center justify-center w-8 shrink-0">
+            ƒ
+          </div>
+          <input
+            className="flex-1 h-full px-3 text-sm focus:outline-none placeholder:italic placeholder:text-muted-foreground/50 font-mono"
+            placeholder="Select a cell to enter formula or text..."
+            value={focusedCell?.value || ""}
+            onChange={(e) => {
+                if (focusedCell) {
+                    const newVal = e.target.value
+                    setFocusedCell(prev => ({ ...prev, value: newVal }))
+                    handleCellChange(focusedCell.rowId, focusedCell.colName, newVal)
+                }
+            }}
+          />
+        </div>
+      )}
 
       {/* ── Bulk selection bar ────────────────────────────────────────── */}
       {selectedRows.size > 0 && (
@@ -436,7 +492,7 @@ function TableViewPage() {
           }
         />
       ) : (
-        <div className="rounded-xl border border-[#E5E7EB] shadow-[0_1px_6px_0_rgba(0,0,0,0.06)] overflow-hidden bg-white">
+        <div ref={tableContainerRef} className="rounded-xl border border-[#E5E7EB] shadow-[0_1px_6px_0_rgba(0,0,0,0.06)] overflow-hidden bg-white">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -452,16 +508,31 @@ function TableViewPage() {
                   <TableHead className="w-10 text-center text-xs text-[#8A8A8A] font-semibold border-r border-[#E5E7EB]">
                     #
                   </TableHead>
-                  {cols.map((col) => (
+                  {cols.map((col, idx) => (
                     <TableHead
                       key={col.name}
-                      className="text-xs font-semibold text-[#2E2E2E] border-r border-[#E5E7EB] last:border-r-0 min-w-[140px] py-3"
+                      className={`text-xs font-semibold text-[#2E2E2E] border-r border-[#E5E7EB] last:border-r-0 min-w-[140px] py-1 px-0 cursor-pointer select-none transition-colors ${
+                        activeColumnName === col.name ? 'bg-[#e8f5ee]' : 'hover:bg-[#EDF7F2]'
+                      }`}
+                      onClick={() => {
+                        setActiveColumnName(prev => prev === col.name ? null : col.name)
+                        setCellSelection(null) // Clear cell range when clicking header for total
+                      }}
                     >
-                      <div className="flex items-center gap-1.5">
-                        <span className="truncate">{col.name}</span>
-                        {col.mandatory && (
-                          <span className="text-destructive text-xs">*</span>
-                        )}
+                      <div className="flex flex-col h-full">
+                        <div className={`text-[10px] text-center py-0.5 border-b border-[#E5E7EB] font-mono transition-colors ${
+                          activeColumnName === col.name
+                            ? 'bg-[#1a5c38] text-white'
+                            : 'bg-[#F1F3F4] text-muted-foreground'
+                        }`}>
+                          {String.fromCharCode(65 + idx)}
+                        </div>
+                        <div className="flex items-center gap-1.5 px-3 py-2">
+                          <span className="truncate">{col.name}</span>
+                          {col.mandatory && (
+                            <span className="text-destructive text-xs">*</span>
+                          )}
+                        </div>
                       </div>
                     </TableHead>
                   ))}
@@ -503,30 +574,82 @@ function TableViewPage() {
                           className="border-[#E5E7EB] data-[state=checked]:bg-[#1a5c38] data-[state=checked]:border-[#1a5c38]"
                         />
                       </ShadTableCell>
-                      <ShadTableCell className="text-center text-xs text-[#8A8A8A] border-r border-[#E5E7EB] w-10 select-none font-medium">
-                        {rowIndex + 1}
+                      <ShadTableCell className="text-center text-xs text-[#8A8A8A] border-r border-[#E5E7EB] w-10 select-none font-mono">
+                        <span className="text-[10px]">{rowIndex + 1}</span>
                       </ShadTableCell>
-                      {cols.map((col, colIndex) => (
+                      {cols.map((col, colIndex) => {
+                        const isNumericCol = ['Number', 'Amount (₹)'].includes(col.type)
+                        const isInSelection = cellSelection &&
+                          cellSelection.colName === col.name &&
+                          rowIndex >= Math.min(cellSelection.startRow, cellSelection.endRow) &&
+                          rowIndex <= Math.max(cellSelection.startRow, cellSelection.endRow)
+
+                        return (
                         <ShadTableCell
                           key={col.name}
-                          className="p-0 border-r border-[#E5E7EB] last:border-r-0"
+                          className={`p-0 border-r border-[#E5E7EB] last:border-r-0 relative ${
+                            isInSelection ? 'ring-2 ring-inset ring-[#1a5c38]/50 bg-[#e8f5ee]/60 z-10' : ''
+                          }`}
                           data-row={rowIndex}
                           data-col={colIndex}
+                          onMouseDown={(e) => {
+                            if (!isNumericCol) {
+                              setCellSelection(null)
+                              setActiveColumnName(null)
+                              return
+                            }
+                            e.preventDefault()
+                            setActiveColumnName(null) // Clear total column selection when starting a range
+                            cellDragRef.current = { active: true, colName: col.name, startRow: rowIndex }
+                            setCellSelection({ colName: col.name, startRow: rowIndex, endRow: rowIndex })
+                          }}
+                          onMouseEnter={() => {
+                            const d = cellDragRef.current
+                            if (!d.active || d.colName !== col.name) return
+                            setCellSelection({ colName: col.name, startRow: d.startRow, endRow: rowIndex })
+                          }}
+                          onKeyDown={(e) => {
+                            // Ctrl+Shift+Down/Up extends cell selection
+                            if (e.ctrlKey && e.shiftKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                              e.preventDefault()
+                              if (!isNumericCol) return
+                              setCellSelection(prev => {
+                                const base = prev && prev.colName === col.name ? prev : { colName: col.name, startRow: rowIndex, endRow: rowIndex }
+                                const newEnd = e.key === 'ArrowDown'
+                                  ? Math.min(base.endRow + 1, filteredRows.length - 1)
+                                  : Math.max(base.endRow - 1, 0)
+                                return { ...base, endRow: newEnd }
+                              })
+                            }
+                          }}
                         >
                           <TableCell
                             type={col.type}
                             value={row[col.name]}
-                            onChange={(val) =>
-                              handleCellChange(row.id, col.name, val)
-                            }
                             onNavigate={(dir) =>
                               handleNavigate(rowIndex, colIndex, dir)
                             }
                             suggestions={suggestionsMap[col.name] ?? []}
                             dropdownOptions={col.options ?? []}
+                            onChange={(val) =>
+                              handleCellChange(row.id, col.name, val)
+                            }
+                            onFocus={() => {
+                              setFocusedCell({ rowId: row.id, colName: col.name, value: row[col.name] || '' })
+                              // Single-click focus also sets a 1-cell selection if numeric
+                              if (isNumericCol && !cellDragRef.current.active) {
+                                setActiveColumnName(null) // Clear total column selection
+                                setCellSelection({ colName: col.name, startRow: rowIndex, endRow: rowIndex })
+                              } else if (!isNumericCol) {
+                                setCellSelection(null)
+                                setActiveColumnName(null)
+                              }
+                            }}
+                            allRows={allRows}
+                            cols={cols}
                           />
                         </ShadTableCell>
-                      ))}
+                      )})}
                       <ShadTableCell className="w-12 border-l border-[#E5E7EB] p-0">
                         <div className="flex items-center justify-center h-full px-1">
                           <Button
@@ -566,13 +689,13 @@ function TableViewPage() {
                         </div>
                       </ShadTableCell>
                     </TableRow>
-                  ))
+                    ))
                 )}
               </TableBody>
             </Table>
           </div>
 
-          {/* Add Row footer */}
+          {/* ── Add Row footer ────────────────────────────────────────── */}
           <div className="border-t border-[#E5E7EB] px-4 py-2 bg-[#F5F6F8]/60">
             <Button
               variant="ghost"
@@ -586,6 +709,87 @@ function TableViewPage() {
           </div>
         </div>
       )}
+
+      </div>
+
+      {/* ── Excel Status Bar (at bottom of page, replacing footer) ────────── */}
+      {(() => {
+        // Priority: cell range selection > column header click
+        let targetCol = null
+        let sourceRows = []
+        let selectionLabel = ''
+
+        if (cellSelection) {
+          targetCol = cols.find(c => c.name === cellSelection.colName)
+          if (!targetCol || !['Number', 'Amount (₹)'].includes(targetCol.type)) return null
+          const lo = Math.min(cellSelection.startRow, cellSelection.endRow)
+          const hi = Math.max(cellSelection.startRow, cellSelection.endRow)
+          sourceRows = filteredRows.slice(lo, hi + 1)
+          selectionLabel = lo === hi ? `Row ${lo + 1}` : `Rows ${lo + 1}–${hi + 1}`
+        } else if (activeColumnName) {
+          targetCol = cols.find(c => c.name === activeColumnName)
+          if (!targetCol || !['Number', 'Amount (₹)'].includes(targetCol.type)) return null
+          sourceRows = allRows
+          selectionLabel = 'All rows'
+        } else {
+          // If no column is active and no range is selected, show an empty system bar
+          // to maintain the layout where the footer usually is
+          return (
+            <div className="mt-auto border-t border-[#E5E7EB] bg-[#F8F9FA] px-5 py-1.5 flex justify-between items-center text-[10px] text-muted-foreground/60 font-medium tracking-wide">
+              <span>READY</span>
+              <div className="flex gap-4">
+                <span>100%</span>
+                <span className="font-mono">INS</span>
+              </div>
+            </div>
+          )
+        }
+
+        const values = sourceRows.map(r => {
+          const val = r[targetCol.name]
+          return typeof val === 'string' && val.startsWith('=')
+            ? parseFloat(evaluateFormula(val, allRows, cols))
+            : parseFloat(val)
+        }).filter(v => !isNaN(v))
+
+        if (values.length === 0) return null
+
+        const sum = values.reduce((a, b) => a + b, 0)
+        const avg = sum / values.length
+        const min = Math.min(...values)
+        const max = Math.max(...values)
+
+        const fmt = (n) => targetCol.type === 'Amount (₹)'
+          ? `₹${Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+          : Number.isInteger(n) ? String(n) : n.toFixed(2)
+
+        const stats = [
+          { label: 'Count', value: values.length },
+          { label: 'Sum', value: fmt(sum) },
+          { label: 'Avg', value: fmt(avg) },
+          { label: 'Min', value: fmt(min) },
+          { label: 'Max', value: fmt(max) },
+        ]
+
+        return (
+          <div className="mt-auto border-t border-[#14492d] shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-50">
+            <div className="flex items-center justify-between bg-[#1a5c38] text-white px-5 py-1.5">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest">{targetCol.name}</span>
+                <span className="text-[9px] bg-white/20 px-2 py-0.5 rounded-sm font-bold uppercase">{selectionLabel}</span>
+              </div>
+              <div className="flex items-center">
+                {stats.map((s, i) => (
+                  <div key={s.label} className={`flex items-center gap-1.5 px-4 ${i < stats.length - 1 ? 'border-r border-white/20' : ''}`}>
+                    <span className="text-[9px] text-white/50 font-bold uppercase tracking-tight">{s.label}:</span>
+                    <span className="text-[11px] font-bold tabular-nums tracking-tighter">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Reminder Modal ────────────────────────────────────────────── */}
       <ReminderModal
@@ -726,7 +930,7 @@ function TableViewPage() {
           </div>
         </SheetContent>
       </Sheet>
-    </>
+    </div>
   )
 }
 

@@ -15,7 +15,12 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
 import useLocalStorage from "@/hooks/useLocalStorage"
 
-const DeleteCustomer = ({ customer, onSuccess }) => {
+/**
+ * DeleteCustomer
+ * - variant="dropdown" (default) — renders a DropdownMenuItem as the trigger
+ * - variant="button" — renders a destructive Button as the trigger (for use on the detail page)
+ */
+const DeleteCustomer = ({ customer, onSuccess, variant = "dropdown" }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [, setCustomers] = useLocalStorage("customers", [])
     const { showSuccessToast } = useCustomToast()
@@ -27,8 +32,18 @@ const DeleteCustomer = ({ customer, onSuccess }) => {
         onSuccess?.()
     }
 
-    return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    const trigger =
+        variant === "button" ? (
+            <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => setIsOpen(true)}
+            >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+            </Button>
+        ) : (
             <DropdownMenuItem
                 variant="destructive"
                 onSelect={(e) => e.preventDefault()}
@@ -37,28 +52,35 @@ const DeleteCustomer = ({ customer, onSuccess }) => {
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
             </DropdownMenuItem>
-            <DialogContent className="sm:max-w-sm">
-                <DialogHeader>
-                    <DialogTitle>Delete Customer</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete <strong>{customer.name}</strong>?
-                        This action cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="mt-4">
-                    <DialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
-                    </DialogClose>
-                    <LoadingButton
-                        variant="destructive"
-                        loading={false}
-                        onClick={handleDelete}
-                    >
-                        Delete
-                    </LoadingButton>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        )
+
+    return (
+        <>
+            {trigger}
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="sm:max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>Delete Customer</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete{" "}
+                            <strong>{customer.name}</strong>? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-4">
+                        <DialogClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <LoadingButton
+                            variant="destructive"
+                            loading={false}
+                            onClick={handleDelete}
+                        >
+                            Delete
+                        </LoadingButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
 

@@ -1,60 +1,90 @@
-import { Check, Copy } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { Link } from "@tanstack/react-router"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { ItemActionsMenu } from "./ItemActionsMenu"
 
-function CopyId({ id }) {
-  const [copiedText, copy] = useCopyToClipboard()
-  const isCopied = copiedText === id
+function StockPill({ item }) {
+  const stock = item.stock ?? 0
+  const threshold = item.lowStockThreshold ?? 5
+
+  if (stock === 0) {
+    return (
+      <Badge variant="destructive" className="font-mono text-xs">
+        Out of Stock
+      </Badge>
+    )
+  }
+  if (stock < threshold) {
+    return (
+      <Badge variant="outline" className={cn("font-mono text-xs border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400")}>
+        {stock} — Low
+      </Badge>
+    )
+  }
   return (
-    <div className="flex items-center gap-1.5 group">
-      <span className="font-mono text-xs text-muted-foreground">{id}</span>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-6 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => copy(id)}
-      >
-        {isCopied ? (
-          <Check className="size-3 text-green-500" />
-        ) : (
-          <Copy className="size-3" />
-        )}
-        <span className="sr-only">Copy ID</span>
-      </Button>
-    </div>
+    <Badge variant="outline" className="font-mono text-xs border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+      {stock}
+    </Badge>
   )
 }
+
 export const columns = [
   {
-    accessorKey: "id",
-    header: "ID",
-    cell: ({ row }) => <CopyId id={row.original.id} />,
-  },
-  {
-    accessorKey: "title",
-    header: "Title",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.title}</span>
-    ),
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
+    accessorKey: "name",
+    header: "Item",
     cell: ({ row }) => {
-      const description = row.original.description
+      const item = row.original
       return (
-        <span
-          className={cn(
-            "max-w-xs truncate block text-muted-foreground",
-            !description && "italic",
+        <div className="min-w-0">
+          <Link
+            to="/items/$itemId"
+            params={{ itemId: item.id }}
+            className="font-medium text-foreground hover:text-primary hover:underline underline-offset-4 transition-colors"
+          >
+            {item.name}
+          </Link>
+          {item.sku && (
+            <p className="text-xs text-muted-foreground font-mono mt-0.5">{item.sku}</p>
           )}
-        >
-          {description || "No description"}
-        </span>
+        </div>
       )
     },
+  },
+  {
+    accessorKey: "category",
+    header: "Category",
+    cell: ({ row }) => {
+      const cat = row.original.category
+      if (!cat) return <span className="text-muted-foreground text-sm">—</span>
+      return <Badge variant="secondary" className="text-xs">{cat}</Badge>
+    },
+  },
+  {
+    accessorKey: "salePrice",
+    header: "Sale Price",
+    cell: ({ row }) => {
+      const price = row.original.salePrice
+      const unit = row.original.unit || "pcs"
+      return (
+        <div className="text-right">
+          <span className="font-semibold">₹{Number(price ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="text-xs text-muted-foreground ml-1">/{unit}</span>
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "taxRate",
+    header: "GST",
+    cell: ({ row }) => {
+      const rate = row.original.taxRate ?? 0
+      return <span className="text-sm text-muted-foreground">{rate}%</span>
+    },
+  },
+  {
+    accessorKey: "stock",
+    header: "Stock",
+    cell: ({ row }) => <StockPill item={row.original} />,
   },
   {
     id: "actions",
