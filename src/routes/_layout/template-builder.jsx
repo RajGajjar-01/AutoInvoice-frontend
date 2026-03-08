@@ -55,7 +55,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
+import { useQuery } from "@tanstack/react-query"
+import { invoiceTemplatesListQueryOptions } from "@/features/invoice-templates/queries"
+import { useCreateInvoiceTemplate, useActivateInvoiceTemplate, useUpdateInvoiceTemplate } from "@/features/invoice-templates/mutations"
 
 export const Route = createFileRoute("/_layout/template-builder")({
   component: TemplateBuilderPage,
@@ -552,8 +554,14 @@ function GlobalStylePanel({ globalStyle, onChange }) {
 
 function TemplateBuilderPage() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
-  const [savedTemplate, setSavedTemplate] = useLocalStorage("custom-template", null)
-  const [, setSelectedTemplate] = useLocalStorage("selected-template", "minimal")
+  const { data: templatesList } = useQuery(invoiceTemplatesListQueryOptions())
+  const createTemplateMutation = useCreateInvoiceTemplate()
+  const updateTemplateMutation = useUpdateInvoiceTemplate()
+  const activateTemplateMutation = useActivateInvoiceTemplate()
+
+  const serverTemplates = templatesList?.data ?? []
+  const serverCustomTemplate = serverTemplates.find((t) => t.kind === "custom") ?? null
+  const savedTemplate = serverCustomTemplate?.custom_data ?? null
 
   const [blocks, setBlocks] = useState(() =>
     savedTemplate?.blocks?.length ? savedTemplate.blocks : DEFAULT_BLOCKS,
@@ -612,10 +620,36 @@ function TemplateBuilderPage() {
   }, [showSuccessToast])
 
   const handleSave = useCallback(() => {
-    setSavedTemplate({ blocks, globalStyle, savedAt: new Date().toISOString() })
-    setSelectedTemplate("custom")
-    showSuccessToast("Template saved and activated! It will be used for all new invoices.")
-  }, [blocks, globalStyle, setSavedTemplate, setSelectedTemplate, showSuccessToast])
+    const payload = {
+      name: "Custom Template",
+      kind: "custom",
+      custom_data: { blocks, globalStyle, savedAt: new Date().toISOString() },
+      is_active: true,
+    }
+
+    const p = serverCustomTemplate
+      ? updateTemplateMutation.mutateAsync({ id: serverCustomTemplate.id, payload })
+      : createTemplateMutation.mutateAsync(payload)
+
+    p.then(async (createdOrUpdated) => {
+      const id = createdOrUpdated?.id ?? serverCustomTemplate?.id
+      if (id) {
+        await activateTemplateMutation.mutateAsync({ id })
+      }
+      showSuccessToast("Template saved and activated! It will be used for all new invoices.")
+    }).catch(() => {
+      showErrorToast("Failed to save template")
+    })
+  }, [
+    blocks,
+    globalStyle,
+    serverCustomTemplate,
+    updateTemplateMutation,
+    createTemplateMutation,
+    activateTemplateMutation,
+    showSuccessToast,
+    showErrorToast,
+  ])
 
   const handlePreview = useCallback(() => {
     const accent = globalStyle.accentColor || "#16a34a"

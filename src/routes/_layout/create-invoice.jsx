@@ -51,6 +51,7 @@ import { CustomersService, InvoicesService } from "@/client/sdk.gen"
 import { queryClient } from "@/queryClient"
 import { customersListQueryOptions, customersQueryKeys } from "@/features/customers/queries"
 import { invoicesQueryKeys } from "@/features/invoices/queries"
+import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
 
 export const Route = createFileRoute("/_layout/create-invoice")({
   component: CreateInvoicePage,
@@ -75,13 +76,29 @@ const emptyItem = { name: "", description: "", quantity: 0, price: 0, tax: 0 }
 
 function CreateInvoicePage() {
   const [inventoryItems, setInventoryItems] = useLocalStorage("items", [])
-  const [selectedTemplate] = useLocalStorage("selected-template", "clean-teal")
-  const [customTemplate] = useLocalStorage("custom-template", null)
-  const [importedTemplate] = useLocalStorage("imported-template", null)
   const [companyDetails] = useLocalStorage("company-details", {})
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const savedRef = useRef(false)
   const { customerId: preselectedCustomerId, itemId: preselectedItemId } = Route.useSearch()
+
+  const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
+
+  const selectedTemplate =
+    activeTemplate?.kind === "built_in"
+      ? activeTemplate?.built_in_id
+      : activeTemplate?.kind === "custom"
+        ? "custom"
+        : activeTemplate?.kind === "imported_html" || activeTemplate?.kind === "imported_pdf"
+          ? "imported"
+          : "clean-teal"
+
+  const customTemplate = activeTemplate?.kind === "custom" ? activeTemplate?.custom_data : null
+  const importedTemplate =
+    activeTemplate?.kind === "imported_pdf"
+      ? { type: "pdf", dataUrl: activeTemplate?.imported_pdf_data_url, name: activeTemplate?.name, savedAt: activeTemplate?.updated_at }
+      : activeTemplate?.kind === "imported_html"
+        ? { type: "html", html: activeTemplate?.imported_html, name: activeTemplate?.name, savedAt: activeTemplate?.updated_at }
+        : null
 
   const { data: customersRes } = useQuery(customersListQueryOptions())
   const customers = customersRes?.data ?? []

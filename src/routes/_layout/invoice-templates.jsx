@@ -32,7 +32,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
+import { useQuery } from "@tanstack/react-query"
+import { invoiceTemplateActiveQueryOptions, invoiceTemplatesListQueryOptions } from "@/features/invoice-templates/queries"
+import { useActivateInvoiceTemplate, useCreateInvoiceTemplate, useDeleteInvoiceTemplate } from "@/features/invoice-templates/mutations"
 
 export const Route = createFileRoute("/_layout/invoice-templates")({
   component: InvoiceTemplatesPage,
@@ -483,20 +485,86 @@ function SimpleBoxedPreview() {
 
 function InvoiceTemplatesPage() {
   const [previewTemplate, setPreviewTemplate] = useState(null)
-  const [selectedTemplate, setSelectedTemplate] = useLocalStorage(
-    "selected-template",
-    "clean-teal",
-  )
-  const [customTemplate] = useLocalStorage("custom-template", null)
-  const [importedTemplate, setImportedTemplate] = useLocalStorage("imported-template", null)
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const [pasteHtml, setPasteHtml] = useState("")
   const [showPasteBox, setShowPasteBox] = useState(false)
   const fileInputRef = useRef(null)
 
-  const handleSelectTemplate = (id) => {
-    setSelectedTemplate(id)
-    showSuccessToast("Template selected! It will be used for new invoices.")
+  const { data: templatesList } = useQuery(invoiceTemplatesListQueryOptions())
+  const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
+
+  const createTemplateMutation = useCreateInvoiceTemplate()
+  const activateTemplateMutation = useActivateInvoiceTemplate()
+  const deleteTemplateMutation = useDeleteInvoiceTemplate()
+
+  const serverTemplates = templatesList?.data ?? []
+  const serverCustomTemplate = serverTemplates.find((t) => t.kind === "custom") ?? null
+  const serverImportedTemplate =
+    serverTemplates.find((t) => t.kind === "imported_pdf") ??
+    serverTemplates.find((t) => t.kind === "imported_html") ??
+    null
+
+  const selectedTemplate =
+    activeTemplate?.kind === "built_in"
+      ? activeTemplate?.built_in_id
+      : activeTemplate?.kind === "custom"
+        ? "custom"
+        : activeTemplate?.kind === "imported_html" || activeTemplate?.kind === "imported_pdf"
+          ? "imported"
+          : "clean-teal"
+
+  const customTemplate =
+    serverCustomTemplate?.custom_data ??
+    null
+
+  const importedTemplate =
+    serverImportedTemplate
+      ? (serverImportedTemplate.kind === "imported_pdf"
+          ? { type: "pdf", dataUrl: serverImportedTemplate.imported_pdf_data_url, name: serverImportedTemplate.name, savedAt: serverImportedTemplate.updated_at }
+          : { type: "html", html: serverImportedTemplate.imported_html, name: serverImportedTemplate.name, savedAt: serverImportedTemplate.updated_at })
+      : null
+
+  const handleSelectTemplate = async (id) => {
+    try {
+      if (id === "custom") {
+        if (!serverCustomTemplate) {
+          showErrorToast("No custom template found. Create one in Template Builder first.")
+          return
+        }
+        await activateTemplateMutation.mutateAsync({ id: serverCustomTemplate.id })
+        showSuccessToast("Custom template activated!")
+        return
+      }
+
+      if (id === "imported") {
+        if (!serverImportedTemplate) {
+          showErrorToast("No imported template found. Upload or paste HTML first.")
+          return
+        }
+        await activateTemplateMutation.mutateAsync({ id: serverImportedTemplate.id })
+        showSuccessToast("Imported template activated!")
+        return
+      }
+
+      // built-in template
+      const existingBuiltIn = serverTemplates.find(
+        (t) => t.kind === "built_in" && t.built_in_id === id,
+      )
+      if (!existingBuiltIn) {
+        const tplDef = builtInTemplates.find((t) => t.id === id)
+        await createTemplateMutation.mutateAsync({
+          name: tplDef?.name ?? id,
+          kind: "built_in",
+          built_in_id: id,
+          is_active: true,
+        })
+      } else {
+        await activateTemplateMutation.mutateAsync({ id: existingBuiltIn.id })
+      }
+      showSuccessToast("Template selected! It will be used for new invoices.")
+    } catch (_err) {
+      showErrorToast("Failed to activate template")
+    }
   }
 
   const handleFileUpload = (e) => {
@@ -509,15 +577,29 @@ function InvoiceTemplatesPage() {
       return
     }
     const reader = new FileReader()
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const result = ev.target?.result
       if (!result) return
-      const entry = isPdf
-        ? { type: "pdf", dataUrl: result, name: file.name.replace(/\.pdf$/i, ""), savedAt: new Date().toISOString() }
-        : { type: "html", html: result, name: file.name.replace(/\.html$/i, ""), savedAt: new Date().toISOString() }
-      setImportedTemplate(entry)
-      setSelectedTemplate("imported")
-      showSuccessToast(`"${file.name}" imported successfully!`)
+      try {
+        if (isPdf) {
+          await createTemplateMutation.mutateAsync({
+            name: file.name.replace(/\.pdf$/i, ""),
+            kind: "imported_pdf",
+            imported_pdf_data_url: result,
+            is_active: true,
+          })
+        } else {
+          await createTemplateMutation.mutateAsync({
+            name: file.name.replace(/\.html$/i, ""),
+            kind: "imported_html",
+            imported_html: result,
+            is_active: true,
+          })
+        }
+        showSuccessToast(`"${file.name}" imported successfully!`)
+      } catch (_err) {
+        showErrorToast("Failed to import template")
+      }
     }
     if (isPdf) {
       reader.readAsDataURL(file)
@@ -531,11 +613,21 @@ function InvoiceTemplatesPage() {
     const trimmed = pasteHtml.trim()
     if (!trimmed) { showErrorToast("Please paste some HTML first"); return }
     if (!trimmed.includes("<")) { showErrorToast("That doesn't look like valid HTML"); return }
-    setImportedTemplate({ html: trimmed, name: "Pasted Template", savedAt: new Date().toISOString() })
-    setSelectedTemplate("imported")
-    setPasteHtml("")
-    setShowPasteBox(false)
-    showSuccessToast("Template imported from HTML and activated!")
+    createTemplateMutation
+      .mutateAsync({
+        name: "Pasted Template",
+        kind: "imported_html",
+        imported_html: trimmed,
+        is_active: true,
+      })
+      .then(() => {
+        setPasteHtml("")
+        setShowPasteBox(false)
+        showSuccessToast("Template imported from HTML and activated!")
+      })
+      .catch(() => {
+        showErrorToast("Failed to import template")
+      })
   }
 
   const handlePreviewImported = () => {
@@ -553,9 +645,18 @@ function InvoiceTemplatesPage() {
   }
 
   const handleDeleteImported = () => {
-    setImportedTemplate(null)
-    if (selectedTemplate === "imported") setSelectedTemplate("clean-teal")
-    showSuccessToast("Imported template removed")
+    if (!serverImportedTemplate) return
+    deleteTemplateMutation
+      .mutateAsync({ id: serverImportedTemplate.id })
+      .then(async () => {
+        if (selectedTemplate === "imported") {
+          await handleSelectTemplate("clean-teal")
+        }
+        showSuccessToast("Imported template removed")
+      })
+      .catch(() => {
+        showErrorToast("Failed to remove imported template")
+      })
   }
 
   return (
