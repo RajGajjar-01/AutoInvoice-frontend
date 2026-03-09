@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutTemplateBuilderRouteImport } from './routes/_layout/template-builder'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
+import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutInvoicesRouteImport } from './routes/_layout/invoices'
 import { Route as LayoutInvoiceTemplatesRouteImport } from './routes/_layout/invoice-templates'
@@ -79,6 +80,11 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
 const LayoutProfileRoute = LayoutProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => LayoutRoute,
 })
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
@@ -220,6 +226,7 @@ const LayoutRouteChildren = {
   LayoutInvoiceTemplatesRoute: LayoutInvoiceTemplatesRoute,
   LayoutInvoicesRoute: LayoutInvoicesRoute,
   LayoutItemsRoute: LayoutItemsRouteWithChildren,
+  LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutProfileRoute: LayoutProfileRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutTemplateBuilderRoute: LayoutTemplateBuilderRoute,

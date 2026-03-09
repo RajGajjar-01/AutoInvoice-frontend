@@ -26,8 +26,10 @@ export function ModernExcelTable({
     handleItemSelect,
     addItem,
     removeItem,
-    currencySymbol
+    currencySymbol,
+    docType
 }) {
+    const isChallan = docType === "challan"
     const tableRef = useRef(null)
 
     // Handle keyboard navigation between cells
@@ -84,10 +86,10 @@ export function ModernExcelTable({
                             <th className="text-left font-semibold text-muted-foreground px-3 py-3 w-[250px]">Item / Product</th>
                             <th className="text-left font-semibold text-muted-foreground px-3 py-3">Description</th>
                             <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-20">Qty</th>
-                            <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-32">Price</th>
-                            <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-20">Tax %</th>
-                            <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-[120px]">Discount</th>
-                            <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-32">Total</th>
+                            {!isChallan && <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-32">Price</th>}
+                            {!isChallan && <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-20">Tax %</th>}
+                            {!isChallan && <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-[120px]">Discount</th>}
+                            {!isChallan && <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-32">Total</th>}
                             <th className="w-12 px-2 py-3"></th>
                         </tr>
                     </thead>
@@ -100,8 +102,8 @@ export function ModernExcelTable({
                             const lineTotal = (lineBase - lineDisc) * (1 + item.tax / 100)
 
                             return (
-                                <tr 
-                                    key={index} 
+                                <tr
+                                    key={index}
                                     data-index={index}
                                     className="group hover:bg-muted/20 transition-colors duration-150"
                                 >
@@ -123,8 +125,8 @@ export function ModernExcelTable({
                                                 value={item.itemId || ""}
                                                 onValueChange={(val) => { if (val) handleItemSelect(index, val) }}
                                             >
-                                                <SelectTrigger 
-                                                    hideChevron 
+                                                <SelectTrigger
+                                                    hideChevron
                                                     className="h-9 w-8 p-0 border-0 bg-transparent hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 transition-colors shrink-0 rounded-none flex items-center justify-center"
                                                 >
                                                     <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/50 group-hover/itembox:text-primary transition-colors" />
@@ -172,63 +174,71 @@ export function ModernExcelTable({
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-2 py-2 align-top">
-                                        <div className="relative mt-1">
-                                            <span className="absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 font-mono italic">{currencySymbol}</span>
+                                    {!isChallan && (
+                                        <td className="px-2 py-2 align-top">
+                                            <div className="relative mt-1">
+                                                <span className="absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 font-mono italic">{currencySymbol}</span>
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={item.price === 0 ? "" : item.price}
+                                                    onChange={(e) => updateItem(index, "price", e.target.value)}
+                                                    onKeyDown={(e) => handleKeyDown(e, index, "price")}
+                                                    data-field="price"
+                                                    className="h-9 w-full text-right border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-primary/30 pl-4 pr-2"
+                                                />
+                                            </div>
+                                        </td>
+                                    )}
+                                    {!isChallan && (
+                                        <td className="px-2 py-2 align-top">
                                             <Input
                                                 type="number"
                                                 min="0"
-                                                step="0.01"
-                                                value={item.price === 0 ? "" : item.price}
-                                                onChange={(e) => updateItem(index, "price", e.target.value)}
-                                                onKeyDown={(e) => handleKeyDown(e, index, "price")}
-                                                data-field="price"
-                                                className="h-9 w-full text-right border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-primary/30 pl-4 pr-2"
+                                                step="0.1"
+                                                value={item.tax === 0 ? "" : item.tax}
+                                                onChange={(e) => updateItem(index, "tax", e.target.value)}
+                                                onKeyDown={(e) => handleKeyDown(e, index, "tax")}
+                                                data-field="tax"
+                                                className="h-9 w-full text-right border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-primary/30 text-amber-600 font-medium px-2 mt-1"
                                             />
-                                        </div>
-                                    </td>
-                                    <td className="px-2 py-2 align-top">
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
-                                            value={item.tax === 0 ? "" : item.tax}
-                                            onChange={(e) => updateItem(index, "tax", e.target.value)}
-                                            onKeyDown={(e) => handleKeyDown(e, index, "tax")}
-                                            data-field="tax"
-                                            className="h-9 w-full text-right border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-primary/30 text-amber-600 font-medium px-2 mt-1"
-                                        />
-                                    </td>
-                                    <td className="px-2 py-2 align-top">
-                                        <div className="flex gap-1 mt-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => updateItem(index, "discountType", item.discountType === "flat" ? "percent" : "flat")}
-                                                className={cn(
-                                                    "h-9 px-2 rounded-md border border-border/50 transition-all text-[10px] font-bold shrink-0 shadow-sm",
-                                                    item.discountType === "flat" ? "bg-primary/10 text-primary border-primary/20" : "bg-muted/50 text-muted-foreground"
-                                                )}
-                                            >
-                                                {item.discountType === "flat" ? currencySymbol : "%"}
-                                            </button>
-                                            <Input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                value={item.discount === 0 || !item.discount ? "" : item.discount}
-                                                onChange={(e) => updateItem(index, "discount", e.target.value)}
-                                                onKeyDown={(e) => handleKeyDown(e, index, "discount")}
-                                                data-field="discount"
-                                                placeholder="0"
-                                                className="h-9 w-full text-right border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
-                                            />
-                                        </div>
-                                    </td>
-                                    <td className="px-3 py-2 text-right align-top pt-3.5">
-                                        <span className="font-bold text-sm text-foreground">
-                                            {currencySymbol}{lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                        </span>
-                                    </td>
+                                        </td>
+                                    )}
+                                    {!isChallan && (
+                                        <td className="px-2 py-2 align-top">
+                                            <div className="flex gap-1 mt-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateItem(index, "discountType", item.discountType === "flat" ? "percent" : "flat")}
+                                                    className={cn(
+                                                        "h-9 px-2 rounded-md border border-border/50 transition-all text-[10px] font-bold shrink-0 shadow-sm",
+                                                        item.discountType === "flat" ? "bg-primary/10 text-primary border-primary/20" : "bg-muted/50 text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {item.discountType === "flat" ? currencySymbol : "%"}
+                                                </button>
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={item.discount === 0 || !item.discount ? "" : item.discount}
+                                                    onChange={(e) => updateItem(index, "discount", e.target.value)}
+                                                    onKeyDown={(e) => handleKeyDown(e, index, "discount")}
+                                                    data-field="discount"
+                                                    placeholder="0"
+                                                    className="h-9 w-full text-right border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+                                                />
+                                            </div>
+                                        </td>
+                                    )}
+                                    {!isChallan && (
+                                        <td className="px-3 py-2 text-right align-top pt-3.5">
+                                            <span className="font-bold text-sm text-foreground">
+                                                {currencySymbol}{lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </span>
+                                        </td>
+                                    )}
                                     <td className="px-2 py-2 align-top pt-2.5">
                                         <Button
                                             variant="ghost"
@@ -246,11 +256,11 @@ export function ModernExcelTable({
                     </tbody>
                 </table>
             </div>
-            
+
             <div className="p-3 bg-muted/10 border-t border-border/50 flex justify-between items-center group/footer">
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={addItem}
                     className="text-xs font-semibold text-primary/80 hover:text-primary hover:bg-primary/5 gap-1.5 px-3 py-1.5 rounded-lg active:scale-95 transition-all"
                 >

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+﻿import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   ArrowLeft,
   ChevronDown,
@@ -13,14 +13,19 @@ import {
   Percent,
   Truck,
   PackagePlus,
+  Copy,
+  Clock,
+  FileText,
 } from "lucide-react"
 import { useState, useMemo, useRef, useEffect } from "react"
 import html2pdf from "html2pdf.js"
 import axios from "axios"
+import { OpenAPI } from "@/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -52,18 +57,22 @@ export const Route = createFileRoute("/_layout/create-invoice")({
   validateSearch: (search) => ({
     customerId: search.customerId ? String(search.customerId) : undefined,
     itemId: search.itemId ? String(search.itemId) : undefined,
+    type: search.type ? String(search.type) : undefined,
+    fromId: search.fromId ? String(search.fromId) : undefined,
+    fromType: search.fromType ? String(search.fromType) : undefined,
   }),
   head: () => ({
     meta: [{ title: "Create Invoice" }],
   }),
 })
 
-function generateInvoiceNumber() {
+function generateDocumentNumber(type = "invoice") {
   const now = new Date()
   const y = now.getFullYear().toString().slice(-2)
   const m = String(now.getMonth() + 1).padStart(2, "0")
   const r = String(Math.floor(Math.random() * 9000) + 1000)
-  return `INV-${y}${m}-${r}`
+  const prefix = type === "quotation" ? "QUO" : type === "challan" ? "CHL" : type === "proforma" ? "PRO" : "INV"
+  return `${prefix}-${y}${m}-${r}`
 }
 
 const emptyItem = { name: "", description: "", quantity: 0, price: 0, tax: 0 }
@@ -71,15 +80,16 @@ const emptyItem = { name: "", description: "", quantity: 0, price: 0, tax: 0 }
 function CreateInvoicePage() {
   const [customers, setCustomers] = useLocalStorage("customers", [])
   const [inventoryItems, setInventoryItems] = useLocalStorage("items", [])
-  const [, setInvoices] = useLocalStorage("invoices", [])
+  const [invoices, setInvoices] = useLocalStorage("invoices", [])
   const [selectedTemplate] = useLocalStorage("selected-template", "clean-teal")
   const [customTemplate] = useLocalStorage("custom-template", null)
   const [importedTemplate] = useLocalStorage("imported-template", null)
   const [companyDetails] = useLocalStorage("company-details", {})
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const savedRef = useRef(false)
-  const { customerId: preselectedCustomerId, itemId: preselectedItemId } = Route.useSearch()
+  const { customerId: preselectedCustomerId, itemId: preselectedItemId, type: preselectedType, fromId, fromType } = Route.useSearch()
 
+  const [docType, setDocType] = useState("invoice")
   const [selectedCustomerId, setSelectedCustomerId] = useState("")
   const [customerDetails, setCustomerDetails] = useState({
     name: "",
@@ -89,11 +99,15 @@ function CreateInvoicePage() {
     email: "",
   })
 
-  const [invoiceNumber] = useState(generateInvoiceNumber)
+  const [invoiceNumber, setInvoiceNumber] = useState(() => generateDocumentNumber("invoice"))
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().slice(0, 10),
   )
   const [dueDate, setDueDate] = useState("")
+  const [validityDate, setValidityDate] = useState("") // For Quotations
+  const [vehicleInfo, setVehicleInfo] = useState("") // For Challans
+  const [deliveryNotes, setDeliveryNotes] = useState("") // For Challans
+  const [sourceId, setSourceId] = useState(null) // ID of original doc if converted
   const [currency, setCurrency] = useState("INR")
   const [poNumber, setPoNumber] = useState("")
   const [placeOfSupply, setPlaceOfSupply] = useState("")
@@ -112,17 +126,67 @@ function CreateInvoicePage() {
   const [bankDetails, setBankDetails] = useState({ bankName: "", accountName: "", accountNumber: "", ifsc: "", branch: "", upi: "" })
   const [previewOpen, setPreviewOpen] = useState(false)
 
-  // Pre-select customer and/or item if navigated from their detail pages
+  // 1. Get title for current doc type
+  const currentDocTitle = docType === "quotation" ? "Quotation" : docType === "challan" ? "Challan" : docType === "proforma" ? "Proforma" : "Invoice"
+
+  // Pre-select customer and/or item if navigated from their detail pages, or handle conversions
   useEffect(() => {
+    // 1. Handle conversions first
+    if (fromId && invoices.length > 0) {
+      const source = invoices.find(inv => inv.id === fromId)
+      if (source) {
+        setSourceId(source.id)
+        if (preselectedType) {
+          handleTypeChange(preselectedType)
+        }
+
+        // Auto-fill customer
+        if (source.customer) {
+          setCustomerDetails({
+            name: source.customer.name || "",
+            address: source.customer.address || source.customer.billingAddress || "",
+            gst: source.customer.gst || source.customer.gstin || "",
+            phone: source.customer.phone || "",
+            email: source.customer.email || "",
+          })
+          // Try to find the matching customer in the list to set selectedCustomerId
+          const matchingCust = customers.find(c => c.name === source.customer.name)
+          if (matchingCust) setSelectedCustomerId(matchingCust.id)
+        }
+
+        // Auto-fill items
+        if (source.items) {
+          setItems(source.items.map(it => ({ ...it })))
+        }
+
+        // Auto-fill notes/terms/adjustments
+        if (source.notes) setNotes(source.notes)
+        if (source.paymentTerms) setPaymentTerms(source.paymentTerms)
+        if (source.discountType) setDiscountType(source.discountType)
+        if (source.discountValue) setDiscountValue(source.discountValue)
+        if (source.shippingCharge) setShippingCharge(source.shippingCharge)
+        if (source.extraChargeLabel) setExtraChargeLabel(source.extraChargeLabel)
+        if (source.extraChargeAmount) setExtraChargeAmount(source.extraChargeAmount)
+        if (source.currency) setCurrency(source.currency)
+        if (source.roundOff) setRoundOff(source.roundOff)
+
+        showSuccessToast(`Details filled from ${source.type || 'document'} ${source.invoiceNumber}`)
+        return // Skip other pre-selections if converting
+      }
+    }
+
+    // 2. Standard pre-selections
+    if (preselectedType) {
+      handleTypeChange(preselectedType)
+    }
     if (preselectedCustomerId && customers.length > 0) {
       handleCustomerSelect(preselectedCustomerId)
     }
     if (preselectedItemId && inventoryItems.length > 0 && items.length === 1 && items[0].name === "") {
       handleItemSelect(0, preselectedItemId)
     }
-    // Only run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preselectedCustomerId, preselectedItemId, customers.length > 0, inventoryItems.length > 0])
+  }, [preselectedCustomerId, preselectedItemId, preselectedType, fromId, invoices.length, customers.length, inventoryItems.length])
 
   const handleCustomerSelect = (value) => {
     setSelectedCustomerId(value)
@@ -143,6 +207,11 @@ function CreateInvoicePage() {
       if (c.paymentTerms) setPaymentTerms(c.paymentTerms)
       if (c.notes) setNotes(c.notes)
     }
+  }
+
+  const handleTypeChange = (value) => {
+    setDocType(value)
+    setInvoiceNumber(generateDocumentNumber(value))
   }
 
   const updateItem = (index, field, value) => {
@@ -235,9 +304,14 @@ function CreateInvoicePage() {
 
   const buildInvoiceData = () => ({
     id: crypto.randomUUID(),
+    type: docType,
     invoiceNumber,
     invoiceDate,
     dueDate,
+    validityDate: docType === "quotation" ? validityDate : undefined,
+    vehicleInfo: docType === "challan" ? vehicleInfo : undefined,
+    deliveryNotes: docType === "challan" ? deliveryNotes : undefined,
+    sourceId,
     currency,
     poNumber,
     placeOfSupply,
@@ -258,7 +332,7 @@ function CreateInvoicePage() {
     grandTotal,
     notes,
     paymentTerms,
-    status: "unpaid",
+    status: docType === "quotation" ? "draft" : "unpaid",
     createdAt: new Date().toISOString(),
   })
 
@@ -288,39 +362,43 @@ function CreateInvoicePage() {
     }
 
     // Deduct stock for items that have an itemId linked
+    // Only deduct for TAX INVOICE and DELIVERY CHALLAN
     let stockDeducted = false
-    setInventoryItems(prev => {
-      const newInventory = [...prev]
-      items.forEach(invLine => {
-        if (!invLine.itemId) return
-        const idx = newInventory.findIndex(i => i.id === invLine.itemId)
-        if (idx === -1) return
+    const shouldDeductStock = docType === "invoice" || docType === "challan"
 
-        const currentStock = newInventory[idx].stock || 0
-        if (currentStock <= 0) return // Already zero or negative, skip deduction or let it go negative? Let's allow negative for now so records match reality
+    if (shouldDeductStock) {
+      setInventoryItems(prev => {
+        const newInventory = [...prev]
+        items.forEach(invLine => {
+          if (!invLine.itemId) return
+          const idx = newInventory.findIndex(i => i.id === invLine.itemId)
+          if (idx === -1) return
 
-        newInventory[idx] = {
-          ...newInventory[idx],
-          stock: currentStock - invLine.quantity,
-          stockHistory: [
-            ...(newInventory[idx].stockHistory || []),
-            {
-              date: new Date().toISOString(),
-              type: "invoice",
-              qty: -invLine.quantity,
-              reason: `Invoice ${invoiceNumber}`
-            }
-          ]
-        }
-        stockDeducted = true
+          const currentStock = newInventory[idx].stock || 0
+          // Allow negative for now so records match reality
+          newInventory[idx] = {
+            ...newInventory[idx],
+            stock: currentStock - invLine.quantity,
+            stockHistory: [
+              ...(newInventory[idx].stockHistory || []),
+              {
+                date: new Date().toISOString(),
+                type: docType,
+                qty: -invLine.quantity,
+                reason: `${docType.charAt(0).toUpperCase() + docType.slice(1)} ${invoiceNumber}`
+              }
+            ]
+          }
+          stockDeducted = true
+        })
+        return newInventory
       })
-      return newInventory
-    })
+    }
 
     if (stockDeducted) {
-      showSuccessToast("Invoice saved and stock updated")
+      showSuccessToast(`${docType.charAt(0).toUpperCase() + docType.slice(1)} saved and stock updated`)
     } else {
-      showSuccessToast("Invoice saved successfully")
+      showSuccessToast(`${docType.charAt(0).toUpperCase() + docType.slice(1)} saved successfully`)
     }
 
     // Reset guard after short delay so user can save again if needed
@@ -333,6 +411,8 @@ function CreateInvoicePage() {
     const cd = customerDetails
     const biz = companyDetails || {}
     const validItems = items.filter((i) => i.name)
+    const docTitle = docType === "quotation" ? "Quotation" : docType === "challan" ? "Delivery Challan" : docType === "proforma" ? "Proforma Invoice" : "Invoice"
+    const docTitleUpper = docTitle.toUpperCase()
 
     const bizName = biz.name || 'Your Business'
     const bizEmail = biz.email || ''
@@ -355,6 +435,10 @@ function CreateInvoicePage() {
     )
 
     // ── Shared: compute rows with totals ────────────────────────────────────────
+    const isChallan = docType === "challan"
+    const isQuote = docType === "quotation"
+    const isProforma = docType === "proforma"
+
     const computedRows = validItems.map((item, idx) => {
       const lineBase = item.quantity * item.price
       const disc = item.discountType === 'flat'
@@ -377,12 +461,12 @@ function CreateInvoicePage() {
 
     const bankHtml = (activeBankDetails && (activeBankDetails.bankName || activeBankDetails.accountNumber || activeBankDetails.upi))
       ? [
-          activeBankDetails.bankName ? 'Bank: <strong>' + activeBankDetails.bankName + '</strong>' : '',
-          activeBankDetails.accountName ? 'A/C Name: <strong>' + activeBankDetails.accountName + '</strong>' : '',
-          activeBankDetails.accountNumber ? 'A/C No: <strong>' + activeBankDetails.accountNumber + '</strong>' : '',
-          activeBankDetails.ifsc ? 'IFSC: <strong>' + activeBankDetails.ifsc + '</strong>' : '',
-          activeBankDetails.upi ? 'UPI: <strong>' + activeBankDetails.upi + '</strong>' : '',
-        ].filter(Boolean).join(' &nbsp;|&nbsp; ')
+        activeBankDetails.bankName ? 'Bank: <strong>' + activeBankDetails.bankName + '</strong>' : '',
+        activeBankDetails.accountName ? 'A/C Name: <strong>' + activeBankDetails.accountName + '</strong>' : '',
+        activeBankDetails.accountNumber ? 'A/C No: <strong>' + activeBankDetails.accountNumber + '</strong>' : '',
+        activeBankDetails.ifsc ? 'IFSC: <strong>' + activeBankDetails.ifsc + '</strong>' : '',
+        activeBankDetails.upi ? 'UPI: <strong>' + activeBankDetails.upi + '</strong>' : '',
+      ].filter(Boolean).join(' &nbsp;|&nbsp; ')
       : ''
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -393,18 +477,18 @@ function CreateInvoicePage() {
     if (selectedTemplate === 'clean-teal') {
       const rows = computedRows.map((r, i) =>
         '<tr style="border-bottom:1px solid #e2e8f0;background:' + (i % 2 === 0 ? '#fff' : '#f0fdfe') + '">' +
-          '<td style="padding:10px 10px;font-size:11px;text-align:center;border-right:1px solid #e2e8f0;color:#555">' + (i + 1) + '</td>' +
-          '<td style="padding:10px 12px;font-size:12px;color:#1a1a1a">' +
-            r.item.name +
-            (r.item.description ? '<div style="font-size:10px;color:#94a3b8;margin-top:2px">' + r.item.description + '</div>' : '') +
-          '</td>' +
-          '<td style="padding:10px 12px;font-size:12px;text-align:right;color:#1a1a1a;font-family:monospace">' + cs + r.lineTotal.toFixed(2) + '</td>' +
+        '<td style="padding:10px 10px;font-size:11px;text-align:center;border-right:1px solid #e2e8f0;color:#555">' + (i + 1) + '</td>' +
+        '<td style="padding:10px 12px;font-size:12px;color:#1a1a1a">' +
+        r.item.name +
+        (r.item.description ? '<div style="font-size:10px;color:#94a3b8;margin-top:2px">' + r.item.description + '</div>' : '') +
+        '</td>' +
+        '<td style="padding:10px 12px;font-size:12px;text-align:right;color:#1a1a1a;font-family:monospace">' + cs + r.lineTotal.toFixed(2) + '</td>' +
         '</tr>'
       ).join('')
 
       const noteHtml = (notes || paymentTerms) ? '<tr><td colspan="3" style="padding:12px;font-size:11px;border-top:1px solid #e2e8f0;background:#f8fafc"><strong>Note:</strong> ' + (notes || paymentTerms) + '</td></tr>' : ''
 
-      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${invoiceNumber}</title>
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitleUpper} ${invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
@@ -414,11 +498,13 @@ function CreateInvoicePage() {
 
     <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px">
-      <p style="font-size:56px;font-weight:900;color:#0E7490;letter-spacing:-3px;line-height:1">INVOICE</p>
+      <p style="font-size:56px;font-weight:900;color:#0E7490;letter-spacing:-3px;line-height:1">${docTitleUpper}</p>
       <div style="text-align:right;border:1px solid #e2e8f0;padding:14px 18px;font-size:12px;color:#555;min-width:200px">
         <div style="margin-bottom:6px"><span style="color:#94a3b8">Date:</span> ${invoiceDate}</div>
-        <div style="margin-bottom:6px"><span style="color:#94a3b8">Invoice No:</span> ${invoiceNumber}</div>
-        ${dueDate ? '<div style="margin-bottom:4px"><span style="color:#94a3b8">Due:</span> ' + dueDate + '</div>' : ''}
+        <div style="margin-bottom:6px"><span style="color:#94a3b8">${docTitle} No:</span> ${invoiceNumber}</div>
+        ${dueDate && !validityDate ? '<div style="margin-bottom:4px"><span style="color:#94a3b8">Due:</span> ' + dueDate + '</div>' : ''}
+        ${validityDate ? '<div style="margin-bottom:4px"><span style="color:#94a3b8">Valid Till:</span> ' + validityDate + '</div>' : ''}
+        ${vehicleInfo ? '<div style="margin-bottom:4px"><span style="color:#94a3b8">Vehicle:</span> ' + vehicleInfo + '</div>' : ''}
         ${poNumber ? '<div><span style="color:#94a3b8">PO #:</span> ' + poNumber + '</div>' : ''}
       </div>
     </div>
@@ -450,12 +536,17 @@ function CreateInvoicePage() {
       <thead><tr style="background:#0E7490;color:#fff">
         <th style="padding:11px 10px;font-size:11px;text-align:center;width:40px">SL</th>
         <th style="padding:11px 14px;font-size:11px;text-align:left">DESCRIPTION</th>
+        <th style="padding:11px 14px;font-size:11px;text-align:center">QTY</th>
+        ${!isChallan ? `
+        <th style="padding:11px 14px;font-size:11px;text-align:right">PRICE</th>
         <th style="padding:11px 14px;font-size:11px;text-align:right">AMOUNT</th>
+        ` : ''}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
 
-    <!-- Summary section out of table -->
+    <!-- Summary section - Hidden for Challan -->
+    ${!isChallan ? `
     <div style="display:flex;justify-content:flex-end;margin-top:20px;margin-bottom:20px">
       <table style="border-collapse:collapse;min-width:240px">
         ${summaryEntries.map(e => `
@@ -470,8 +561,13 @@ function CreateInvoicePage() {
         </tr>
       </table>
     </div>
+    ` : ''}
 
-    ${noteHtml ? `<div style="padding:12px;font-size:11px;border:1px solid #e2e8f0;background:#f8fafc;margin-bottom:20px"><strong>Note:</strong> ${notes || paymentTerms}</div>` : ''}
+    ${(deliveryNotes || notes || paymentTerms) ? `<div style="padding:12px;font-size:11px;border:1px solid #e2e8f0;background:#f8fafc;margin-bottom:20px">
+      ${deliveryNotes ? `<div><strong>Delivery Notes:</strong> ${deliveryNotes}</div>` : ''}
+      ${notes ? `<div style="${deliveryNotes ? 'margin-top:4px' : ''}"><strong>Note:</strong> ${notes}</div>` : ''}
+      ${paymentTerms ? `<div style="${(deliveryNotes || notes) ? 'margin-top:4px' : ''}"><strong>Terms:</strong> ${paymentTerms}</div>` : ''}
+    </div>` : ''}
 
     <!-- Note & Bank -->
     <div style="margin-top:auto;padding-top:32px;display:flex;justify-content:space-between;align-items:flex-end">
@@ -506,21 +602,23 @@ function CreateInvoicePage() {
     // 2 cols, NO/DESC/QTY/PRICE/SUBTOTAL table with bordered rows, signature line
     // ─────────────────────────────────────────────────────────────────────────
     if (selectedTemplate === 'geometric') {
-      const rows = computedRows.map((r, i) =>
-        '<tr style="border-bottom:1px solid #e2e8f0;background:' + (i % 2 === 0 ? '#fff' : '#f8fffe') + '">' +
-          '<td style="padding:10px 10px;font-size:11px;text-align:center;color:#555">' + (i + 1) + '</td>' +
-          '<td style="padding:10px 12px;font-size:12px;color:#1a1a1a">' + r.item.name + (r.item.description ? '<div style="font-size:10px;color:#94a3b8;margin-top:1px">' + r.item.description + '</div>' : '') + '</td>' +
-          '<td style="padding:10px 12px;font-size:12px;text-align:center;color:#555">' + r.item.quantity + (r.item.unit ? ' ' + r.item.unit : '') + '</td>' +
-          '<td style="padding:10px 12px;font-size:12px;text-align:right;font-family:monospace;color:#555">' + cs + Number(r.item.price).toFixed(2) + '</td>' +
-          '<td style="padding:10px 12px;font-size:12px;text-align:right;font-family:monospace;font-weight:700;color:#0F766E">' + cs + r.lineTotal.toFixed(2) + '</td>' +
-        '</tr>'
-      ).join('')
+      const rows = computedRows.map((r, i) => `
+        <tr style="border-bottom:1px solid #e2e8f0;background:${i % 2 === 0 ? '#fff' : '#f8fffe'}">
+          <td style="padding:10px 10px;font-size:11px;text-align:center;color:#555">${i + 1}</td>
+          <td style="padding:10px 12px;font-size:12px;color:#1a1a1a">${r.item.name}${r.item.description ? '<div style="font-size:10px;color:#94a3b8;margin-top:1px">' + r.item.description + '</div>' : ''}</td>
+          <td style="padding:10px 12px;font-size:12px;text-align:center;color:#555">${r.item.quantity}${r.item.unit ? ' ' + r.item.unit : ''}</td>
+          ${!isChallan ? `
+          <td style="padding:10px 12px;font-size:12px;text-align:right;font-family:monospace;color:#555">${cs}${Number(r.item.price).toFixed(2)}</td>
+          <td style="padding:10px 12px;font-size:12px;text-align:right;font-family:monospace;font-weight:700;color:#0F766E">${cs}${r.lineTotal.toFixed(2)}</td>
+          ` : ''}
+        </tr>
+      `).join('')
 
       const sumRows = summaryEntries.map(e =>
         '<tr><td style="padding:5px 0;font-size:12px;color:#64748b;text-align:right;padding-right:20px">' + e.label + '</td><td style="padding:5px 0;font-size:12px;text-align:right;color:' + (e.red ? '#ef4444' : '#1a1a1a') + ';font-family:monospace">' + e.value + '</td></tr>'
       ).join('')
 
-      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${invoiceNumber}</title>
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitleUpper} ${invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;overflow:hidden">
@@ -533,14 +631,18 @@ function CreateInvoicePage() {
   <!-- CONTENT GROWS -->
   <div style="flex:1;padding:52px 52px 36px;display:flex;flex-direction:column">
 
-    <p style="font-size:48px;font-weight:900;letter-spacing:-2px;color:#1a1a1a;margin-bottom:36px;line-height:1">INVOICE</p>
+    <p style="font-size:48px;font-weight:900;letter-spacing:-2px;color:#1a1a1a;margin-bottom:36px;line-height:1">${docTitleUpper}</p>
 
     <!-- Date + From/Issued To -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:36px">
       <div style="font-size:12px;color:#555">
         <p style="margin-bottom:8px">Date Issued:<br><strong style="font-size:13px;color:#1a1a1a">${invoiceDate}</strong></p>
-        <p style="margin-bottom:8px">Invoice No:<br><strong style="font-size:13px;color:#1a1a1a">${invoiceNumber}</strong></p>
-        ${dueDate ? '<p>Due Date:<br><strong style="font-size:13px;color:#1a1a1a">' + dueDate + '</strong></p>' : ''}
+        <p style="margin-bottom:8px">${docTitle} No:<br><strong style="font-size:13px;color:#1a1a1a">${invoiceNumber}</strong></p>
+        ${docType === "quotation" ? (
+          `<p>Valid Till:<br><strong style="font-size:13px;color:#1a1a1a">${validityDate || "—"}</strong></p>`
+        ) : (
+          `<p>Due Date:<br><strong style="font-size:13px;color:#1a1a1a">${dueDate || "—"}</strong></p>`
+        )}
         ${poNumber ? '<p style="margin-top:6px">PO #: <strong>' + poNumber + '</strong></p>' : ''}
       </div>
       <div style="font-size:12px">
@@ -559,38 +661,46 @@ function CreateInvoicePage() {
       </div>
     </div>
 
+    ${vehicleInfo ? `
+    <div style="margin-bottom:32px;display:inline-block;background:#f8fafc;border-left:4px solid #0F766E;padding:12px 20px">
+      <p style="font-size:10px;text-transform:uppercase;color:#94a3b8;margin-bottom:4px">Vehicle / Delivery Info</p>
+      <p style="font-weight:700;font-size:13px">${vehicleInfo}</p>
+      ${deliveryNotes ? '<p style="font-size:11px;color:#64748b;margin-top:4px">' + deliveryNotes + '</p>' : ''}
+    </div>
+    ` : ''}
+
     <!-- Items table -->
     <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0">
       <thead><tr style="background:#f8f8f8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#666">
         <th style="padding:11px 10px;text-align:center;width:40px;border-bottom:1px solid #e2e8f0">NO</th>
         <th style="padding:11px 14px;text-align:left;border-bottom:1px solid #e2e8f0">DESCRIPTION</th>
         <th style="padding:11px 14px;text-align:center;border-bottom:1px solid #e2e8f0">QTY</th>
+        ${!isChallan ? `
         <th style="padding:11px 14px;text-align:right;border-bottom:1px solid #e2e8f0">PRICE</th>
         <th style="padding:11px 14px;text-align:right;border-bottom:1px solid #e2e8f0">SUBTOTAL</th>
+        ` : ''}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
 
-    <!-- Summary section out of table -->
+    <!-- Summary section - Hidden for Challan -->
+    ${!isChallan ? `
     <div style="display:flex;justify-content:flex-end;margin-top:20px;margin-bottom:20px">
       <table style="border-collapse:collapse;min-width:260px">
-        ${summaryEntries.map(e => `
-          <tr>
-            <td style="padding:6px 20px 6px 0;font-size:12px;color:#64748b;text-align:right">${e.label}</td>
-            <td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? '#ef4444' : '#1a1a1a'}">${e.value}</td>
-          </tr>
-        `).join('')}
+        ${sumRows}
         <tr>
           <td style="padding:12px 20px 12px 0;font-size:14px;font-weight:700;color:#1a1a1a;text-align:right;border-top:1.5px solid #e2e8f0">Grand Total</td>
           <td style="padding:12px 0;font-size:24px;font-weight:900;color:#0F766E;text-align:right;font-family:monospace;border-top:1.5px solid #e2e8f0">${cs}${grandTotal.toFixed(2)}</td>
         </tr>
       </table>
     </div>
+    ` : ''}
 
 
     <!-- Summary + Signature -->
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:48px">
       <div style="max-width:320px">
+        ${deliveryNotes ? '<p style="font-size:12px;color:#1a1a1a;margin-bottom:8px"><strong>Delivery Notes:</strong> ' + deliveryNotes + '</p>' : ''}
         ${bankHtml ? '<p style="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a1a1a">Payment Details:</p><p style="font-size:12px;color:#64748b;line-height:1.6">' + bankHtml + '</p>' : ''}
         ${notes ? '<p style="font-size:12px;color:#64748b;margin-top:12px"><strong>Note:</strong> ' + notes + '</p>' : ''}
         ${paymentTerms ? '<p style="font-size:12px;color:#64748b;margin-top:4px"><strong>Payment Terms:</strong> ' + paymentTerms + '</p>' : ''}
@@ -622,14 +732,21 @@ function CreateInvoicePage() {
     // "thank you" italic script bottom-right
     // ─────────────────────────────────────────────────────────────────────────
     if (selectedTemplate === 'circle-studio') {
-      const rows = computedRows.map((r, i) =>
-        '<tr style="border-bottom:1px solid #e5e7eb">' +
-          '<td style="padding:11px 14px;font-size:12px;color:#1a1a1a">' + r.item.name + (r.item.description ? '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + r.item.description + '</div>' : '') + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace">' + cs + Number(r.item.price).toFixed(2) + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:right">' + r.item.quantity + (r.item.unit ? ' ' + r.item.unit : '') + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;font-weight:700">' + cs + r.lineTotal.toFixed(2) + '</td>' +
-        '</tr>'
-      ).join('')
+      const rows = computedRows.map((r, i) => `
+        <tr style="border-bottom:1px solid #e5e7eb">
+          <td style="padding:11px 14px;font-size:12px;color:#1a1a1a">
+            <div style="font-weight:700">${r.item.name}</div>
+            ${r.item.description ? '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + r.item.description + '</div>' : ''}
+          </td>
+          ${!isChallan ? `
+          <td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace">${cs}${Number(r.item.price).toFixed(2)}</td>
+          ` : ''}
+          <td style="padding:11px 14px;font-size:12px;text-align:right">${r.item.quantity}${r.item.unit ? ' ' + r.item.unit : ''}</td>
+          ${!isChallan ? `
+          <td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;font-weight:700">${cs}${r.lineTotal.toFixed(2)}</td>
+          ` : ''}
+        </tr>
+      `).join('')
 
       const sumRows = summaryEntries.filter(e => e.label !== 'Subtotal').map(e =>
         '<tr><td style="padding:4px 16px 4px 0;font-size:12px;color:#6b7280">' + e.label + '</td><td style="padding:4px 0;font-size:12px;text-align:right;font-family:monospace;color:' + (e.red ? '#ef4444' : '#1a1a1a') + '">' + e.value + '</td></tr>'
@@ -648,7 +765,7 @@ function CreateInvoicePage() {
       <div style="width:80px;height:80px;border-radius:50%;border:2.5px solid #1a1a1a;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:8px">
         ${bizLogo
           ? '<img src="' + bizLogo + '" style="width:50px;height:50px;object-fit:contain;border-radius:50%">'
-          : '<span style="font-style:italic;font-size:11px;font-family:Georgia,serif;color:#555">the</span><span style="font-weight:900;font-size:12px;letter-spacing:4px">' + bizName.substring(0,6).toUpperCase() + '</span><span style="font-size:8px;letter-spacing:3px;color:#9ca3af;text-transform:uppercase">Studio</span>'
+          : '<span style="font-style:italic;font-size:11px;font-family:Georgia,serif;color:#555">the</span><span style="font-weight:900;font-size:12px;letter-spacing:4px">' + bizName.substring(0, 6).toUpperCase() + '</span><span style="font-size:8px;letter-spacing:3px;color:#9ca3af;text-transform:uppercase">Studio</span>'
         }
       </div>
       <p style="font-size:11px;color:#9ca3af;letter-spacing:1px;text-transform:uppercase">${bizTagline || bizEmail || bizName}</p>
@@ -665,10 +782,14 @@ function CreateInvoicePage() {
         ${cd.gst ? '<p style="font-size:11px;color:#6b7280">GSTIN: ' + cd.gst + '</p>' : ''}
       </div>
       <div style="text-align:right">
-        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">INVOICE NO:</p>
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${docTitleUpper} NO:</p>
         <p style="font-weight:900;font-size:28px;font-family:monospace">#${invoiceNumber}</p>
         <p style="font-size:12px;color:#6b7280;margin-top:6px">${invoiceDate}</p>
-        ${dueDate ? '<p style="font-size:12px;color:#6b7280">Due: ' + dueDate + '</p>' : ''}
+        ${docType === "quotation" ? (
+          validityDate ? '<p style="font-size:12px;color:#6b7280">Valid Till: ' + validityDate + '</p>' : ''
+        ) : (
+          dueDate ? '<p style="font-size:12px;color:#6b7280">Due: ' + dueDate + '</p>' : ''
+        )}
         ${poNumber ? '<p style="font-size:12px;color:#6b7280">PO: ' + poNumber + '</p>' : ''}
       </div>
     </div>
@@ -677,17 +798,18 @@ function CreateInvoicePage() {
     <table style="width:100%;border-collapse:collapse">
       <thead><tr style="border-top:2.5px solid #1a1a1a;border-bottom:2.5px solid #1a1a1a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">
         <th style="padding:11px 14px;text-align:left">DESCRIPTION</th>
-        <th style="padding:11px 14px;text-align:right">UNIT PRICE</th>
+        ${!isChallan ? '<th style="padding:11px 14px;text-align:right">UNIT PRICE</th>' : ''}
         <th style="padding:11px 14px;text-align:right">QTY</th>
-        <th style="padding:11px 14px;text-align:right">TOTAL</th>
+        ${!isChallan ? '<th style="padding:11px 14px;text-align:right">TOTAL</th>' : ''}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
 
-    <!-- Summary section out of table -->
+    <!-- Summary section - Hidden for Challan -->
+    ${!isChallan ? `
     <div style="display:flex;justify-content:flex-end;margin-top:20px;margin-bottom:20px">
       <table style="border-collapse:collapse;min-width:240px">
-        ${summaryEntries.map(e => `
+        ${summaryEntries.filter(e => e.label !== 'Subtotal').map(e => `
           <tr>
             <td style="padding:6px 24px 6px 0;font-size:12px;color:#6b7280;text-align:right;text-transform:uppercase;letter-spacing:1px">${e.label}</td>
             <td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? '#ef4444' : '#1a1a1a'}">${e.value}</td>
@@ -700,6 +822,7 @@ function CreateInvoicePage() {
     <div style="border-top:2.5px solid #1a1a1a;border-bottom:2.5px solid #1a1a1a;padding:12px 0;display:flex;justify-content:space-between;font-weight:900;font-size:24px;margin-top:0">
       <span style="letter-spacing:2px">AMOUNT DUE</span><span style="font-family:monospace">${cs}${grandTotal.toFixed(2)}</span>
     </div>
+    ` : ''}
 
 
     <!-- Bank + Thank you -->
@@ -707,12 +830,12 @@ function CreateInvoicePage() {
       <div style="font-size:12px;color:#6b7280;max-width:280px">
         ${(activeBankDetails && (activeBankDetails.bankName || activeBankDetails.accountNumber))
           ? '<p style="font-weight:700;color:#1a1a1a;margin-bottom:6px;font-size:12px">BANK DETAILS</p>' +
-            (activeBankDetails.bankName ? '<p>Bank: ' + activeBankDetails.bankName + '</p>' : '') +
-            (activeBankDetails.accountName ? '<p>Account Name: ' + activeBankDetails.accountName + '</p>' : '') +
-            (activeBankDetails.accountNumber ? '<p>Account No.: ' + activeBankDetails.accountNumber + '</p>' : '') +
-            (activeBankDetails.ifsc ? '<p>IFSC: ' + activeBankDetails.ifsc + '</p>' : '') +
-            (activeBankDetails.upi ? '<p>UPI: ' + activeBankDetails.upi + '</p>' : '') +
-            (dueDate ? '<p style="margin-top:6px">Pay by: ' + dueDate + '</p>' : '')
+          (activeBankDetails.bankName ? '<p>Bank: ' + activeBankDetails.bankName + '</p>' : '') +
+          (activeBankDetails.accountName ? '<p>Account Name: ' + activeBankDetails.accountName + '</p>' : '') +
+          (activeBankDetails.accountNumber ? '<p>Account No.: ' + activeBankDetails.accountNumber + '</p>' : '') +
+          (activeBankDetails.ifsc ? '<p>IFSC: ' + activeBankDetails.ifsc + '</p>' : '') +
+          (activeBankDetails.upi ? '<p>UPI: ' + activeBankDetails.upi + '</p>' : '') +
+          (dueDate ? '<p style="margin-top:6px">Pay by: ' + dueDate + '</p>' : '')
           : (bizAddress ? '<p>' + bizPhone + '</p><p>' + bizEmail + '</p>' : '')
         }
         ${notes ? '<p style="margin-top:12px"><em>' + notes + '</em></p>' : ''}
@@ -748,14 +871,14 @@ function CreateInvoicePage() {
     if (selectedTemplate === 'aizen-bold') {
       const rows = computedRows.map((r, i) =>
         '<tr style="background:' + (i % 2 === 0 ? '#f9fafb' : '#fff') + ';border-bottom:1px solid #e5e7eb">' +
-          '<td style="padding:11px 14px;font-size:12px;color:#374151">' + r.item.name + (r.item.description ? '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + r.item.description + '</div>' : '') + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:center;color:#374151">' + r.item.quantity + (r.item.unit ? ' ' + r.item.unit : '') + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;color:#374151">' + cs + Number(r.item.price).toFixed(2) + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;font-weight:700;color:#1a1a1a">' + cs + r.lineTotal.toFixed(2) + '</td>' +
+        '<td style="padding:11px 14px;font-size:12px;color:#374151">' + r.item.name + (r.item.description ? '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + r.item.description + '</div>' : '') + '</td>' +
+        '<td style="padding:11px 14px;font-size:12px;text-align:center;color:#374151">' + r.item.quantity + (r.item.unit ? ' ' + r.item.unit : '') + '</td>' +
+        '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;color:#374151">' + cs + Number(r.item.price).toFixed(2) + '</td>' +
+        '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;font-weight:700;color:#1a1a1a">' + cs + r.lineTotal.toFixed(2) + '</td>' +
         '</tr>'
       ).join('')
 
-      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${invoiceNumber}</title>
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitleUpper} ${invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
@@ -765,9 +888,9 @@ function CreateInvoicePage() {
     <div style="position:absolute;top:0;right:0;width:0;height:0;border-left:70px solid transparent;border-top:70px solid #1a1a1a"></div>
     <div style="position:absolute;top:0;right:38px;width:0;height:0;border-left:36px solid transparent;border-top:36px solid #ef4444"></div>
     ${bizLogo
-      ? '<img src="' + bizLogo + '" style="width:42px;height:42px;object-fit:contain;border-radius:4px">'
-      : '<div style="width:42px;height:42px;background:#ef4444;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:20px;flex-shrink:0">' + bizName.charAt(0) + '</div>'
-    }
+          ? '<img src="' + bizLogo + '" style="width:42px;height:42px;object-fit:contain;border-radius:4px">'
+          : '<div style="width:42px;height:42px;background:#ef4444;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:20px;flex-shrink:0">' + bizName.charAt(0) + '</div>'
+        }
     <div>
       <p style="font-weight:900;font-size:16px;line-height:1.1;color:#1a1a1a">${bizName.toUpperCase()}</p>
       <p style="font-size:10px;color:#9ca3af;letter-spacing:2px;text-transform:uppercase">${bizTagline || 'Professional Services'}</p>
@@ -775,12 +898,12 @@ function CreateInvoicePage() {
   </div>
 
   <!-- INVOICE title centered -->
-  <p style="text-align:center;font-weight:900;font-size:30px;letter-spacing:8px;padding:14px 0;border-bottom:1px solid #e5e7eb;margin:0">INVOICE</p>
+  <p style="text-align:center;font-weight:900;font-size:30px;letter-spacing:8px;padding:14px 0;border-bottom:1px solid #e5e7eb;margin:0">${docTitleUpper}</p>
 
   <!-- Invoice meta 3 cols -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:20px 44px;border-bottom:1px solid #e5e7eb;font-size:12px">
     <div>
-      <p style="color:#9ca3af;margin-bottom:4px;font-size:10px;text-transform:uppercase;letter-spacing:1px">Invoice To:</p>
+      <p style="color:#9ca3af;margin-bottom:4px;font-size:10px;text-transform:uppercase;letter-spacing:1px">${docTitle} To:</p>
       <p style="font-weight:700;font-size:13px">${cd.name || '—'}</p>
       ${cd.address ? '<p style="color:#6b7280;margin-top:2px;line-height:1.5">' + cd.address + '</p>' : ''}
       ${cd.phone ? '<p style="color:#6b7280">' + cd.phone + '</p>' : ''}
@@ -796,8 +919,12 @@ function CreateInvoicePage() {
     </div>
     <div style="text-align:right">
       <p style="color:#9ca3af;margin-bottom:4px">Date: ${invoiceDate}</p>
-      <p style="font-family:monospace">Invoice: ${invoiceNumber}</p>
-      ${dueDate ? '<p style="color:#6b7280">Due: ' + dueDate + '</p>' : ''}
+      <p style="font-family:monospace">${docTitle}: ${invoiceNumber}</p>
+      ${docType === "quotation" ? (
+          validityDate ? '<p style="color:#6b7280">Valid Till: ' + validityDate + '</p>' : ''
+        ) : (
+          dueDate ? '<p style="color:#6b7280">Due: ' + dueDate + '</p>' : ''
+        )}
       ${poNumber ? '<p style="color:#6b7280">PO #: ' + poNumber + '</p>' : ''}
     </div>
   </div>
@@ -870,11 +997,11 @@ function CreateInvoicePage() {
     if (selectedTemplate === 'simple-boxed') {
       const rows = computedRows.map((r, i) =>
         '<tr style="background:' + (i % 2 === 0 ? '#fff' : '#f8f9fb') + ';border-bottom:1px solid #edf0f5">' +
-          '<td style="padding:11px 10px;font-size:12px;text-align:center;color:#6b7280;width:40px;border-right:1px solid #edf0f5">' + (i + 1) + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;color:#1e2d5b">' + r.item.name + (r.item.description ? '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + r.item.description + '</div>' : '') + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:center;color:#374151">' + r.item.quantity + (r.item.unit ? ' ' + r.item.unit : '') + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;color:#374151">' + cs + Number(r.item.price).toFixed(2) + '</td>' +
-          '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;font-weight:700;color:#1e2d5b">' + cs + r.lineTotal.toFixed(2) + '</td>' +
+        '<td style="padding:11px 10px;font-size:12px;text-align:center;color:#6b7280;width:40px;border-right:1px solid #edf0f5">' + (i + 1) + '</td>' +
+        '<td style="padding:11px 14px;font-size:12px;color:#1e2d5b">' + r.item.name + (r.item.description ? '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + r.item.description + '</div>' : '') + '</td>' +
+        '<td style="padding:11px 14px;font-size:12px;text-align:center;color:#374151">' + r.item.quantity + (r.item.unit ? ' ' + r.item.unit : '') + '</td>' +
+        '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;color:#374151">' + cs + Number(r.item.price).toFixed(2) + '</td>' +
+        '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;font-weight:700;color:#1e2d5b">' + cs + r.lineTotal.toFixed(2) + '</td>' +
         '</tr>'
       ).join('')
 
@@ -891,9 +1018,9 @@ function CreateInvoicePage() {
   <div style="background:#1e2d5b;padding:28px 48px;display:flex;justify-content:space-between;align-items:center">
     <div>
       ${bizLogo
-        ? '<img src="' + bizLogo + '" style="height:40px;max-width:110px;object-fit:contain;display:block;margin-bottom:8px">'
-        : '<div style="width:40px;height:40px;background:#f47321;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:20px;margin-bottom:8px">' + bizName.charAt(0) + '</div>'
-      }
+          ? '<img src="' + bizLogo + '" style="height:40px;max-width:110px;object-fit:contain;display:block;margin-bottom:8px">'
+          : '<div style="width:40px;height:40px;background:#f47321;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:20px;margin-bottom:8px">' + bizName.charAt(0) + '</div>'
+        }
       <p style="color:#fff;font-weight:700;font-size:14px">${bizName}</p>
       <p style="color:rgba(255,255,255,0.55);font-size:11px">${bizTagline || bizEmail || ''}</p>
       ${bizPhone ? '<p style="color:rgba(255,255,255,0.5);font-size:10px">' + bizPhone + '</p>' : ''}
@@ -969,18 +1096,18 @@ function CreateInvoicePage() {
 
     <!-- Bank + Notes -->
     ${(bankHtml || notes || paymentTerms) ? '<div style="margin-top:auto;padding-top:48px;display:flex;justify-content:space-between;align-items:flex-end">' +
-      '<div style="max-width:320px;font-size:12px;color:#6b7280">' +
-        (bankHtml ? '<p style="font-weight:700;color:#1e2d5b;margin-bottom:5px">Bank / Payment Details</p><p>' + bankHtml + '</p>' : '') +
-        (notes ? '<p style="margin-top:10px"><strong>Notes:</strong> ' + notes + '</p>' : '') +
-        (paymentTerms ? '<p style="margin-top:4px"><strong>Payment Terms:</strong> ' + paymentTerms + '</p>' : '') +
-      '</div>' +
-      '<div style="text-align:right;min-width:180px">' +
-        '<div style="border-top:2px solid #1e2d5b;padding-top:8px;text-align:center">' +
+          '<div style="max-width:320px;font-size:12px;color:#6b7280">' +
+          (bankHtml ? '<p style="font-weight:700;color:#1e2d5b;margin-bottom:5px">Bank / Payment Details</p><p>' + bankHtml + '</p>' : '') +
+          (notes ? '<p style="margin-top:10px"><strong>Notes:</strong> ' + notes + '</p>' : '') +
+          (paymentTerms ? '<p style="margin-top:4px"><strong>Payment Terms:</strong> ' + paymentTerms + '</p>' : '') +
+          '</div>' +
+          '<div style="text-align:right;min-width:180px">' +
+          '<div style="border-top:2px solid #1e2d5b;padding-top:8px;text-align:center">' +
           '<p style="font-size:13px;font-weight:700;color:#1e2d5b">Authorized Signatory</p>' +
           '<p style="font-size:10px;color:#9ca3af;margin-top:2px">For ' + bizName + '</p>' +
-        '</div>' +
-      '</div>' +
-    '</div>' : ''}
+          '</div>' +
+          '</div>' +
+          '</div>' : ''}
   </div>
 
   <!-- FOOTER pinned bottom -->
@@ -1000,16 +1127,16 @@ function CreateInvoicePage() {
     // ── FALLBACK (clean-teal) ────────────────────────────────────────────────
     const rows = computedRows.map((r, i) =>
       '<tr style="border-bottom:1px solid #e2e8f0;background:' + (i % 2 === 0 ? '#fff' : '#f0fdfe') + '">' +
-        '<td style="padding:8px 10px;font-size:11px;text-align:center;border-right:1px solid #e2e8f0;color:#555">' + (i + 1) + '</td>' +
-        '<td style="padding:8px 12px;font-size:12px;color:#1a1a1a">' + r.item.name + '</td>' +
-        '<td style="padding:8px 12px;font-size:12px;text-align:right;color:#1a1a1a">' + cs + r.lineTotal.toFixed(2) + '</td>' +
+      '<td style="padding:8px 10px;font-size:11px;text-align:center;border-right:1px solid #e2e8f0;color:#555">' + (i + 1) + '</td>' +
+      '<td style="padding:8px 12px;font-size:12px;color:#1a1a1a">' + r.item.name + '</td>' +
+      '<td style="padding:8px 12px;font-size:12px;text-align:right;color:#1a1a1a">' + cs + r.lineTotal.toFixed(2) + '</td>' +
       '</tr>'
     ).join('')
-    return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ' + invoiceNumber + '</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#fff;font-size:13px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="max-width:800px;margin:0 auto;padding:36px">' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:28px"><p style="font-size:48px;font-weight:900;color:#0E7490;letter-spacing:-2px;line-height:1">INVOICE</p><div style="text-align:right;border:1px solid #e2e8f0;padding:10px 16px;font-size:11px"><div><span style="color:#94a3b8">Date:</span> ' + invoiceDate + '</div><div><span style="color:#94a3b8">Invoice No:</span> ' + invoiceNumber + '</div></div></div>' +
+    return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + docTitleUpper + ' ' + invoiceNumber + '</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#fff;font-size:13px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="max-width:800px;margin:0 auto;padding:36px">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:28px"><p style="font-size:48px;font-weight:900;color:#0E7490;letter-spacing:-2px;line-height:1">' + docTitleUpper + '</p><div style="text-align:right;border:1px solid #e2e8f0;padding:10px 16px;font-size:11px"><div><span style="color:#94a3b8">Date:</span> ' + invoiceDate + '</div><div><span style="color:#94a3b8">' + docTitle + ' No:</span> ' + invoiceNumber + '</div></div></div>' +
       '<table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1"><thead><tr style="background:#0E7490;color:#fff"><th style="padding:9px 10px;font-size:11px;text-align:center;width:36px">SL</th><th style="padding:9px 12px;font-size:11px;text-align:left">Description</th><th style="padding:9px 12px;font-size:11px;text-align:right">Amount</th></tr></thead><tbody>' + rows + '<tr style="border-top:2px solid #0E7490"><td colspan="2" style="padding:10px 12px;font-size:12px;font-weight:700;text-align:right">Total</td><td style="padding:10px 12px;font-size:13px;font-weight:800;text-align:right;color:#0E7490">' + cs + grandTotal.toFixed(2) + '</td></tr></tbody></table>' +
       '<div style="margin-top:16px;text-align:center;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:10px">' + invoiceFooterNote + ' &bull; Generated by AutoInvoice</div>' +
-    '</div></body></html>'
+      '</div></body></html>'
   }
 
   const printInvoice = () => {
@@ -1064,7 +1191,7 @@ function CreateInvoicePage() {
     text += `*Date:* ${invoiceDate}\n`
     text += `*Grand Total: ${currencySymbol}${grandTotal.toFixed(2)}*\n`
     text += `--------------------------\n`
-    
+
     activeItems.forEach(item => {
       text += `• ${item.name || 'Item'} (${item.quantity} x ${currencySymbol}${item.price.toFixed(2)}) = ${currencySymbol}${(item.quantity * item.price).toFixed(2)}\n`
     })
@@ -1082,10 +1209,10 @@ function CreateInvoicePage() {
           html2canvas: { scale: 2, useCORS: true, logging: false },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         }
-        
+
         const pdfBlob = await html2pdf().set(opt).from(html).output('blob')
         const file = new File([pdfBlob], filename, { type: 'application/pdf' })
-        
+
         // Attempt to share the actual file if possible
         try {
           await navigator.share({
@@ -1108,7 +1235,7 @@ function CreateInvoicePage() {
     }
 
 
-    
+
 
 
 
@@ -1130,9 +1257,9 @@ function CreateInvoicePage() {
     }
 
     const html = buildInvoiceHtml()
-    const finalSubject = `Invoice ${invoiceNumber} from ${companyDetails.name || 'AutoInvoice'}`
+    const finalSubject = `${docTitle} ${invoiceNumber} from ${companyDetails.name || 'AutoInvoice'}`
     const apiUrl = OpenAPI.BASE || ''
-    
+
     try {
       showSuccessToast("Sending invoice via email...")
       await axios.post(`${apiUrl}/api/v1/utils/send-invoice/`, {
@@ -1167,12 +1294,40 @@ function CreateInvoicePage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Create Invoice</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Create {docType === "quotation" ? "Quotation" : docType === "challan" ? "Delivery Challan" : docType === "proforma" ? "Proforma Invoice" : "Invoice"}
+          </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Build and send professional invoices
+            Build and send professional {docType === "quotation" ? "quotations" : docType === "challan" ? "delivery challans" : docType === "proforma" ? "proforma invoices" : "invoices"}
           </p>
         </div>
       </div>
+
+      {/* Document Type Selector */}
+      <Card className="bg-primary/5 border-primary/20">
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Label className="text-base font-semibold min-w-32">Document Type:</Label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { id: "invoice", label: "Tax Invoice" },
+                { id: "quotation", label: "Quotation" },
+                { id: "challan", label: "Delivery Challan" },
+                { id: "proforma", label: "Proforma Invoice" },
+              ].map((type) => (
+                <Button
+                  key={type.id}
+                  variant={docType === type.id ? "default" : "outline"}
+                  onClick={() => handleTypeChange(type.id)}
+                  className="rounded-full"
+                >
+                  {type.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Form */}
@@ -1259,33 +1414,75 @@ function CreateInvoicePage() {
             </CardContent>
           </Card>
 
-          {/* Invoice Details */}
+          {/* Delivery & Vehicle Info (Challan only) */}
+          {docType === "challan" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Delivery & Vehicle Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Vehicle Number / Info</Label>
+                    <Input
+                      value={vehicleInfo}
+                      onChange={(e) => setVehicleInfo(e.target.value)}
+                      placeholder="e.g. MH-12-AB-1234"
+                    />
+                  </div>
+                  <div>
+                    <Label>Delivery Notes</Label>
+                    <Input
+                      value={deliveryNotes}
+                      onChange={(e) => setDeliveryNotes(e.target.value)}
+                      placeholder="e.g. Handle with care, Gate 4"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Document Details */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Invoice Details</CardTitle>
+              <CardTitle className="text-lg">
+                {docType === "quotation" ? "Quotation" : docType === "challan" ? "Challan" : docType === "proforma" ? "Proforma" : "Invoice"} Details
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div>
-                  <Label>Invoice Number</Label>
+                  <Label>{docType === "quotation" ? "Quo" : docType === "challan" ? "Chl" : docType === "proforma" ? "Prof" : "Inv"} Number</Label>
                   <Input value={invoiceNumber} readOnly className="bg-muted" />
                 </div>
                 <div>
-                  <Label>Invoice Date</Label>
+                  <Label>{docType === "quotation" ? "Quo" : docType === "challan" ? "Chl" : docType === "proforma" ? "Prof" : "Inv"} Date</Label>
                   <Input
                     type="date"
                     value={invoiceDate}
                     onChange={(e) => setInvoiceDate(e.target.value)}
                   />
                 </div>
-                <div>
-                  <Label>Due Date</Label>
-                  <Input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                  />
-                </div>
+                {docType === "quotation" ? (
+                  <div>
+                    <Label>Validity Date</Label>
+                    <Input
+                      type="date"
+                      value={validityDate}
+                      onChange={(e) => setValidityDate(e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <Label>Due Date</Label>
+                    <Input
+                      type="date"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                    />
+                  </div>
+                )}
                 <div>
                   <Label>Currency</Label>
                   <Select value={currency} onValueChange={setCurrency}>
@@ -1341,96 +1538,101 @@ function CreateInvoicePage() {
           {/* Items Table - Advanced Excel Style */}
           <Card className="mb-6">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-lg">Invoice Items</CardTitle>
+              <CardTitle className="text-lg">
+                {docType === "quotation" ? "Quotation" : docType === "challan" ? "Challan" : docType === "proforma" ? "Proforma" : "Invoice"} Items
+              </CardTitle>
               <p className="text-xs text-muted-foreground italic">Tip: Use arrow keys to navigate table cells</p>
             </CardHeader>
             <CardContent>
-            
-            <ModernExcelTable 
-              items={items}
-              inventoryItems={inventoryItems}
-              updateItem={updateItem}
-              handleItemSelect={handleItemSelect}
-              addItem={addItem}
-              removeItem={removeItem}
-              currencySymbol={currencySymbol}
-            />
+
+              <ModernExcelTable
+                items={items}
+                inventoryItems={inventoryItems}
+                updateItem={updateItem}
+                handleItemSelect={handleItemSelect}
+                addItem={addItem}
+                removeItem={removeItem}
+                currencySymbol={currencySymbol}
+                docType={docType}
+              />
             </CardContent>
           </Card>
 
-          {/* Invoice-level Adjustments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Adjustments &amp; Charges</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Invoice discount */}
-                <div>
-                  <Label className="flex items-center gap-1"><Percent className="h-3 w-3" /> Invoice Discount</Label>
-                  <div className="flex gap-1 mt-1">
-                    <Select value={discountType} onValueChange={setDiscountType}>
-                      <SelectTrigger className="w-20 h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="percent">%</SelectItem>
-                        <SelectItem value="flat">₹ Flat</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number" min="0" step="0.01"
-                      value={discountValue === 0 ? "" : discountValue}
-                      placeholder="0"
-                      onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
-                      className="flex-1 h-9"
-                    />
+          {/* Invoice-level Adjustments - Hidden for Challans as they don't have prices */}
+          {docType !== "challan" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Adjustments &amp; Charges</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Invoice discount */}
+                  <div>
+                    <Label className="flex items-center gap-1"><Percent className="h-3 w-3" /> {currentDocTitle} Discount</Label>
+                    <div className="flex gap-1 mt-1">
+                      <Select value={discountType} onValueChange={setDiscountType}>
+                        <SelectTrigger className="w-20 h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="percent">%</SelectItem>
+                          <SelectItem value="flat">₹ Flat</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number" min="0" step="0.01"
+                        value={discountValue === 0 ? "" : discountValue}
+                        placeholder="0"
+                        onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
+                        className="flex-1 h-9"
+                      />
+                    </div>
                   </div>
-                </div>
-                {/* Shipping */}
-                <div>
-                  <Label className="flex items-center gap-1"><Truck className="h-3 w-3" /> Shipping / Freight</Label>
-                  <Input
-                    type="number" min="0" step="0.01"
-                    value={shippingCharge === 0 ? "" : shippingCharge}
-                    placeholder="0.00"
-                    onChange={(e) => setShippingCharge(Number(e.target.value) || 0)}
-                    className="mt-1 h-9"
-                  />
-                </div>
-                {/* Extra charge */}
-                <div>
-                  <Label className="flex items-center gap-1"><PackagePlus className="h-3 w-3" /> Other Charges</Label>
-                  <div className="flex gap-1 mt-1">
-                    <Input
-                      value={extraChargeLabel}
-                      onChange={(e) => setExtraChargeLabel(e.target.value)}
-                      placeholder="Label"
-                      className="flex-1 h-9 text-xs"
-                    />
+                  {/* Shipping */}
+                  <div>
+                    <Label className="flex items-center gap-1"><Truck className="h-3 w-3" /> Shipping / Freight</Label>
                     <Input
                       type="number" min="0" step="0.01"
-                      value={extraChargeAmount === 0 ? "" : extraChargeAmount}
+                      value={shippingCharge === 0 ? "" : shippingCharge}
                       placeholder="0.00"
-                      onChange={(e) => setExtraChargeAmount(Number(e.target.value) || 0)}
-                      className="w-24 h-9"
+                      onChange={(e) => setShippingCharge(Number(e.target.value) || 0)}
+                      className="mt-1 h-9"
                     />
                   </div>
+                  {/* Extra charge */}
+                  <div>
+                    <Label className="flex items-center gap-1"><PackagePlus className="h-3 w-3" /> Other Charges</Label>
+                    <div className="flex gap-1 mt-1">
+                      <Input
+                        value={extraChargeLabel}
+                        onChange={(e) => setExtraChargeLabel(e.target.value)}
+                        placeholder="Label"
+                        className="flex-1 h-9 text-xs"
+                      />
+                      <Input
+                        type="number" min="0" step="0.01"
+                        value={extraChargeAmount === 0 ? "" : extraChargeAmount}
+                        placeholder="0.00"
+                        onChange={(e) => setExtraChargeAmount(Number(e.target.value) || 0)}
+                        className="w-24 h-9"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              {/* Round off toggle */}
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setRoundOff((v) => !v)}
-                  className={`relative w-10 h-5 rounded-full transition-colors ${roundOff ? "bg-primary" : "bg-muted"}`}
-                >
-                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${roundOff ? "left-5" : "left-0.5"}`} />
-                </button>
-                <Label className="cursor-pointer" onClick={() => setRoundOff((v) => !v)}>Round off grand total to nearest ₹</Label>
-              </div>
-            </CardContent>
-          </Card>
+                {/* Round off toggle */}
+                <div className="flex items-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setRoundOff((v) => !v)}
+                    className={`relative w-10 h-5 rounded-full transition-colors ${roundOff ? "bg-primary" : "bg-muted"}`}
+                  >
+                    <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${roundOff ? "left-5" : "left-0.5"}`} />
+                  </button>
+                  <Label className="cursor-pointer" onClick={() => setRoundOff((v) => !v)}>Round off grand total to nearest ₹</Label>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Bank / Payment Details */}
           <Card>
@@ -1487,7 +1689,7 @@ function CreateInvoicePage() {
                 <Input
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any additional notes to display on the invoice"
+                  placeholder={`Any additional notes to display on the ${docType}`}
                 />
               </div>
               <div>
@@ -1521,7 +1723,7 @@ function CreateInvoicePage() {
               )}
               {invoiceDiscount > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Invoice Discount</span>
+                  <span className="text-muted-foreground">{currentDocTitle} Discount</span>
                   <span className="text-emerald-600">−{currencySymbol}{invoiceDiscount.toFixed(2)}</span>
                 </div>
               )}
@@ -1564,11 +1766,11 @@ function CreateInvoicePage() {
                   onClick={handlePreviewAndPrint}
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  Preview Invoice
+                  Preview {currentDocTitle}
                 </Button>
                 <Button className="w-full" onClick={handleSave}>
                   <Save className="mr-2 h-4 w-4" />
-                  Save Invoice
+                  Save {currentDocTitle}
                 </Button>
                 <Button
                   className="w-full"
@@ -1605,7 +1807,7 @@ function CreateInvoicePage() {
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>Invoice Preview</DialogTitle>
+            <DialogTitle>{currentDocTitle} Preview</DialogTitle>
           </DialogHeader>
           <iframe
             title="invoice-preview"

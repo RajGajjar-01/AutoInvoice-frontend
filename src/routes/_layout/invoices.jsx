@@ -147,6 +147,11 @@ function InvoicesPage() {
 
     // ── Computed stats ──────────────────────────────────────────────────────
     const totalCount = invoices.length
+    const invoiceCount = invoices.filter(i => !i.type || i.type === "invoice").length
+    const quotationCount = invoices.filter(i => i.type === "quotation").length
+    const challanCount = invoices.filter(i => i.type === "challan").length
+    const proformaCount = invoices.filter(i => i.type === "proforma").length
+
     const paidCount = invoices.filter((i) => i.status === "paid").length
     const unpaidCount = invoices.filter((i) => i.status === "unpaid").length
     const overdueCount = invoices.filter((i) => i.status === "overdue").length
@@ -192,26 +197,44 @@ function InvoicesPage() {
             {/* ── Header ── */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        Create, manage, and track your invoices
+                        Create and manage invoices, quotations, and challans
                     </p>
                 </div>
-                <Link to="/create-invoice">
-                    <Button>
-                        <FilePlus className="mr-2 h-4 w-4" />
-                        New Invoice
-                    </Button>
-                </Link>
+                <div className="flex gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button>
+                                <FilePlus className="mr-2 h-4 w-4" />
+                                New Document
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                                <Link to="/create-invoice">Invoice</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link to="/create-invoice" search={{ type: 'quotation' }}>Quotation</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link to="/create-invoice" search={{ type: 'challan' }}>Challan</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link to="/create-invoice" search={{ type: 'proforma' }}>Proforma</Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
             {/* ── KPI Stats ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     icon={FileText}
-                    title="Total Invoices"
+                    title="Total Documents"
                     value={totalCount}
-                    sub={totalCount === 1 ? "1 invoice" : `${totalCount} invoices`}
+                    sub={`${invoiceCount} Inv, ${quotationCount} Quo`}
                     iconClass="bg-primary/10 text-primary"
                 />
                 <StatCard
@@ -263,7 +286,8 @@ function InvoicesPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent">
-                                        <TableHead>Invoice #</TableHead>
+                                        <TableHead>Document #</TableHead>
+                                        <TableHead>Type</TableHead>
                                         <TableHead>Customer</TableHead>
                                         <TableHead className="text-right">Amount</TableHead>
                                         <TableHead>Status</TableHead>
@@ -291,6 +315,11 @@ function InvoicesPage() {
                                                             {inv.invoiceDate || "—"}
                                                         </p>
                                                     </Link>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline" className="capitalize text-[10px] h-5">
+                                                        {inv.type || "invoice"}
+                                                    </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-sm">
                                                     <Link

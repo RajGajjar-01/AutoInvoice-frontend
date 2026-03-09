@@ -12,6 +12,7 @@ import {
   IndianRupee,
   Clock,
   AlertTriangle,
+  Download,
 } from "lucide-react"
 import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
@@ -151,8 +152,17 @@ function StatCard({ icon: Icon, title, value, sub, iconClass, valueClass }) {
 function InvoiceHistoryPage() {
   const [invoices, setInvoices] = useLocalStorage("invoices", [])
   const { showSuccessToast } = useCustomToast()
+
+  // Staged filter states (what user sees in inputs)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [typeFilter, setTypeFilter] = useState("all")
+
+  // Applied filter states (what is used for calculation)
+  const [appliedSearch, setAppliedSearch] = useState("")
+  const [appliedStatus, setAppliedStatus] = useState("all")
+  const [appliedType, setAppliedType] = useState("all")
+
   const [sortOrder, setSortOrder] = useState("newest")
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -168,12 +178,17 @@ function InvoiceHistoryPage() {
     let list = [...invoices]
 
     // Status filter
-    if (statusFilter !== "all") {
-      list = list.filter((i) => i.status === statusFilter)
+    if (appliedStatus !== "all") {
+      list = list.filter((i) => i.status === appliedStatus)
+    }
+
+    // Type filter
+    if (appliedType !== "all") {
+      list = list.filter((i) => (i.type || "invoice") === appliedType)
     }
 
     // Search
-    const q = search.trim().toLowerCase()
+    const q = appliedSearch.trim().toLowerCase()
     if (q) {
       list = list.filter(
         (i) =>
@@ -195,7 +210,7 @@ function InvoiceHistoryPage() {
     })
 
     return list
-  }, [invoices, search, statusFilter, sortOrder])
+  }, [invoices, appliedSearch, appliedStatus, appliedType, sortOrder])
 
   // ── Actions ──────────────────────────────────────────────────────────────
   const handleToggleStatus = (inv) => {
@@ -224,31 +239,84 @@ function InvoiceHistoryPage() {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
   }
 
-  const hasSearch = search.trim() !== "" || statusFilter !== "all"
+  const handleExportCSV = () => {
+    if (filtered.length === 0) return
+
+    const headers = ["Document #", "Type", "Customer", "Date", "Due Date", "Amount", "Status"]
+    const rows = filtered.map(inv => [
+      inv.invoiceNumber,
+      inv.type || "invoice",
+      inv.customer?.name || "—",
+      inv.invoiceDate || "—",
+      inv.dueDate || "—",
+      inv.grandTotal,
+      inv.status
+    ])
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    ].join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", `document_history_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    showSuccessToast("Exported successfully")
+  }
+
+  const handleApplyFilters = () => {
+    setAppliedSearch(search)
+    setAppliedStatus(statusFilter)
+    setAppliedType(typeFilter)
+  }
+
+  const handleClearFilters = () => {
+    setSearch("")
+    setStatusFilter("all")
+    setTypeFilter("all")
+    setAppliedSearch("")
+    setAppliedStatus("all")
+    setAppliedType("all")
+  }
+
+  const hasSearch = appliedSearch.trim() !== "" || appliedStatus !== "all" || appliedType !== "all"
+  const isDirty = search !== appliedSearch || statusFilter !== appliedStatus || typeFilter !== appliedType
 
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Invoice History</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Document History</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Search, filter, and manage all your invoices
+            Search, filter, and manage all your documents
           </p>
         </div>
-        <Link to="/create-invoice">
-          <Button>
-            <FilePlus className="mr-2 h-4 w-4" />
-            New Invoice
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV} disabled={filtered.length === 0}>
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
           </Button>
-        </Link>
+          <Link to="/create-invoice">
+            <Button>
+              <FilePlus className="mr-2 h-4 w-4" />
+              New Document
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={FileText}
-          title="Total Invoices"
+          title="Total Documents"
           value={invoices.length}
           sub={`${filtered.length} shown`}
           iconClass="bg-primary/10 text-primary"
@@ -300,6 +368,19 @@ function InvoiceHistoryPage() {
               <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="unpaid">Unpaid</SelectItem>
               <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="invoice">Invoice</SelectItem>
+              <SelectItem value="quotation">Quotation</SelectItem>
+              <SelectItem value="challan">Challan</SelectItem>
+              <SelectItem value="proforma">Proforma</SelectItem>
             </SelectContent>
           </Select>
           <Select value={sortOrder} onValueChange={setSortOrder}>
@@ -311,6 +392,14 @@ function InvoiceHistoryPage() {
               <SelectItem value="oldest">Oldest First</SelectItem>
             </SelectContent>
           </Select>
+          <Button onClick={handleApplyFilters} className="ml-auto">
+            Apply Filter
+          </Button>
+          {isDirty && (
+            <Button variant="ghost" onClick={handleClearFilters} className="text-muted-foreground">
+              Reset
+            </Button>
+          )}
         </div>
       )}
 
@@ -325,7 +414,8 @@ function InvoiceHistoryPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Document #</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Due</TableHead>
@@ -352,6 +442,11 @@ function InvoiceHistoryPage() {
                         >
                           {inv.invoiceNumber}
                         </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize text-[10px] h-5">
+                          {inv.type || "invoice"}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-sm">
                         <Link
@@ -447,15 +542,12 @@ function InvoiceHistoryPage() {
             {/* Footer count */}
             <div className="px-6 py-3 border-t bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
               <span>
-                Showing {filtered.length} of {invoices.length} invoices
+                Showing {filtered.length} of {invoices.length} documents
               </span>
               {hasSearch && (
                 <button
                   className="hover:text-foreground transition-colors"
-                  onClick={() => {
-                    setSearch("")
-                    setStatusFilter("all")
-                  }}
+                  onClick={handleClearFilters}
                 >
                   Clear filters
                 </button>
@@ -472,9 +564,9 @@ function InvoiceHistoryPage() {
       >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete Invoice</DialogTitle>
+            <DialogTitle>Delete {deleteTarget?.type || "Document"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete invoice{" "}
+              Are you sure you want to delete this {deleteTarget?.type || "document"}{" "}
               <strong>{deleteTarget?.invoiceNumber}</strong>? This action cannot
               be undone.
             </DialogDescription>

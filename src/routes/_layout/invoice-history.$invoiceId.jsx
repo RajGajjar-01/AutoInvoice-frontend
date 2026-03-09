@@ -18,6 +18,8 @@ import {
     Receipt,
     StickyNote,
     CreditCard,
+    ChevronDown,
+    Copy,
 } from "lucide-react"
 import {
     Dialog,
@@ -41,6 +43,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import useLocalStorage from "@/hooks/useLocalStorage"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useState } from "react"
@@ -132,6 +140,10 @@ function InvoiceDetailPage() {
 
     if (!invoice) return <NotFound />
 
+    const docType = invoice.type || "invoice"
+    const docTitle = docType === "quotation" ? "Quotation" : docType === "challan" ? "Delivery Challan" : docType === "proforma" ? "Proforma Invoice" : "Invoice"
+
+
     const cs = getCurrencySymbol(invoice.currency)
     const StatusIcon = statusIcon[invoice.status] ?? CircleDashed
     const validItems = (invoice.items || []).filter((it) => it.name)
@@ -151,12 +163,12 @@ function InvoiceDetailPage() {
 
     const handleDelete = () => {
         setInvoices((prev) => prev.filter((i) => i.id !== invoice.id))
-        showSuccessToast("Invoice deleted")
+        showSuccessToast(`${docTitle} deleted`)
         navigate({ to: "/invoice-history" })
     }
 
     const handleWhatsApp = () => {
-        const text = `Invoice ${invoice.invoiceNumber}\nAmount: ${cs}${Number(invoice.grandTotal).toFixed(2)}\nStatus: ${invoice.status}\nFrom: AutoInvoice`
+        const text = `${docTitle} ${invoice.invoiceNumber}\nAmount: ${cs}${Number(invoice.grandTotal).toFixed(2)}\nStatus: ${invoice.status}\nFrom: AutoInvoice`
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
     }
 
@@ -172,8 +184,8 @@ function InvoiceDetailPage() {
                         <h1 className="text-2xl font-bold tracking-tight font-mono">
                             {invoice.invoiceNumber}
                         </h1>
-                        <p className="text-muted-foreground text-sm mt-1">
-                            Invoice detail
+                        <p className="text-muted-foreground text-sm mt-1 capitalize">
+                            {docType} detail
                         </p>
                     </div>
                 </div>
@@ -192,6 +204,34 @@ function InvoiceDetailPage() {
                         <Send className="mr-2 h-4 w-4" />
                         WhatsApp
                     </Button>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <Copy className="mr-2 h-4 w-4" />
+                                Convert
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {docType !== "invoice" && (
+                                <DropdownMenuItem onClick={() => navigate({ to: "/create-invoice", search: { fromId: invoice.id, type: "invoice" } })}>
+                                    Convert to Invoice
+                                </DropdownMenuItem>
+                            )}
+                            {docType === "quotation" && (
+                                <DropdownMenuItem onClick={() => navigate({ to: "/create-invoice", search: { fromId: invoice.id, type: "proforma" } })}>
+                                    Convert to Proforma
+                                </DropdownMenuItem>
+                            )}
+                            {docType !== "challan" && (
+                                <DropdownMenuItem onClick={() => navigate({ to: "/create-invoice", search: { fromId: invoice.id, type: "challan" } })}>
+                                    Convert to Delivery Challan
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
                     <Button
                         variant="outline"
                         size="sm"
@@ -213,7 +253,7 @@ function InvoiceDetailPage() {
                         <CardHeader className="pb-4">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <CardTitle className="text-base">Invoice Details</CardTitle>
+                                    <CardTitle className="text-base">{docTitle} Details</CardTitle>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     Issued {invoice.invoiceDate || "—"}
@@ -222,14 +262,20 @@ function InvoiceDetailPage() {
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                             <div>
-                                <p className="text-xs text-muted-foreground mb-1">Invoice #</p>
+                                <p className="text-xs text-muted-foreground mb-1">{docType === "quotation" ? "Quotation" : "Invoice"} #</p>
                                 <p className="font-medium font-mono">{invoice.invoiceNumber}</p>
                             </div>
                             <div>
                                 <p className="text-xs text-muted-foreground mb-1">Date</p>
                                 <p className="font-medium">{invoice.invoiceDate || "—"}</p>
                             </div>
-                            {invoice.dueDate && (
+                            {invoice.validityDate && (
+                                <div>
+                                    <p className="text-xs text-muted-foreground mb-1">Validity Date</p>
+                                    <p className="font-medium text-orange-600">{invoice.validityDate}</p>
+                                </div>
+                            )}
+                            {invoice.dueDate && !invoice.validityDate && (
                                 <div>
                                     <p className="text-xs text-muted-foreground mb-1">Due Date</p>
                                     <p className="font-medium">{invoice.dueDate}</p>
@@ -243,6 +289,21 @@ function InvoiceDetailPage() {
                                 <div>
                                     <p className="text-xs text-muted-foreground mb-1">Customer GST</p>
                                     <p className="font-medium font-mono">{invoice.customer.gst}</p>
+                                </div>
+                            )}
+                            {invoice.sourceId && (
+                                <div className="col-span-2 sm:col-span-3 pt-2">
+                                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                                        <Copy className="h-3 w-3" /> Converted From
+                                    </p>
+                                    <Link
+                                        to="/invoice-history/$invoiceId"
+                                        params={{ invoiceId: invoice.sourceId }}
+                                        className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+                                    >
+                                        View Source Document
+                                        <ArrowLeft className="h-3 w-3 rotate-180" />
+                                    </Link>
                                 </div>
                             )}
                         </CardContent>
@@ -362,7 +423,9 @@ function InvoiceDetailPage() {
                     {/* Customer card */}
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-base">Bill To</CardTitle>
+                            <CardTitle className="text-base">
+                                {docType === "challan" ? "Recipient" : "Bill To"}
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="divide-y divide-border">
                             <InfoRow icon={User} label="Name" value={invoice.customer?.name} />
@@ -423,9 +486,9 @@ function InvoiceDetailPage() {
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
-                        <DialogTitle>Delete Invoice</DialogTitle>
+                        <DialogTitle>Delete {docTitle}</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete invoice{" "}
+                            Are you sure you want to delete {docType}{" "}
                             <strong>{invoice.invoiceNumber}</strong>? This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
