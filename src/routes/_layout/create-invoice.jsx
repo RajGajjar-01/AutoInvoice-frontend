@@ -125,6 +125,9 @@ function CreateInvoicePage() {
   const [showBankDetails, setShowBankDetails] = useState(false)
   const [bankDetails, setBankDetails] = useState({ bankName: "", accountName: "", accountNumber: "", ifsc: "", branch: "", upi: "" })
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [filteredCustomers, setFilteredCustomers] = useState([])
+  const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false)
+  const suggestionRef = useRef(null)
 
   // 1. Get title for current doc type
   const currentDocTitle = docType === "quotation" ? "Quotation" : docType === "challan" ? "Challan" : docType === "proforma" ? "Proforma" : "Invoice"
@@ -190,6 +193,7 @@ function CreateInvoicePage() {
 
   const handleCustomerSelect = (value) => {
     setSelectedCustomerId(value)
+    setShowCustomerSuggestions(false)
     if (value === "__new__") {
       setCustomerDetails({ name: "", address: "", gst: "", phone: "", email: "" })
       return
@@ -208,6 +212,31 @@ function CreateInvoicePage() {
       if (c.notes) setNotes(c.notes)
     }
   }
+
+  const handleNameChange = (name) => {
+    setCustomerDetails(p => ({ ...p, name }))
+    if (name.trim()) {
+      const filtered = customers.filter(c =>
+        c.name.toLowerCase().includes(name.toLowerCase()) ||
+        (c.phone && c.phone.includes(name))
+      )
+      setFilteredCustomers(filtered)
+      setShowCustomerSuggestions(filtered.length > 0)
+    } else {
+      setShowCustomerSuggestions(false)
+    }
+  }
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (suggestionRef.current && !suggestionRef.current.contains(event.target)) {
+        setShowCustomerSuggestions(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const handleTypeChange = (value) => {
     setDocType(value)
@@ -1360,13 +1389,33 @@ function CreateInvoicePage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Name</Label>
-                  <Input
-                    value={customerDetails.name}
-                    onChange={(e) =>
-                      setCustomerDetails((p) => ({ ...p, name: e.target.value }))
-                    }
-                    placeholder="Customer name"
-                  />
+                  <div className="relative" ref={suggestionRef}>
+                    <Input
+                      value={customerDetails.name}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                      onFocus={() => {
+                        if (customerDetails.name.trim() && filteredCustomers.length > 0) {
+                          setShowCustomerSuggestions(true)
+                        }
+                      }}
+                      placeholder="Customer name"
+                      autoComplete="off"
+                    />
+                    {showCustomerSuggestions && (
+                      <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border rounded-md shadow-lg max-h-60 overflow-auto">
+                        {filteredCustomers.map((c) => (
+                          <div
+                            key={c.id}
+                            className="px-4 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 flex flex-col border-b last:border-b-0"
+                            onClick={() => handleCustomerSelect(c.id)}
+                          >
+                            <span className="font-medium text-sm text-slate-900 dark:text-slate-100">{c.name}</span>
+                            {c.phone && <span className="text-xs text-slate-500 dark:text-slate-400">{c.phone}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label>Phone</Label>
