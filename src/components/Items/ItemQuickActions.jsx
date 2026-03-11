@@ -18,7 +18,7 @@ export function ItemQuickActions({ item, onDeleted }) {
                 <Link to="/create-invoice" search={{ itemId: item.id }}>
                     <Button className="w-full justify-start gap-2">
                         <FilePlus className="h-4 w-4" />
-                        Create Invoice
+                        Create Document
                     </Button>
                 </Link>
                 <AdjustStock item={item} variant="button" />

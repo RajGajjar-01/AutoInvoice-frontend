@@ -23,6 +23,7 @@ import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutInvoicesRouteImport } from './routes/_layout/invoices'
 import { Route as LayoutInvoiceTemplatesRouteImport } from './routes/_layout/invoice-templates'
 import { Route as LayoutInvoiceHistoryRouteImport } from './routes/_layout/invoice-history'
+import { Route as LayoutInsightsRouteImport } from './routes/_layout/insights'
 import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutCustomersRouteImport } from './routes/_layout/customers'
@@ -105,6 +106,11 @@ const LayoutInvoiceTemplatesRoute = LayoutInvoiceTemplatesRouteImport.update({
 const LayoutInvoiceHistoryRoute = LayoutInvoiceHistoryRouteImport.update({
   id: '/invoice-history',
   path: '/invoice-history',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutInsightsRoute = LayoutInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => LayoutRoute,
 })
 const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
@@ -222,6 +228,7 @@ const LayoutRouteChildren = {
   LayoutCustomersRoute: LayoutCustomersRouteWithChildren,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutDataTablesRoute: LayoutDataTablesRouteWithChildren,
+  LayoutInsightsRoute: LayoutInsightsRoute,
   LayoutInvoiceHistoryRoute: LayoutInvoiceHistoryRouteWithChildren,
   LayoutInvoiceTemplatesRoute: LayoutInvoiceTemplatesRoute,
   LayoutInvoicesRoute: LayoutInvoicesRoute,

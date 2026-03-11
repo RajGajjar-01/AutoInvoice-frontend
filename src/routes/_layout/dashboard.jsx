@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
-  IndianRupee,
   FileText,
   Users,
   Package,
@@ -17,12 +16,12 @@ import {
   AlertTriangle,
   ArrowUpRight,
   BarChart3,
+  LineChart,
 } from "lucide-react"
 import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import {
   Table,
   TableBody,
@@ -42,22 +41,6 @@ export const Route = createFileRoute("/_layout/dashboard")({
 })
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getCurrencySymbol(currency) {
-  if (currency === "INR") return "₹"
-  if (currency === "USD") return "$"
-  if (currency === "EUR") return "€"
-  if (currency === "GBP") return "£"
-  return currency || "₹"
-}
-
-function fmt(num, currency) {
-  const cs = getCurrencySymbol(currency)
-  return `${cs}${Number(num || 0).toLocaleString("en-IN", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })}`
-}
 
 function pct(a, b) {
   if (!b) return 0
@@ -132,16 +115,13 @@ function Dashboard() {
   const [customers] = useLocalStorage("customers", [])
   const [items] = useLocalStorage("items", [])
 
-  // ── Date helpers ────────────────────────────────────────────────────────
   const now = new Date()
   const thirtyDaysAgo = new Date(now)
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   const sixtyDaysAgo = new Date(now)
   sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
 
-  // ── Computed KPIs ───────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    // Revenue: this month vs prev month
     const thisMonthInv = invoices.filter((i) => {
       const d = new Date(i.createdAt || i.invoiceDate)
       return d >= thirtyDaysAgo
@@ -150,28 +130,16 @@ function Dashboard() {
       const d = new Date(i.createdAt || i.invoiceDate)
       return d >= sixtyDaysAgo && d < thirtyDaysAgo
     })
-    const thisRevenue = thisMonthInv.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-    const prevRevenue = prevMonthInv.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
 
-    // Total revenue (all time)
-    const totalRevenue = invoices.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-
-    // Invoice counts
     const totalInvoices = invoices.length
     const thisMonthCount = thisMonthInv.length
     const prevMonthCount = prevMonthInv.length
     const overdueCount = invoices.filter((i) => i.status === "overdue").length
-    const unpaidCount = invoices.filter((i) => i.status === "unpaid").length
 
-    // Outstanding amount
-    const outstanding = invoices
-      .filter((i) => i.status === "unpaid" || i.status === "overdue")
-      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
+    const totalCustomers = customers.filter(
+      (c) => c.partyType === "customer" || c.partyType === "both"
+    ).length
 
-    // Customers
-    const totalCustomers = customers.filter((c) => c.partyType === "customer" || c.partyType === "both").length
-
-    // Items
     const inStockItems = items.filter((it) => (it.stock ?? 0) > (it.lowStockThreshold ?? 5)).length
     const lowStockItems = items.filter((it) => {
       const s = it.stock ?? 0
@@ -180,23 +148,11 @@ function Dashboard() {
     const outItems = items.filter((it) => (it.stock ?? 0) === 0).length
 
     return {
-      totalRevenue,
-      thisRevenue,
-      prevRevenue,
-      totalInvoices,
-      thisMonthCount,
-      prevMonthCount,
-      outstanding,
-      overdueCount,
-      unpaidCount,
-      totalCustomers,
-      inStockItems,
-      lowStockItems,
-      outItems,
+      totalInvoices, thisMonthCount, prevMonthCount, overdueCount,
+      totalCustomers, inStockItems, lowStockItems, outItems,
     }
   }, [invoices, customers, items])
 
-  // ── Recent invoices (last 5) ────────────────────────────────────────────
   const recent = useMemo(
     () =>
       [...invoices]
@@ -205,16 +161,11 @@ function Dashboard() {
     [invoices],
   )
 
-  // ── Revenue trend ────────────────────────────────────────────────────────
-  const revTrend = pct(stats.thisRevenue, stats.prevRevenue)
   const countTrend = pct(stats.thisMonthCount, stats.prevMonthCount)
 
-  // ── Greeting ─────────────────────────────────────────────────────────────
   const hour = now.getHours()
-  const greeting =
-    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
   const firstName = currentUser?.full_name?.split(" ")[0] || currentUser?.email || "there"
-
   const hasData = invoices.length > 0 || customers.length > 0 || items.length > 0
 
   return (
@@ -231,26 +182,24 @@ function Dashboard() {
               : "Welcome to AutoInvoice. Load demo data from Settings → Demo Data to get started."}
           </p>
         </div>
-        <Link to="/create-invoice">
-          <Button>
-            <FilePlus className="mr-2 h-4 w-4" />
-            New Invoice
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/insights">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <LineChart className="h-3.5 w-3.5" />
+              Insights
+            </Button>
+          </Link>
+          <Link to="/create-invoice">
+            <Button>
+              <FilePlus className="mr-2 h-4 w-4" />
+              New Document
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          icon={IndianRupee}
-          title="Total Revenue"
-          value={fmt(stats.totalRevenue)}
-          sub={stats.prevRevenue > 0 ? "vs last 30 days" : "all time"}
-          trend={stats.prevRevenue > 0 ? revTrend : undefined}
-          trendUp={revTrend >= 0}
-          iconClass="bg-emerald-500/10 text-emerald-500"
-          valueClass="text-emerald-600 dark:text-emerald-400"
-        />
+      {/* ── KPI Cards – no money figures ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <KpiCard
           icon={FileText}
           title="Total Invoices"
@@ -286,7 +235,7 @@ function Dashboard() {
       {/* ── Body ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-        {/* Recent Invoices */}
+        {/* Recent Invoices – no Amount column */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
@@ -313,7 +262,7 @@ function Dashboard() {
                 <Link to="/create-invoice">
                   <Button size="sm">
                     <FilePlus className="mr-2 h-3.5 w-3.5" />
-                    Create Invoice
+                    Create Document
                   </Button>
                 </Link>
               </div>
@@ -323,7 +272,7 @@ function Dashboard() {
                   <TableRow className="hover:bg-transparent">
                     <TableHead>Invoice</TableHead>
                     <TableHead>Customer</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -342,9 +291,6 @@ function Dashboard() {
                             className="hover:text-primary transition-colors"
                           >
                             {inv.invoiceNumber}
-                            <p className="text-xs text-muted-foreground font-sans font-normal mt-0.5">
-                              {inv.invoiceDate || "—"}
-                            </p>
                           </Link>
                         </TableCell>
                         <TableCell className="text-sm">
@@ -356,14 +302,8 @@ function Dashboard() {
                             {inv.customer?.name || "—"}
                           </Link>
                         </TableCell>
-                        <TableCell className="text-right font-medium text-sm">
-                          <Link
-                            to="/invoice-history/$invoiceId"
-                            params={{ invoiceId: inv.id }}
-                            className="block hover:text-primary transition-colors"
-                          >
-                            {fmt(inv.grandTotal, inv.currency)}
-                          </Link>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {inv.invoiceDate || "—"}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -385,54 +325,23 @@ function Dashboard() {
 
         {/* Right sidebar */}
         <div className="flex flex-col gap-4">
-          {/* Outstanding + Overdue summary */}
-          {hasData && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Receivables</CardTitle>
-                <CardDescription className="text-xs">Pending amounts</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <CircleDashed className="h-3.5 w-3.5 text-amber-500" />
-                    <span className="text-muted-foreground">Unpaid</span>
-                    <Badge variant="secondary" className="text-xs">{stats.unpaidCount}</Badge>
-                  </div>
-                  <span className="font-medium">
-                    {fmt(invoices
-                      .filter((i) => i.status === "unpaid")
-                      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0))}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <CircleX className="h-3.5 w-3.5 text-destructive" />
-                    <span className="text-muted-foreground">Overdue</span>
-                    <Badge variant="destructive" className="text-xs">{stats.overdueCount}</Badge>
-                  </div>
-                  <span className="font-medium text-destructive">
-                    {fmt(invoices
-                      .filter((i) => i.status === "overdue")
-                      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0))}
-                  </span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between text-sm font-bold">
-                  <span>Total Outstanding</span>
-                  <span className="text-primary">{fmt(stats.outstanding)}</span>
-                </div>
 
-                {stats.overdueCount > 0 && (
-                  <div className="flex items-center gap-2 rounded-lg bg-destructive/5 border border-destructive/20 px-3 py-2 mt-1">
-                    <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                    <p className="text-xs text-destructive">
-                      {stats.overdueCount} invoice{stats.overdueCount !== 1 ? "s" : ""} past due — follow up required
-                    </p>
+          {/* Insights promo card */}
+          {hasData && (
+            <Link to="/insights">
+              <Card className="border-primary/20 bg-primary/5 hover:shadow-md transition-shadow cursor-pointer group">
+                <CardContent className="py-4 flex items-center gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
+                    <BarChart3 className="h-5 w-5" />
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold">Financial Insights</p>
+                    <p className="text-xs text-muted-foreground">Revenue, receivables & trends</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
+                </CardContent>
+              </Card>
+            </Link>
           )}
 
           {/* Quick Actions */}
@@ -444,8 +353,8 @@ function Dashboard() {
               <QuickActionRow
                 icon={FilePlus}
                 iconClass="bg-primary/10 text-primary"
-                title="Create Invoice"
-                description="Generate a new professional invoice"
+                title="Create Document"
+                description="Generate a new professional document"
                 to="/create-invoice"
               />
               <QuickActionRow

@@ -4,6 +4,7 @@ import {
   ContactRound,
   FileText,
   Home,
+  LineChart,
   PanelLeft,
   Table2,
   UserCircle,
@@ -25,6 +26,7 @@ import { User } from "./User"
 
 const baseItems = [
   { icon: Home, title: "Dashboard", path: "/dashboard" },
+  { icon: LineChart, title: "Insights", path: "/insights" },
   { icon: Briefcase, title: "Items", path: "/items" },
   { icon: Table2, title: "Data Tables", path: "/data-tables" },
   { icon: ContactRound, title: "Customers", path: "/customers" },
