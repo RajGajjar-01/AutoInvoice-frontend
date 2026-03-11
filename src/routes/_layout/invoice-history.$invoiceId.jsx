@@ -56,7 +56,7 @@ import { useState } from "react"
 export const Route = createFileRoute("/_layout/invoice-history/$invoiceId")({
     component: InvoiceDetailPage,
     head: () => ({
-        meta: [{ title: "Invoice Detail" }],
+        meta: [{ title: "Document Detail — UnifiedDesk" }],
     }),
 })
 
@@ -168,7 +168,7 @@ function InvoiceDetailPage() {
     }
 
     const handleWhatsApp = () => {
-        const text = `${docTitle} ${invoice.invoiceNumber}\nAmount: ${cs}${Number(invoice.grandTotal).toFixed(2)}\nStatus: ${invoice.status}\nFrom: AutoInvoice`
+        const text = `${docTitle} ${invoice.invoiceNumber}\nAmount: ${cs}${Number(invoice.grandTotal).toFixed(2)}\nStatus: ${invoice.status}\nFrom: UnifiedDesk`
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
     }
 

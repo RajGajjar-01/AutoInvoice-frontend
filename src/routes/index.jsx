@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       {
-        title: "AutoInvoice",
+        title: "UnifiedDesk",
       },
     ],
   }),
@@ -43,8 +43,8 @@ function LandingPage() {
               Invoicing made <span className="text-primary">effortless</span>
             </h1>
             <p className="text-lg text-muted-foreground">
-              Create, manage, and track your invoices in one place. Spend less
-              time on paperwork and more time growing your business.
+              UnifiedDesk — your all-in-one business workspace.
+              Create, manage, and track your documents in one place with ease.
             </p>
           </div>
 

@@ -13,6 +13,7 @@ import {
   Clock,
   AlertTriangle,
   Download,
+  RefreshCw,
 } from "lucide-react"
 import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
@@ -58,7 +59,7 @@ export const Route = createFileRoute("/_layout/invoice-history/")(
   {
     component: InvoiceHistoryPage,
     head: () => ({
-      meta: [{ title: "Invoice History" }],
+      meta: [{ title: "Document History — UnifiedDesk" }],
     }),
   },
 )
@@ -103,9 +104,12 @@ function EmptyState({ hasSearch }) {
           <Search className="h-6 w-6 text-muted-foreground" />
         </div>
         <h3 className="font-semibold mb-1">No results found</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground mb-4">
           Try adjusting your search or filter.
         </p>
+        <Button variant="outline" size="sm" onClick={() => (window.location.reload())}>
+          Clear all filters
+        </Button>
       </div>
     )
   }
@@ -153,15 +157,10 @@ function InvoiceHistoryPage() {
   const [invoices, setInvoices] = useLocalStorage("invoices", [])
   const { showSuccessToast } = useCustomToast()
 
-  // Staged filter states (what user sees in inputs)
+  // Filter states
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
-
-  // Applied filter states (what is used for calculation)
-  const [appliedSearch, setAppliedSearch] = useState("")
-  const [appliedStatus, setAppliedStatus] = useState("all")
-  const [appliedType, setAppliedType] = useState("all")
 
   const [sortOrder, setSortOrder] = useState("newest")
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -178,17 +177,17 @@ function InvoiceHistoryPage() {
     let list = [...invoices]
 
     // Status filter
-    if (appliedStatus !== "all") {
-      list = list.filter((i) => i.status === appliedStatus)
+    if (statusFilter !== "all") {
+      list = list.filter((i) => i.status === statusFilter)
     }
 
     // Type filter
-    if (appliedType !== "all") {
-      list = list.filter((i) => (i.type || "invoice") === appliedType)
+    if (typeFilter !== "all") {
+      list = list.filter((i) => (i.type || "invoice") === typeFilter)
     }
 
     // Search
-    const q = appliedSearch.trim().toLowerCase()
+    const q = search.trim().toLowerCase()
     if (q) {
       list = list.filter(
         (i) =>
@@ -210,7 +209,7 @@ function InvoiceHistoryPage() {
     })
 
     return list
-  }, [invoices, appliedSearch, appliedStatus, appliedType, sortOrder])
+  }, [invoices, search, statusFilter, typeFilter, sortOrder])
 
   // ── Actions ──────────────────────────────────────────────────────────────
   const handleToggleStatus = (inv) => {
@@ -235,7 +234,7 @@ function InvoiceHistoryPage() {
 
   const handleWhatsApp = (inv) => {
     const cs = getCurrencySymbol(inv.currency)
-    const text = `Invoice ${inv.invoiceNumber}\nAmount: ${cs}${Number(inv.grandTotal).toFixed(2)}\nStatus: ${inv.status}\nFrom: AutoInvoice`
+    const text = `Invoice ${inv.invoiceNumber}\nAmount: ${cs}${Number(inv.grandTotal).toFixed(2)}\nStatus: ${inv.status}\nFrom: UnifiedDesk`
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
   }
 
@@ -270,23 +269,14 @@ function InvoiceHistoryPage() {
     showSuccessToast("Exported successfully")
   }
 
-  const handleApplyFilters = () => {
-    setAppliedSearch(search)
-    setAppliedStatus(statusFilter)
-    setAppliedType(typeFilter)
-  }
-
   const handleClearFilters = () => {
     setSearch("")
     setStatusFilter("all")
     setTypeFilter("all")
-    setAppliedSearch("")
-    setAppliedStatus("all")
-    setAppliedType("all")
   }
 
-  const hasSearch = appliedSearch.trim() !== "" || appliedStatus !== "all" || appliedType !== "all"
-  const isDirty = search !== appliedSearch || statusFilter !== appliedStatus || typeFilter !== appliedType
+  const hasSearch = search.trim() !== "" || statusFilter !== "all" || typeFilter !== "all"
+  const isDirty = false // No longer needed for real-time
 
   return (
     <div className="flex flex-col gap-6">
@@ -392,12 +382,9 @@ function InvoiceHistoryPage() {
               <SelectItem value="oldest">Oldest First</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={handleApplyFilters} className="ml-auto">
-            Apply Filter
-          </Button>
-          {isDirty && (
+          {hasSearch && (
             <Button variant="ghost" onClick={handleClearFilters} className="text-muted-foreground">
-              Reset
+              Clear Filters
             </Button>
           )}
         </div>
@@ -523,6 +510,19 @@ function InvoiceHistoryPage() {
                               <Send className="mr-2 h-4 w-4" />
                               Send via WhatsApp
                             </DropdownMenuItem>
+                            <Separator className="my-1" />
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                              Convert To
+                            </div>
+                            {["invoice", "quotation", "challan", "proforma"].filter(t => (inv.type || "invoice") !== t).map(type => (
+                              <DropdownMenuItem key={type} asChild>
+                                <Link to="/create-invoice" search={{ fromId: inv.id, type: type }}>
+                                  <RefreshCw className="mr-2 h-4 w-4" />
+                                  <span className="capitalize">{type}</span>
+                                </Link>
+                              </DropdownMenuItem>
+                            ))}
+                            <Separator className="my-1" />
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
                               onClick={() => setDeleteTarget(inv)}

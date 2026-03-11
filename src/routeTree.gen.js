@@ -13,6 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutTemplateBuilderRouteImport } from './routes/_layout/template-builder'
@@ -27,7 +28,10 @@ import { Route as LayoutInsightsRouteImport } from './routes/_layout/insights'
 import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutCustomersRouteImport } from './routes/_layout/customers'
+import { Route as LayoutCreateQuotationRouteImport } from './routes/_layout/create-quotation'
+import { Route as LayoutCreateProformaRouteImport } from './routes/_layout/create-proforma'
 import { Route as LayoutCreateInvoiceRouteImport } from './routes/_layout/create-invoice'
+import { Route as LayoutCreateChallanRouteImport } from './routes/_layout/create-challan'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutItemsIndexRouteImport } from './routes/_layout/items/index'
 import { Route as LayoutInvoiceHistoryIndexRouteImport } from './routes/_layout/invoice-history/index'
@@ -57,6 +61,11 @@ const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+})
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 })
 const LayoutRoute = LayoutRouteImport.update({
@@ -128,9 +137,24 @@ const LayoutCustomersRoute = LayoutCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => LayoutRoute,
 })
+const LayoutCreateQuotationRoute = LayoutCreateQuotationRouteImport.update({
+  id: '/create-quotation',
+  path: '/create-quotation',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutCreateProformaRoute = LayoutCreateProformaRouteImport.update({
+  id: '/create-proforma',
+  path: '/create-proforma',
+  getParentRoute: () => LayoutRoute,
+})
 const LayoutCreateInvoiceRoute = LayoutCreateInvoiceRouteImport.update({
   id: '/create-invoice',
   path: '/create-invoice',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutCreateChallanRoute = LayoutCreateChallanRouteImport.update({
+  id: '/create-challan',
+  path: '/create-challan',
   getParentRoute: () => LayoutRoute,
 })
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
@@ -224,7 +248,10 @@ const LayoutItemsRouteWithChildren = LayoutItemsRoute._addFileChildren(
 
 const LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutCreateChallanRoute: LayoutCreateChallanRoute,
   LayoutCreateInvoiceRoute: LayoutCreateInvoiceRoute,
+  LayoutCreateProformaRoute: LayoutCreateProformaRoute,
+  LayoutCreateQuotationRoute: LayoutCreateQuotationRoute,
   LayoutCustomersRoute: LayoutCustomersRouteWithChildren,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutDataTablesRoute: LayoutDataTablesRouteWithChildren,
@@ -245,6 +272,7 @@ const LayoutRouteWithChildren =
 const rootRouteChildren = {
   IndexRoute: IndexRoute,
   LayoutRoute: LayoutRouteWithChildren,
+  HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,

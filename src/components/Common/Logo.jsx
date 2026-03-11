@@ -1,42 +1,57 @@
 import { Link } from "@tanstack/react-router"
-import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import icon from "/assets/images/app-icon.svg"
-import iconLight from "/assets/images/app-icon-light.svg"
-import logo from "/assets/images/app-logo.svg"
-import logoLight from "/assets/images/app-logo-light.svg"
-export function Logo({ variant = "full", className, asLink = true }) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
-  const fullLogo = isDark ? logoLight : logo
-  const iconLogo = isDark ? iconLight : icon
-  const content =
-    variant === "responsive" ? (
-      <>
-        <img
-          src={fullLogo}
-          alt="App Logo"
+
+export function LogoIcon({ className, color = "default" }) {
+  const isWhite = color === "white"
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn(isWhite ? "text-white" : "text-[#10b981]", className)}
+    >
+      {/* Top Bar - Aligned Right */}
+      <rect x="7.5" y="4" width="13.5" height="4.2" rx="0.8" fill="currentColor" />
+      {/* Middle Bar - Shifted Left */}
+      <rect x="3" y="10" width="13.5" height="4.2" rx="0.8" fill="currentColor" />
+      {/* Bottom Bar - Aligned Right */}
+      <rect x="7.5" y="16" width="13.5" height="4.2" rx="0.8" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function Logo({ variant = "full", className, asLink = true, color = "default", showTagline = true }) {
+  const isWhite = color === "white"
+  
+  const content = (
+    <div className={cn("flex items-center gap-2", className)}>
+      <LogoIcon className="h-6 w-6 shrink-0" color={color} />
+      {(variant === "full" || variant === "responsive") && (
+        <div
           className={cn(
-            "h-6 w-auto group-data-[collapsible=icon]:hidden",
-            className,
+            "flex flex-col items-start transition-all duration-300 ease-in-out",
+            variant === "responsive" && "group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden",
           )}
-        />
-        <img
-          src={iconLogo}
-          alt="App Logo"
-          className={cn(
-            "size-5 hidden group-data-[collapsible=icon]:block",
-            className,
+        >
+          <span className={cn(
+            "text-[15px] font-bold tracking-tight leading-none",
+            isWhite ? "text-white" : "text-slate-800 dark:text-slate-100"
+          )}>
+            UnifiedDesk
+          </span>
+          {showTagline && (
+            <span className={cn(
+              "text-[9px] leading-none mt-1 font-medium whitespace-nowrap opacity-80",
+              isWhite ? "text-white/80" : "text-muted-foreground"
+            )}>
+              your all-in-one business workspace
+            </span>
           )}
-        />
-      </>
-    ) : (
-      <img
-        src={variant === "full" ? fullLogo : iconLogo}
-        alt="App Logo"
-        className={cn(variant === "full" ? "h-6 w-auto" : "size-5", className)}
-      />
-    )
+        </div>
+      )}
+    </div>
+  )
+
   if (!asLink) {
     return content
   }

@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { SidebarAppearance } from "@/components/Common/Appearance"
+import { Logo } from "@/components/Common/Logo"
 import { Button } from "@/components/ui/button"
 import {
   Sidebar,
@@ -25,7 +26,7 @@ import { Main } from "./Main"
 import { User } from "./User"
 
 const baseItems = [
-  { icon: Home, title: "Dashboard", path: "/dashboard" },
+  { icon: Home, title: "Home", path: "/home" },
   { icon: LineChart, title: "Insights", path: "/insights" },
   { icon: Briefcase, title: "Items", path: "/items" },
   { icon: Table2, title: "Data Tables", path: "/data-tables" },
@@ -58,18 +59,21 @@ export function AppSidebar() {
       onClick={handleSidebarClick}
     >
       <SidebarHeader
-        className="relative flex h-16 shrink-0 flex-row items-center px-4 group-data-[collapsible=icon]:px-0"
+        className="relative flex h-14 shrink-0 flex-row items-center px-4 group-data-[collapsible=icon]:px-0"
         onMouseEnter={() => setIsHeaderHovered(true)}
         onMouseLeave={() => setIsHeaderHovered(false)}
       >
-        <span className="text-lg tracking-tight transition-opacity group-data-[collapsible=icon]:hidden">
-          AutoInvoice
-        </span>
-        <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+        <div className="flex flex-1 items-center overflow-hidden transition-all group-data-[collapsible=icon]:hidden">
+          <span className="text-[17px] font-bold tracking-tight text-white/95">
+            UnifiedDesk
+          </span>
+        </div>
+        
+        <div className="flex items-center group-data-[collapsible=icon]:mx-auto">
           <Button
             variant="ghost"
             size="icon"
-            className="size-7"
+            className="size-8 text-white/70 hover:text-white hover:bg-white/10"
             onClick={toggleSidebar}
           >
             <PanelLeft

@@ -1,3 +1,4 @@
+import React from "react"
 import { Monitor, Moon, Sun } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
@@ -11,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
+  SidebarContext,
 } from "@/components/ui/sidebar"
 
 const ICON_MAP = {
@@ -19,7 +21,10 @@ const ICON_MAP = {
   dark: Moon,
 }
 export const SidebarAppearance = () => {
-  const { isMobile } = useSidebar()
+  const context = React.useContext(SidebarContext)
+  if (!context) return null
+
+  const { isMobile } = context
   const { setTheme, theme } = useTheme()
   const Icon = ICON_MAP[theme]
   return (

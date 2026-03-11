@@ -15,6 +15,7 @@ import {
     Trash2,
     Send,
     ArrowUpRight,
+    RefreshCw,
 } from "lucide-react"
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -51,7 +52,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 export const Route = createFileRoute("/_layout/invoices")({
     component: InvoicesPage,
     head: () => ({
-        meta: [{ title: "Invoices" }],
+        meta: [{ title: "Documents — UnifiedDesk" }],
     }),
 })
 
@@ -188,7 +189,7 @@ function InvoicesPage() {
 
     const handleWhatsApp = (inv) => {
         const cs = getCurrencySymbol(inv.currency)
-        const text = `Invoice ${inv.invoiceNumber}\nAmount: ${cs}${Number(inv.grandTotal).toFixed(2)}\nStatus: ${inv.status}\nFrom: AutoInvoice`
+        const text = `Invoice ${inv.invoiceNumber}\nAmount: ${cs}${Number(inv.grandTotal).toFixed(2)}\nStatus: ${inv.status}\nFrom: UnifiedDesk`
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
     }
 
@@ -365,6 +366,19 @@ function InvoicesPage() {
                                                                 <Send className="mr-2 h-4 w-4" />
                                                                 Send via WhatsApp
                                                             </DropdownMenuItem>
+                                                            <Separator className="my-1" />
+                                                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                                                Convert To
+                                                            </div>
+                                                            {["invoice", "quotation", "challan", "proforma"].filter(t => (inv.type || "invoice") !== t).map(type => (
+                                                                <DropdownMenuItem key={type} asChild>
+                                                                    <Link to="/create-invoice" search={{ fromId: inv.id, type: type }}>
+                                                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                                                        <span className="capitalize">{type}</span>
+                                                                    </Link>
+                                                                </DropdownMenuItem>
+                                                            ))}
+                                                            <Separator className="my-1" />
                                                             <DropdownMenuItem
                                                                 className="text-destructive focus:text-destructive"
                                                                 onClick={() => setDeleteTarget(inv)}
@@ -388,29 +402,29 @@ function InvoicesPage() {
                 <div className="flex flex-col gap-4">
                     {/* Quick Actions */}
                     <Card>
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-1">
                             <CardTitle className="text-base">Quick Actions</CardTitle>
                         </CardHeader>
-                        <CardContent className="px-3 pb-3 space-y-1">
+                        <CardContent className="px-3 pb-1.5 space-y-0.5">
                             <QuickActionRow
                                 icon={FilePlus}
                                 iconClass="bg-primary/10 text-primary"
-                                title="Create Invoice"
-                                description="Build a new professional invoice"
+                                title="Create Document"
+                                description="Build a new professional document"
                                 to="/create-invoice"
                             />
                             <QuickActionRow
                                 icon={LayoutTemplate}
                                 iconClass="bg-blue-500/10 text-blue-500"
-                                title="Invoice Templates"
+                                title="Document Templates"
                                 description="Browse or build custom templates"
                                 to="/invoice-templates"
                             />
                             <QuickActionRow
                                 icon={History}
                                 iconClass="bg-emerald-500/10 text-emerald-500"
-                                title="Invoice History"
-                                description="Search, filter and manage invoices"
+                                title="Document History"
+                                description="Search, filter and manage documents"
                                 to="/invoice-history"
                             />
                         </CardContent>

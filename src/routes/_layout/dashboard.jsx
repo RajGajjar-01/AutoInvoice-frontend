@@ -179,7 +179,7 @@ function Dashboard() {
           <p className="text-muted-foreground text-sm mt-1">
             {hasData
               ? "Here's what's happening with your business today."
-              : "Welcome to AutoInvoice. Load demo data from Settings → Demo Data to get started."}
+              : "Welcome to UnifiedDesk. Load demo data from Settings → Demo Data to get started."}
           </p>
         </div>
         <div className="flex items-center gap-2">
