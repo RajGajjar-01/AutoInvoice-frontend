@@ -1,6 +1,6 @@
 [build]
 builder = "dockerfile"
-buildArgs = ["VITE_API_URL=https://backend-production-7571.up.railway.app"]
+buildArgs = ["VITE_API_URL=/"]
 
 [deploy]
 healthcheckPath = "/health"
