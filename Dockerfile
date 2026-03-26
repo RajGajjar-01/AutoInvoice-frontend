@@ -11,8 +11,8 @@ RUN npm ci --prefer-offline
 # Copy source code
 COPY . .
 
-# Build argument for API URL with default
-ARG VITE_API_URL=https://backend-production-7571.up.railway.app
+# Build argument for API URL - use / for relative path (nginx proxy)
+ARG VITE_API_URL=/
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build the app
