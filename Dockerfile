@@ -30,7 +30,4 @@ COPY ./nginx.conf /etc/nginx/templates/default.conf.template
 # Expose port (Railway sets PORT env var dynamically)
 EXPOSE 80
 
-# Nginx image automatically:
-# 1. Runs envsubst on files in /etc/nginx/templates/
-# 2. Outputs to /etc/nginx/conf.d/
-# 3. Starts nginx
+CMD ["nginx", "-g", "daemon off;"]
