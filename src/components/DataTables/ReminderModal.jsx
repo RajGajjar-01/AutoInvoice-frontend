@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
 import { Bell, MessageSquare, Phone } from "lucide-react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { z } from "zod"
+import { TablesService } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,9 +27,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TablesService } from "@/client"
-import { queryClient } from "@/queryClient"
 import { tablesQueryKeys } from "@/features/data-tables/queries"
+import { queryClient } from "@/queryClient"
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 const reminderSchema = z.object({
@@ -87,7 +87,9 @@ export function ReminderModal({
       })
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(tableId) })
+      await queryClient.invalidateQueries({
+        queryKey: tablesQueryKeys.detail(tableId),
+      })
       toast.success("Reminder set successfully")
       onOpenChange(false)
     },

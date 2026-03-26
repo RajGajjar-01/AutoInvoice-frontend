@@ -41,11 +41,19 @@ const parseFlexibleDate = (input) => {
 
     // Prefer DD/MM/YYYY; if that looks invalid, fallback to MM/DD/YYYY.
     const asDmy = new Date(y, b - 1, a)
-    if (asDmy.getFullYear() === y && asDmy.getMonth() === b - 1 && asDmy.getDate() === a) {
+    if (
+      asDmy.getFullYear() === y &&
+      asDmy.getMonth() === b - 1 &&
+      asDmy.getDate() === a
+    ) {
       return asDmy
     }
     const asMdy = new Date(y, a - 1, b)
-    if (asMdy.getFullYear() === y && asMdy.getMonth() === a - 1 && asMdy.getDate() === b) {
+    if (
+      asMdy.getFullYear() === y &&
+      asMdy.getMonth() === a - 1 &&
+      asMdy.getDate() === b
+    ) {
       return asMdy
     }
   }

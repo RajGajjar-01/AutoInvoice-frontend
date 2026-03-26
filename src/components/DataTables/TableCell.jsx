@@ -1,7 +1,5 @@
-import { CalendarDays, Check, X } from "lucide-react"
-import { useEffect, useId, useRef, useState, useMemo } from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { CalendarDays } from "lucide-react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
@@ -12,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { evaluateFormula } from "@/lib/formula-engine"
+import { cn } from "@/lib/utils"
 
 // ─── Status ───────────────────────────────────────────────────────────────────
 const STATUS_OPTIONS = ["Todo", "In Progress", "Done", "Blocked"]
@@ -73,7 +72,7 @@ export function TableCell({
   suggestions = [],
   dropdownOptions = [],
   allRows = [], // For formula evaluation
-  cols = [],    // For formula evaluation
+  cols = [], // For formula evaluation
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value ?? "")
@@ -84,8 +83,8 @@ export function TableCell({
     setDraft(value ?? "")
   }, [value])
 
-  const isFormula = typeof value === 'string' && value.startsWith('=')
-  
+  const isFormula = typeof value === "string" && value.startsWith("=")
+
   const computedValue = useMemo(() => {
     if (isFormula) {
       return evaluateFormula(value, allRows, cols)
@@ -95,8 +94,8 @@ export function TableCell({
 
   useEffect(() => {
     if (editing && inputRef.current) {
-        inputRef.current.focus()
-        if (inputRef.current.select) inputRef.current.select()
+      inputRef.current.focus()
+      if (inputRef.current.select) inputRef.current.select()
     }
   }, [editing])
 
@@ -117,12 +116,18 @@ export function TableCell({
     if (e.key === "Escape") {
       cancel()
     }
-    if (onNavigate && (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown")) {
+    if (
+      onNavigate &&
+      (e.key === "ArrowLeft" ||
+        e.key === "ArrowRight" ||
+        e.key === "ArrowUp" ||
+        e.key === "ArrowDown")
+    ) {
       const dir = e.key.replace("Arrow", "").toLowerCase()
-      
+
       // If navigating while editing, commit first
       if (editing) commit()
-      
+
       onNavigate(dir)
       e.preventDefault()
       e.stopPropagation()
@@ -146,7 +151,13 @@ export function TableCell({
   }
 
   const handleSelectKeyDown = (e) => {
-    if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigate) {
+    if (
+      (e.key === "ArrowLeft" ||
+        e.key === "ArrowRight" ||
+        e.key === "ArrowUp" ||
+        e.key === "ArrowDown") &&
+      onNavigate
+    ) {
       onNavigate(e.key.replace("Arrow", "").toLowerCase())
       e.preventDefault()
       e.stopPropagation()
@@ -170,14 +181,22 @@ export function TableCell({
             : dropdownOptions
     const colors =
       type === "Status"
-        ? STATUS_OPTIONS.reduce((acc, opt) => ({ ...acc, [opt]: STATUS_COLORS[opt] }), {})
+        ? STATUS_OPTIONS.reduce(
+            (acc, opt) => ({ ...acc, [opt]: STATUS_COLORS[opt] }),
+            {},
+          )
         : type === "Tag"
-          ? TAG_OPTIONS.reduce((acc, opt) => ({ ...acc, [opt]: TAG_COLORS[opt] }), {})
-          : PAYMENT_STATUS_OPTIONS.reduce((acc, opt) => ({ ...acc, [opt]: PAYMENT_STATUS_COLORS[opt] }), {})
+          ? TAG_OPTIONS.reduce(
+              (acc, opt) => ({ ...acc, [opt]: TAG_COLORS[opt] }),
+              {},
+            )
+          : PAYMENT_STATUS_OPTIONS.reduce(
+              (acc, opt) => ({ ...acc, [opt]: PAYMENT_STATUS_COLORS[opt] }),
+              {},
+            )
 
-    const cellBg = (type !== "Dropdown" && value && colors?.[value])
-      ? colors[value]
-      : ""
+    const cellBg =
+      type !== "Dropdown" && value && colors?.[value] ? colors[value] : ""
 
     return (
       <div
@@ -230,7 +249,6 @@ export function TableCell({
     }
     return (
       <div
-        tabIndex={0}
         className="px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded flex items-center gap-1.5 outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
         onClick={() => {
           setDraft(value ?? "")
@@ -281,7 +299,6 @@ export function TableCell({
     }
     return (
       <div
-        tabIndex={0}
         className="px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
         onClick={() => {
           setDraft(value ?? "")
@@ -317,7 +334,7 @@ export function TableCell({
           : "text"
 
     return (
-      <div 
+      <div
         className="flex items-center px-1 py-1 w-full bg-white shadow-sm ring-1 ring-primary rounded z-10 relative"
         onFocus={onFocus}
       >
@@ -334,11 +351,11 @@ export function TableCell({
               placeholder=""
             />
             {type === "Text" && (
-                <datalist id={`dl-${datalistId}`}>
+              <datalist id={`dl-${datalistId}`}>
                 {suggestions.map((s) => (
-                    <option key={s} value={s} />
+                  <option key={s} value={s} />
                 ))}
-                </datalist>
+              </datalist>
             )}
           </div>
         ) : (
@@ -357,13 +374,12 @@ export function TableCell({
   }
 
   const displayValue =
-    type === "Amount (₹)" && computedValue && !isNaN(computedValue)
+    type === "Amount (₹)" && computedValue && !Number.isNaN(computedValue)
       ? `₹${Number(computedValue).toLocaleString("en-IN")}`
       : computedValue || ""
 
   return (
     <div
-      tabIndex={0}
       className={cn(
         "px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30 relative flex items-center",
         isFormula && "bg-primary/5",
@@ -371,14 +387,14 @@ export function TableCell({
       onClick={() => {
         setDraft(value ?? "")
         setEditing(true)
-        onFocus && onFocus()
+        onFocus?.()
       }}
       onFocus={onFocus}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           setDraft(value ?? "")
           setEditing(true)
-          onFocus && onFocus()
+          onFocus?.()
           e.preventDefault()
         }
         handleKeyDown(e)
@@ -388,13 +404,14 @@ export function TableCell({
         <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-primary/50 opacity-50" />
       )}
       {displayValue ? (
-        <span className={cn(isFormula && "font-mono text-primary")}>{displayValue}</span>
+        <span className={cn(isFormula && "font-mono text-primary")}>
+          {displayValue}
+        </span>
       ) : (
         <span className="text-muted-foreground/40 select-none">—</span>
       )}
     </div>
   )
 }
-
 
 export default TableCell

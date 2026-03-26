@@ -5,11 +5,11 @@ import { createFileRoute, Outlet } from "@tanstack/react-router"
 // The actual list-page content lives in data-tables/index.jsx.
 
 export const Route = createFileRoute("/_layout/data-tables")({
-    component: DataTablesLayout,
+  component: DataTablesLayout,
 })
 
 function DataTablesLayout() {
-    return <Outlet />
+  return <Outlet />
 }
 
 export default DataTablesLayout

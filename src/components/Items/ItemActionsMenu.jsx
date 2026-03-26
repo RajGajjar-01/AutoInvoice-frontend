@@ -1,5 +1,5 @@
-import { MoreHorizontal, Eye, SlidersHorizontal, Pencil, Trash2 } from "lucide-react"
 import { Link } from "@tanstack/react-router"
+import { Eye, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -8,9 +8,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import EditItem from "./EditItem"
-import DeleteItem from "./DeleteItem"
 import AdjustStock from "./AdjustStock"
+import DeleteItem from "./DeleteItem"
+import EditItem from "./EditItem"
 
 export function ItemActionsMenu({ item }) {
   return (
@@ -23,14 +23,18 @@ export function ItemActionsMenu({ item }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem asChild>
-          <Link to="/items/$itemId" params={{ itemId: item.id }} className="flex items-center">
+          <Link
+            to="/items/$itemId"
+            params={{ itemId: item.id }}
+            className="flex items-center"
+          >
             <Eye className="mr-2 h-4 w-4" />
             View Details
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <AdjustStock item={item} variant="dropdown" />
-        <EditItem item={item} onSuccess={() => { }} variant="dropdown" />
+        <EditItem item={item} onSuccess={() => {}} variant="dropdown" />
         <DropdownMenuSeparator />
         <DeleteItem item={item} variant="dropdown" />
       </DropdownMenuContent>

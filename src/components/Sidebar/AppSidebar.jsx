@@ -1,9 +1,11 @@
 import {
   ArrowRightToLine,
+  Bell,
   Briefcase,
   ContactRound,
   FileText,
   Home,
+  LineChart,
   PanelLeft,
   Table2,
   UserCircle,
@@ -29,6 +31,8 @@ const baseItems = [
   { icon: Table2, title: "Data Tables", path: "/data-tables" },
   { icon: ContactRound, title: "Customers", path: "/customers" },
   { icon: FileText, title: "Invoices", path: "/invoices" },
+  { icon: LineChart, title: "Insights", path: "/insights" },
+  { icon: Bell, title: "Notifications", path: "/notifications" },
   { icon: UserCircle, title: "Account", path: "/profile" },
 ]
 

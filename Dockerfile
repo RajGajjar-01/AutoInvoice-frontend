@@ -1,23 +1,36 @@
-# Stage 0, "build-stage", based on Node.js, to build and compile the frontend
+# Stage 0: Build the frontend
 FROM node:20-alpine AS build-stage
 
 WORKDIR /app
 
-COPY package.json package-lock.json /app/
+# Copy package files first for better caching
+COPY package.json package-lock.json ./
 
-RUN npm install
+RUN npm ci --prefer-offline
 
-COPY . /app
+# Copy source code
+COPY . .
 
+# Build argument for API URL
 ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 
+# Build the app
 RUN npm run build
 
+# Stage 1: Serve with Nginx
+FROM nginx:1-alpine
 
-# Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
-FROM nginx:1
-
+# Copy built files
 COPY --from=build-stage /app/dist/ /usr/share/nginx/html
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
+# Copy nginx config as a template (nginx image handles envsubst)
+COPY ./nginx.conf /etc/nginx/templates/default.conf.template
+
+# Expose port (Railway sets PORT env var dynamically)
+EXPOSE 80
+
+# Nginx image automatically:
+# 1. Runs envsubst on files in /etc/nginx/templates/
+# 2. Outputs to /etc/nginx/conf.d/
+# 3. Starts nginx

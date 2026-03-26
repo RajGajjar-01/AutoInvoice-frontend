@@ -1,27 +1,34 @@
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
-  IndianRupee,
-  FileText,
-  Users,
-  Package,
-  FilePlus,
-  UserPlus,
-  PackagePlus,
-  History,
-  ChevronRight,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  CircleDashed,
-  CircleX,
   AlertTriangle,
   ArrowUpRight,
   BarChart3,
+  CheckCircle2,
+  ChevronRight,
+  CircleDashed,
+  CircleX,
+  FilePlus,
+  FileText,
+  History,
+  IndianRupee,
+  Package,
+  PackagePlus,
+  TrendingDown,
+  TrendingUp,
+  UserPlus,
+  Users,
 } from "lucide-react"
 import { useMemo } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import {
   Table,
@@ -31,11 +38,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import useLocalStorage from "@/hooks/useLocalStorage"
-import useAuth from "@/hooks/useAuth"
-import { useQuery } from "@tanstack/react-query"
-import { invoicesListQueryOptions, invoicesStatsQueryOptions } from "@/features/invoices/queries"
 import { customersListQueryOptions } from "@/features/customers/queries"
+import {
+  invoicesListQueryOptions,
+  invoicesStatsQueryOptions,
+} from "@/features/invoices/queries"
+import useAuth from "@/hooks/useAuth"
+import useLocalStorage from "@/hooks/useLocalStorage"
 
 export const Route = createFileRoute("/_layout/dashboard")({
   component: Dashboard,
@@ -62,7 +71,7 @@ function fmt(num, currency) {
   })}`
 }
 
-function pct(a, b) {
+function _pct(a, b) {
   if (!b) return 0
   return Math.round(((a - b) / b) * 100)
 }
@@ -80,11 +89,22 @@ const statusIcon = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function KpiCard({ icon: Icon, title, value, sub, trend, trendUp, iconClass, valueClass }) {
+function KpiCard({
+  icon: Icon,
+  title,
+  value,
+  sub,
+  trend,
+  trendUp,
+  iconClass,
+  valueClass,
+}) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
         <div className={`rounded-lg p-2 ${iconClass}`}>
           <Icon className="h-4 w-4" />
         </div>
@@ -97,9 +117,11 @@ function KpiCard({ icon: Icon, title, value, sub, trend, trendUp, iconClass, val
               variant={trendUp ? "default" : "destructive"}
               className="text-xs font-medium gap-0.5 px-1.5"
             >
-              {trendUp
-                ? <TrendingUp className="h-2.5 w-2.5" />
-                : <TrendingDown className="h-2.5 w-2.5" />}
+              {trendUp ? (
+                <TrendingUp className="h-2.5 w-2.5" />
+              ) : (
+                <TrendingDown className="h-2.5 w-2.5" />
+              )}
               {Math.abs(trend)}%
             </Badge>
           )}
@@ -119,7 +141,9 @@ function QuickActionRow({ icon: Icon, iconClass, title, description, to }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">{title}</p>
-          <p className="text-xs text-muted-foreground truncate">{description}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {description}
+          </p>
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
       </div>
@@ -151,7 +175,9 @@ function Dashboard() {
     const overdueCount = invoices.filter((i) => i.status === "overdue").length
     const unpaidCount = invoices.filter((i) => i.status === "unpaid").length
 
-    const inStockItems = items.filter((it) => (it.stock ?? 0) > (it.lowStockThreshold ?? 5)).length
+    const inStockItems = items.filter(
+      (it) => (it.stock ?? 0) > (it.lowStockThreshold ?? 5),
+    ).length
     const lowStockItems = items.filter((it) => {
       const s = it.stock ?? 0
       return s > 0 && s <= (it.lowStockThreshold ?? 5)
@@ -191,9 +217,13 @@ function Dashboard() {
   const hour = now.getHours()
   const greeting =
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
-  const firstName = currentUser?.full_name?.split(" ")[0] || currentUser?.email || "there"
+  const firstName =
+    currentUser?.full_name?.split(" ")[0] || currentUser?.email || "there"
 
-  const hasData = invoices.length > 0 || Number(statsRes?.total_customers ?? 0) > 0 || items.length > 0
+  const hasData =
+    invoices.length > 0 ||
+    Number(statsRes?.total_customers ?? 0) > 0 ||
+    items.length > 0
 
   return (
     <div className="flex flex-col gap-6">
@@ -263,16 +293,21 @@ function Dashboard() {
 
       {/* ── Body ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-
         {/* Recent Invoices */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-base">Recent Invoices</CardTitle>
-              <CardDescription className="text-xs">Your last 5 invoices</CardDescription>
+              <CardDescription className="text-xs">
+                Your last 5 invoices
+              </CardDescription>
             </div>
             <Link to="/invoices">
-              <Button variant="ghost" size="sm" className="text-primary gap-1 text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary gap-1 text-xs"
+              >
                 View All
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </Button>
@@ -368,31 +403,41 @@ function Dashboard() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Receivables</CardTitle>
-                <CardDescription className="text-xs">Pending amounts</CardDescription>
+                <CardDescription className="text-xs">
+                  Pending amounts
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <CircleDashed className="h-3.5 w-3.5 text-amber-500" />
                     <span className="text-muted-foreground">Unpaid</span>
-                    <Badge variant="secondary" className="text-xs">{stats.unpaidCount}</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {stats.unpaidCount}
+                    </Badge>
                   </div>
                   <span className="font-medium">
-                    {fmt(invoices
-                      .filter((i) => i.status === "unpaid")
-                      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0))}
+                    {fmt(
+                      invoices
+                        .filter((i) => i.status === "unpaid")
+                        .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
+                    )}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <CircleX className="h-3.5 w-3.5 text-destructive" />
                     <span className="text-muted-foreground">Overdue</span>
-                    <Badge variant="destructive" className="text-xs">{stats.overdueCount}</Badge>
+                    <Badge variant="destructive" className="text-xs">
+                      {stats.overdueCount}
+                    </Badge>
                   </div>
                   <span className="font-medium text-destructive">
-                    {fmt(invoices
-                      .filter((i) => i.status === "overdue")
-                      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0))}
+                    {fmt(
+                      invoices
+                        .filter((i) => i.status === "overdue")
+                        .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
+                    )}
                   </span>
                 </div>
                 <Separator />
@@ -405,7 +450,9 @@ function Dashboard() {
                   <div className="flex items-center gap-2 rounded-lg bg-destructive/5 border border-destructive/20 px-3 py-2 mt-1">
                     <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
                     <p className="text-xs text-destructive">
-                      {stats.overdueCount} invoice{stats.overdueCount !== 1 ? "s" : ""} past due — follow up required
+                      {stats.overdueCount} invoice
+                      {stats.overdueCount !== 1 ? "s" : ""} past due — follow up
+                      required
                     </p>
                   </div>
                 )}
@@ -465,13 +512,18 @@ function Dashboard() {
                 {stats.outItems > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Out of stock</span>
-                    <Badge variant="destructive" className="text-xs">{stats.outItems} items</Badge>
+                    <Badge variant="destructive" className="text-xs">
+                      {stats.outItems} items
+                    </Badge>
                   </div>
                 )}
                 {stats.lowStockItems > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Running low</span>
-                    <Badge variant="outline" className="text-xs border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <Badge
+                      variant="outline"
+                      className="text-xs border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                    >
                       {stats.lowStockItems} items
                     </Badge>
                   </div>

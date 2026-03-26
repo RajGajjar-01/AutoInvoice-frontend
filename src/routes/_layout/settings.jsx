@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { FlaskConical, RotateCcw, Trash2 } from "lucide-react"
 import ChangePassword from "@/components/UserSettings/ChangePassword"
 import DeleteAccount from "@/components/UserSettings/DeleteAccount"
 import UserInformation from "@/components/UserSettings/UserInformation"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Dialog,
   DialogClose,
@@ -16,10 +21,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { FlaskConical, Trash2, RotateCcw } from "lucide-react"
-import { seedDemoData, clearDemoData } from "@/lib/seedDemoData"
-import useCustomToast from "@/hooks/useCustomToast"
+import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
+import useCustomToast from "@/hooks/useCustomToast"
+import { clearDemoData, seedDemoData } from "@/lib/seedDemoData"
 
 // ─── Demo Data Tab ────────────────────────────────────────────────────────────
 
@@ -49,7 +55,8 @@ function DemoDataTab() {
             <div>
               <CardTitle className="text-base">Load Demo Data</CardTitle>
               <CardDescription className="text-xs">
-                Populate the app with realistic sample customers, items, and invoices
+                Populate the app with realistic sample customers, items, and
+                invoices
               </CardDescription>
             </div>
           </div>
@@ -58,9 +65,14 @@ function DemoDataTab() {
         <CardContent className="pt-4 space-y-3">
           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
             <li>20 customers & suppliers across India (mix of types)</li>
-            <li>20 items — Electronics, Stationery, Services, Printing, Furniture</li>
+            <li>
+              20 items — Electronics, Stationery, Services, Printing, Furniture
+            </li>
             <li>25 invoices over 6 months (paid, unpaid, overdue)</li>
-            <li>4 data tables with realistic row data (Invoice Tracker, Client Directory, Expenses, Contracts)</li>
+            <li>
+              4 data tables with realistic row data (Invoice Tracker, Client
+              Directory, Expenses, Contracts)
+            </li>
             <li>Full stock history for every inventory item</li>
           </ul>
           <Dialog>
@@ -74,7 +86,9 @@ function DemoDataTab() {
               <DialogHeader>
                 <DialogTitle>Load Demo Data?</DialogTitle>
                 <DialogDescription>
-                  This will <strong>replace all existing data</strong> (customers, items, invoices) with sample demo data. This cannot be undone.
+                  This will <strong>replace all existing data</strong>{" "}
+                  (customers, items, invoices) with sample demo data. This
+                  cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="mt-4">
@@ -82,9 +96,7 @@ function DemoDataTab() {
                   <Button variant="outline">Cancel</Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button onClick={handleLoad}>
-                    Load Demo Data
-                  </Button>
+                  <Button onClick={handleLoad}>Load Demo Data</Button>
                 </DialogClose>
               </DialogFooter>
             </DialogContent>
@@ -100,9 +112,12 @@ function DemoDataTab() {
               <Trash2 className="h-4 w-4 text-destructive" />
             </div>
             <div>
-              <CardTitle className="text-base text-destructive">Clear All App Data</CardTitle>
+              <CardTitle className="text-base text-destructive">
+                Clear All App Data
+              </CardTitle>
               <CardDescription className="text-xs">
-                Permanently delete all customers, items, and invoices from local storage
+                Permanently delete all customers, items, and invoices from local
+                storage
               </CardDescription>
             </div>
           </div>
@@ -120,7 +135,9 @@ function DemoDataTab() {
               <DialogHeader>
                 <DialogTitle>Clear All App Data?</DialogTitle>
                 <DialogDescription>
-                  This will permanently delete <strong>all customers, items, and invoices</strong> from this device. This cannot be undone.
+                  This will permanently delete{" "}
+                  <strong>all customers, items, and invoices</strong> from this
+                  device. This cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="mt-4">

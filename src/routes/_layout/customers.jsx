@@ -4,11 +4,11 @@ import { createFileRoute, Outlet } from "@tanstack/react-router"
 // The actual list-page content lives in customers/index.jsx.
 
 export const Route = createFileRoute("/_layout/customers")({
-    component: CustomersLayout,
+  component: CustomersLayout,
 })
 
 function CustomersLayout() {
-    return <Outlet />
+  return <Outlet />
 }
 
 export default CustomersLayout

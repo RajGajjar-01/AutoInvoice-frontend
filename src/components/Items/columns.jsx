@@ -16,13 +16,21 @@ function StockPill({ item }) {
   }
   if (stock < threshold) {
     return (
-      <Badge variant="outline" className={cn("font-mono text-xs border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400")}>
+      <Badge
+        variant="outline"
+        className={cn(
+          "font-mono text-xs border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        )}
+      >
         {stock} — Low
       </Badge>
     )
   }
   return (
-    <Badge variant="outline" className="font-mono text-xs border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+    <Badge
+      variant="outline"
+      className="font-mono text-xs border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+    >
       {stock}
     </Badge>
   )
@@ -44,7 +52,9 @@ export const columns = [
             {item.name}
           </Link>
           {item.sku && (
-            <p className="text-xs text-muted-foreground font-mono mt-0.5">{item.sku}</p>
+            <p className="text-xs text-muted-foreground font-mono mt-0.5">
+              {item.sku}
+            </p>
           )}
         </div>
       )
@@ -56,7 +66,11 @@ export const columns = [
     cell: ({ row }) => {
       const cat = row.original.category
       if (!cat) return <span className="text-muted-foreground text-sm">—</span>
-      return <Badge variant="secondary" className="text-xs">{cat}</Badge>
+      return (
+        <Badge variant="secondary" className="text-xs">
+          {cat}
+        </Badge>
+      )
     },
   },
   {
@@ -67,7 +81,13 @@ export const columns = [
       const unit = row.original.unit || "pcs"
       return (
         <div className="text-right">
-          <span className="font-semibold">₹{Number(price ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="font-semibold">
+            ₹
+            {Number(price ?? 0).toLocaleString("en-IN", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
           <span className="text-xs text-muted-foreground ml-1">/{unit}</span>
         </div>
       )

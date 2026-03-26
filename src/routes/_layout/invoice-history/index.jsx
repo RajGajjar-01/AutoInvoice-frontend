@@ -1,37 +1,24 @@
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
-  FileText,
-  Search,
-  Trash2,
-  Send,
+  AlertTriangle,
   CheckCircle2,
   CircleDashed,
   CircleX,
-  MoreHorizontal,
-  FilePlus,
-  IndianRupee,
   Clock,
-  AlertTriangle,
+  FilePlus,
+  FileText,
+  IndianRupee,
+  MoreHorizontal,
+  Search,
+  Send,
+  Trash2,
 } from "lucide-react"
-import { useState, useMemo } from "react"
-import { Button } from "@/components/ui/button"
+import { useMemo, useState } from "react"
+import { InvoicesService } from "@/client/sdk.gen"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogClose,
@@ -41,7 +28,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -50,20 +51,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  invoicesListQueryOptions,
+  invoicesQueryKeys,
+} from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { InvoicesService } from "@/client/sdk.gen"
 import { queryClient } from "@/queryClient"
-import { invoicesListQueryOptions, invoicesQueryKeys } from "@/features/invoices/queries"
 
-export const Route = createFileRoute("/_layout/invoice-history/")(
-  {
-    component: InvoiceHistoryPage,
-    head: () => ({
-      meta: [{ title: "Invoice History" }],
-    }),
-  },
-)
+export const Route = createFileRoute("/_layout/invoice-history/")({
+  component: InvoiceHistoryPage,
+  head: () => ({
+    meta: [{ title: "Invoice History" }],
+  }),
+})
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -136,7 +136,9 @@ function StatCard({ icon: Icon, title, value, sub, iconClass, valueClass }) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
         <div className={`rounded-lg p-2 ${iconClass}`}>
           <Icon className="h-4 w-4" />
         </div>
@@ -183,7 +185,10 @@ function InvoiceHistoryPage() {
   })
 
   // ── Stats ────────────────────────────────────────────────────────────────
-  const totalRevenue = invoices.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
+  const totalRevenue = invoices.reduce(
+    (s, i) => s + (Number(i.grandTotal) || 0),
+    0,
+  )
   const outstanding = invoices
     .filter((i) => i.status === "unpaid" || i.status === "overdue")
     .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
@@ -290,7 +295,9 @@ function InvoiceHistoryPage() {
           value={fmt(outstanding)}
           sub={`${invoices.filter((i) => i.status === "unpaid").length} unpaid`}
           iconClass="bg-amber-500/10 text-amber-500"
-          valueClass={outstanding > 0 ? "text-amber-600 dark:text-amber-400" : ""}
+          valueClass={
+            outstanding > 0 ? "text-amber-600 dark:text-amber-400" : ""
+          }
         />
         <StatCard
           icon={AlertTriangle}
@@ -382,7 +389,9 @@ function InvoiceHistoryPage() {
                           params={{ invoiceId: inv.id }}
                           className="block hover:text-primary transition-colors"
                         >
-                          <span className="font-medium">{inv.customer?.name || "—"}</span>
+                          <span className="font-medium">
+                            {inv.customer?.name || "—"}
+                          </span>
                           {inv.customer?.email && (
                             <span className="block text-xs text-muted-foreground mt-0.5">
                               {inv.customer.email}
@@ -447,7 +456,9 @@ function InvoiceHistoryPage() {
                                 View Details
                               </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleWhatsApp(inv)}>
+                            <DropdownMenuItem
+                              onClick={() => handleWhatsApp(inv)}
+                            >
                               <Send className="mr-2 h-4 w-4" />
                               Send via WhatsApp
                             </DropdownMenuItem>

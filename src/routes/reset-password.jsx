@@ -6,9 +6,9 @@ import {
   redirect,
   useNavigate,
 } from "@tanstack/react-router"
+import axios from "axios"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { LoginService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import {
   Form,
@@ -25,7 +25,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 const searchSchema = z.object({
-  token: z.string().catch(""),
+  token: z.string().optional(),
 })
 const formSchema = z
   .object({
@@ -45,7 +45,9 @@ export const Route = createFileRoute("/reset-password")({
   component: ResetPassword,
   validateSearch: searchSchema,
   beforeLoad: async ({ search }) => {
-    if (!search.token) {
+    const hash = typeof window !== "undefined" ? window.location.hash : ""
+    const hasToken = search.token || hash.includes("access_token")
+    if (!hasToken) {
       throw redirect({ to: "/login" })
     }
   },
@@ -61,6 +63,14 @@ function ResetPassword() {
   const { token } = Route.useSearch()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const navigate = useNavigate()
+
+  const getAccessToken = () => {
+    if (token) return token
+    const hash = window.location.hash.substring(1)
+    const params = new URLSearchParams(hash)
+    return params.get("access_token") || ""
+  }
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -71,7 +81,19 @@ function ResetPassword() {
     },
   })
   const mutation = useMutation({
-    mutationFn: (data) => LoginService.resetPassword({ requestBody: data }),
+    mutationFn: async (data) => {
+      const accessToken = getAccessToken()
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/v1/auth/update-password`,
+        { new_password: data.new_password },
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      )
+    },
     onSuccess: () => {
       showSuccessToast("Password updated successfully")
       form.reset()
@@ -80,7 +102,7 @@ function ResetPassword() {
     onError: handleError.bind(showErrorToast),
   })
   const onSubmit = (data) => {
-    mutation.mutate({ new_password: data.new_password, token })
+    mutation.mutate(data)
   }
   return (
     <AuthLayout>

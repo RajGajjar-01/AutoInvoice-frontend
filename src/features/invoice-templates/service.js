@@ -24,15 +24,23 @@ export const invoiceTemplatesApi = {
     return res.data
   },
   update: async ({ id, payload }) => {
-    const res = await axios.put(`${apiBase()}/invoice-templates/${id}`, payload, {
-      withCredentials: true,
-    })
+    const res = await axios.put(
+      `${apiBase()}/invoice-templates/${id}`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    )
     return res.data
   },
   activate: async ({ id }) => {
-    const res = await axios.post(`${apiBase()}/invoice-templates/${id}/activate`, {}, {
-      withCredentials: true,
-    })
+    const res = await axios.post(
+      `${apiBase()}/invoice-templates/${id}/activate`,
+      {},
+      {
+        withCredentials: true,
+      },
+    )
     return res.data
   },
   remove: async ({ id }) => {

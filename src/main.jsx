@@ -1,6 +1,4 @@
-import {
-  QueryClientProvider,
-} from "@tanstack/react-query"
+import { QueryClientProvider } from "@tanstack/react-query"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
 import axios from "axios"
 import { StrictMode } from "react"
@@ -33,30 +31,6 @@ axios.interceptors.request.use((config) => {
   }
   return config
 })
-
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const status = error?.response?.status
-    const originalRequest = error?.config
-
-    if (status === 401 && originalRequest && !originalRequest._retry) {
-      originalRequest._retry = true
-      try {
-        await axios.post(
-          `${OpenAPI.BASE}/api/v1/login/refresh`,
-          {},
-          { withCredentials: true },
-        )
-        return axios(originalRequest)
-      } catch (refreshError) {
-        return Promise.reject(refreshError)
-      }
-    }
-
-    return Promise.reject(error)
-  },
-)
 
 const router = createRouter({ routeTree })
 

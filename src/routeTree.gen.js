@@ -18,14 +18,19 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutTemplateBuilderRouteImport } from './routes/_layout/template-builder'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
+import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutInvoicesRouteImport } from './routes/_layout/invoices'
 import { Route as LayoutInvoiceTemplatesRouteImport } from './routes/_layout/invoice-templates'
 import { Route as LayoutInvoiceHistoryRouteImport } from './routes/_layout/invoice-history'
+import { Route as LayoutInsightsRouteImport } from './routes/_layout/insights'
 import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutCustomersRouteImport } from './routes/_layout/customers'
+import { Route as LayoutCreateQuotationRouteImport } from './routes/_layout/create-quotation'
+import { Route as LayoutCreateProformaRouteImport } from './routes/_layout/create-proforma'
 import { Route as LayoutCreateInvoiceRouteImport } from './routes/_layout/create-invoice'
+import { Route as LayoutCreateChallanRouteImport } from './routes/_layout/create-challan'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutItemsIndexRouteImport } from './routes/_layout/items/index'
 import { Route as LayoutInvoiceHistoryIndexRouteImport } from './routes/_layout/invoice-history/index'
@@ -81,6 +86,11 @@ const LayoutProfileRoute = LayoutProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => LayoutRoute,
 })
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LayoutRoute,
+})
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
   id: '/items',
   path: '/items',
@@ -101,6 +111,11 @@ const LayoutInvoiceHistoryRoute = LayoutInvoiceHistoryRouteImport.update({
   path: '/invoice-history',
   getParentRoute: () => LayoutRoute,
 })
+const LayoutInsightsRoute = LayoutInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => LayoutRoute,
+})
 const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
   id: '/data-tables',
   path: '/data-tables',
@@ -116,9 +131,24 @@ const LayoutCustomersRoute = LayoutCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => LayoutRoute,
 })
+const LayoutCreateQuotationRoute = LayoutCreateQuotationRouteImport.update({
+  id: '/create-quotation',
+  path: '/create-quotation',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutCreateProformaRoute = LayoutCreateProformaRouteImport.update({
+  id: '/create-proforma',
+  path: '/create-proforma',
+  getParentRoute: () => LayoutRoute,
+})
 const LayoutCreateInvoiceRoute = LayoutCreateInvoiceRouteImport.update({
   id: '/create-invoice',
   path: '/create-invoice',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutCreateChallanRoute = LayoutCreateChallanRouteImport.update({
+  id: '/create-challan',
+  path: '/create-challan',
   getParentRoute: () => LayoutRoute,
 })
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
@@ -212,14 +242,19 @@ const LayoutItemsRouteWithChildren = LayoutItemsRoute._addFileChildren(
 
 const LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutCreateChallanRoute: LayoutCreateChallanRoute,
   LayoutCreateInvoiceRoute: LayoutCreateInvoiceRoute,
+  LayoutCreateProformaRoute: LayoutCreateProformaRoute,
+  LayoutCreateQuotationRoute: LayoutCreateQuotationRoute,
   LayoutCustomersRoute: LayoutCustomersRouteWithChildren,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutDataTablesRoute: LayoutDataTablesRouteWithChildren,
+  LayoutInsightsRoute: LayoutInsightsRoute,
   LayoutInvoiceHistoryRoute: LayoutInvoiceHistoryRouteWithChildren,
   LayoutInvoiceTemplatesRoute: LayoutInvoiceTemplatesRoute,
   LayoutInvoicesRoute: LayoutInvoicesRoute,
   LayoutItemsRoute: LayoutItemsRouteWithChildren,
+  LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutProfileRoute: LayoutProfileRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutTemplateBuilderRoute: LayoutTemplateBuilderRoute,

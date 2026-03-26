@@ -155,12 +155,16 @@ export function TableCard({ table, onDelete, onRename, onDuplicate, onOpen }) {
             <DialogTitle>Rename table</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-2">
-            <Label htmlFor="rename-input" className="text-sm">Table name</Label>
+            <Label htmlFor="rename-input" className="text-sm">
+              Table name
+            </Label>
             <Input
               id="rename-input"
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") commitRename() }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitRename()
+              }}
               autoFocus
             />
           </div>
@@ -170,7 +174,9 @@ export function TableCard({ table, onDelete, onRename, onDuplicate, onOpen }) {
             </Button>
             <Button
               onClick={commitRename}
-              disabled={!renameValue.trim() || renameValue.trim() === table.name}
+              disabled={
+                !renameValue.trim() || renameValue.trim() === table.name
+              }
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Rename

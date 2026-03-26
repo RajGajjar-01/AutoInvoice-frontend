@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Package, AlertTriangle, Search, Filter, XCircle } from "lucide-react"
+import { AlertTriangle, Filter, Package, Search, XCircle } from "lucide-react"
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DataTable } from "@/components/Common/DataTable"
 import AddItem from "@/components/Items/AddItem"
 import { columns } from "@/components/Items/columns"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -26,7 +26,9 @@ function StatsCard({ icon: Icon, title, value, iconClass, valueClass }) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
         <div className={`rounded-lg p-2 ${iconClass}`}>
           <Icon className="h-4 w-4" />
         </div>
@@ -46,7 +48,8 @@ function EmptyState() {
       </div>
       <h3 className="text-lg font-semibold mb-2">No items yet</h3>
       <p className="text-muted-foreground text-sm mb-6 max-w-xs">
-        Add your first product or service to start tracking stock and creating invoices.
+        Add your first product or service to start tracking stock and creating
+        invoices.
       </p>
       <AddItem />
     </div>
@@ -74,12 +77,19 @@ function ItemsPage() {
   const outOfStockCount = items.filter((i) => (i.stock ?? 0) === 0).length
 
   // Categories for filter dropdown
-  const categories = ["all", ...new Set(items.map((i) => i.category).filter(Boolean))]
+  const categories = [
+    "all",
+    ...new Set(items.map((i) => i.category).filter(Boolean)),
+  ]
 
   // Filtering
   const filtered = items.filter((item) => {
     // Stock status filter
-    if (stockFilter === "in_stock" && (item.stock ?? 0) < (item.lowStockThreshold ?? 5)) return false
+    if (
+      stockFilter === "in_stock" &&
+      (item.stock ?? 0) < (item.lowStockThreshold ?? 5)
+    )
+      return false
     if (stockFilter === "low_stock") {
       const s = item.stock ?? 0
       if (s === 0 || s >= (item.lowStockThreshold ?? 5)) return false
@@ -87,7 +97,8 @@ function ItemsPage() {
     if (stockFilter === "out_of_stock" && (item.stock ?? 0) !== 0) return false
 
     // Category filter
-    if (categoryFilter !== "all" && item.category !== categoryFilter) return false
+    if (categoryFilter !== "all" && item.category !== categoryFilter)
+      return false
 
     // Search
     const q = search.trim().toLowerCase()
@@ -143,7 +154,9 @@ function ItemsPage() {
           title="Low Stock"
           value={lowStockCount}
           iconClass="bg-amber-500/10 text-amber-500"
-          valueClass={lowStockCount > 0 ? "text-amber-600 dark:text-amber-400" : ""}
+          valueClass={
+            lowStockCount > 0 ? "text-amber-600 dark:text-amber-400" : ""
+          }
         />
         <StatsCard
           icon={XCircle}
@@ -175,9 +188,13 @@ function ItemsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {categories.filter((c) => c !== "all").map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
+              {categories
+                .filter((c) => c !== "all")
+                .map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         )}
@@ -189,7 +206,9 @@ function ItemsPage() {
           </SelectTrigger>
           <SelectContent>
             {STOCK_FILTERS.map((f) => (
-              <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+              <SelectItem key={f.value} value={f.value}>
+                {f.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

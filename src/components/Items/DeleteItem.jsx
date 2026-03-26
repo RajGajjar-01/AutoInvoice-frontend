@@ -11,8 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import useLocalStorage from "@/hooks/useLocalStorage"
 import useCustomToast from "@/hooks/useCustomToast"
+import useLocalStorage from "@/hooks/useLocalStorage"
 
 /**
  * DeleteItem supports two trigger variants:
@@ -31,26 +31,27 @@ const DeleteItem = ({ item, onSuccess, variant = "dropdown" }) => {
     onSuccess?.()
   }
 
-  const trigger = variant === "button" ? (
-    <Button
-      variant="outline"
-      size="sm"
-      className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
-      onClick={() => setIsOpen(true)}
-    >
-      <Trash2 className="mr-2 h-4 w-4" />
-      Delete
-    </Button>
-  ) : (
-    <DropdownMenuItem
-      className="text-destructive focus:text-destructive"
-      onSelect={(e) => e.preventDefault()}
-      onClick={() => setIsOpen(true)}
-    >
-      <Trash2 className="mr-2 h-4 w-4" />
-      Delete
-    </DropdownMenuItem>
-  )
+  const trigger =
+    variant === "button" ? (
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+        onClick={() => setIsOpen(true)}
+      >
+        <Trash2 className="mr-2 h-4 w-4" />
+        Delete
+      </Button>
+    ) : (
+      <DropdownMenuItem
+        className="text-destructive focus:text-destructive"
+        onSelect={(e) => e.preventDefault()}
+        onClick={() => setIsOpen(true)}
+      >
+        <Trash2 className="mr-2 h-4 w-4" />
+        Delete
+      </DropdownMenuItem>
+    )
 
   return (
     <>
@@ -60,7 +61,11 @@ const DeleteItem = ({ item, onSuccess, variant = "dropdown" }) => {
           <DialogHeader>
             <DialogTitle>Delete Item</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete <span className="font-semibold text-foreground">"{item.name}"</span>? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-foreground">
+                "{item.name}"
+              </span>
+              ? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

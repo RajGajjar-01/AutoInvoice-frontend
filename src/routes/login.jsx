@@ -17,7 +17,7 @@ import { PasswordInput } from "@/components/ui/password-input"
 import useAuth from "@/hooks/useAuth"
 
 const formSchema = z.object({
-  username: z.string().email({ message: "Invalid email address" }),
+  email: z.string().email({ message: "Invalid email address" }),
   password: z
     .string()
     .min(1, { message: "Password is required" })
@@ -40,7 +40,7 @@ function Login() {
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   })
@@ -62,7 +62,7 @@ function Login() {
           <div className="grid gap-4">
             <FormField
               control={form.control}
-              name="username"
+              name="email"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>

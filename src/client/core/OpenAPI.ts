@@ -41,7 +41,7 @@ export type OpenAPIConfig = {
 };
 
 export const OpenAPI: OpenAPIConfig = {
-	BASE: '',
+	BASE: import.meta.env.VITE_API_URL || '',
 	CREDENTIALS: 'include',
 	ENCODE_PATH: undefined,
 	HEADERS: undefined,
@@ -49,7 +49,7 @@ export const OpenAPI: OpenAPIConfig = {
 	TOKEN: undefined,
 	USERNAME: undefined,
 	VERSION: '0.1.0',
-	WITH_CREDENTIALS: false,
+	WITH_CREDENTIALS: true,
 	interceptors: {
 		request: new Interceptors(),
 		response: new Interceptors(),
