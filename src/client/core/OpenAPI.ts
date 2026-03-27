@@ -44,7 +44,11 @@ export const OpenAPI: OpenAPIConfig = {
 	BASE: '',
 	CREDENTIALS: 'include',
 	ENCODE_PATH: undefined,
-	HEADERS: undefined,
+	HEADERS: async () => {
+		return {
+			'Origin': window.location.origin,
+		};
+	},
 	PASSWORD: undefined,
 	TOKEN: undefined,
 	USERNAME: undefined,
