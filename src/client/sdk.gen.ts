@@ -138,7 +138,6 @@ export class AdminService {
      * Delete User
      * Delete user by ID.
      *
-     * Deletes from both Supabase Auth and local profile.
      * Requires superuser privileges.
      * @param data The data for the request.
      * @param data.userId
@@ -234,9 +233,9 @@ export class AdminService {
 export class AuthService {
     /**
      * Signup
-     * Sign up a new user via Supabase Auth.
+     * Sign up a new user.
      *
-     * Creates user in Supabase and returns session tokens as HttpOnly cookies.
+     * Creates user and returns session tokens as HttpOnly cookies.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns AuthResponse Successful Response
@@ -256,7 +255,7 @@ export class AuthService {
     
     /**
      * Login
-     * Login with email and password via Supabase Auth.
+     * Login with email and password.
      *
      * Returns access_token and refresh_token as HttpOnly cookies.
      * @param data The data for the request.
@@ -299,7 +298,7 @@ export class AuthService {
     
     /**
      * Logout
-     * Logout - invalidates the Supabase session and clears cookies.
+     * Logout - invalidates the session and clears cookies.
      * @param data The data for the request.
      * @param data.authorization
      * @returns Message Successful Response
@@ -346,8 +345,6 @@ export class AuthService {
     /**
      * Update Current User
      * Update current user information.
-     *
-     * Updates both local profile and Supabase metadata.
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.authorization
@@ -375,7 +372,7 @@ export class AuthService {
     
     /**
      * Forgot Password
-     * Request password reset email via Supabase.
+     * Request password reset email.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns Message Successful Response
@@ -1607,7 +1604,6 @@ export class OauthService {
      * Oauth Callback
      * Handle OAuth callback from providers.
      *
-     * This endpoint is called by Supabase after OAuth authentication.
      * In most cases, the frontend handles the callback directly.
      *
      * The frontend receives the tokens and calls /auth/me to get user info.
@@ -1699,7 +1695,7 @@ export class OauthService {
 export class PrivateService {
     /**
      * Create User
-     * Create a new user via Supabase admin API (private endpoint).
+     * Create a new user (private endpoint).
      * @param data The data for the request.
      * @param data.requestBody
      * @returns UserPublic Successful Response
@@ -2194,8 +2190,6 @@ export class UsersService {
     /**
      * Delete User Me
      * Delete own user account.
-     *
-     * Requires access token to delete from Supabase Auth.
      * @param data The data for the request.
      * @param data.authorization
      * @param data.accessToken
@@ -2221,8 +2215,6 @@ export class UsersService {
     /**
      * Update Password Me
      * Update own password.
-     *
-     * This is handled by Supabase Auth.
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.authorization

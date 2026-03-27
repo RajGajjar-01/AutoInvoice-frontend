@@ -51,6 +51,7 @@ export const Route = createFileRoute("/_layout/create-invoice")({
   validateSearch: (search) => ({
     customerId: search.customerId ? String(search.customerId) : undefined,
     itemId: search.itemId ? String(search.itemId) : undefined,
+    documentType: search.documentType || "invoice",
   }),
   head: () => ({
     meta: [{ title: "Create Invoice" }],
@@ -72,7 +73,7 @@ function CreateInvoicePage() {
   const [companyDetails] = useLocalStorage("company-details", {})
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const savedRef = useRef(false)
-  const { customerId: preselectedCustomerId, itemId: preselectedItemId } =
+  const { customerId: preselectedCustomerId, itemId: preselectedItemId, documentType } =
     Route.useSearch()
 
   const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
@@ -330,6 +331,7 @@ function CreateInvoicePage() {
 
   const buildInvoiceData = () => ({
     invoice_number: invoiceNumber,
+    document_type: documentType,
     invoice_date: invoiceDate,
     due_date: dueDate || null,
     currency,
@@ -339,7 +341,6 @@ function CreateInvoicePage() {
     notes: notes || null,
     payment_terms: paymentTerms || null,
     status: "unpaid",
-    // customer_id will be set in handleSave after resolving __new__
     customer_id: "",
     items: (items ?? [])
       .filter((i) => i.name)
