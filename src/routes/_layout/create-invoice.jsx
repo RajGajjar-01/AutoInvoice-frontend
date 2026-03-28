@@ -73,8 +73,11 @@ function CreateInvoicePage() {
   const [companyDetails] = useLocalStorage("company-details", {})
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const savedRef = useRef(false)
-  const { customerId: preselectedCustomerId, itemId: preselectedItemId, documentType } =
-    Route.useSearch()
+  const {
+    customerId: preselectedCustomerId,
+    itemId: preselectedItemId,
+    documentType,
+  } = Route.useSearch()
 
   const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
 
@@ -338,9 +341,12 @@ function CreateInvoicePage() {
     subtotal,
     total_tax: totalTax,
     grand_total: grandTotal,
+    discount: invoiceDiscount || 0,
     notes: notes || null,
     payment_terms: paymentTerms || null,
     status: "unpaid",
+    place_of_supply: placeOfSupply || null,
+    reverse_charge: reverseCharge,
     customer_id: "",
     items: (items ?? [])
       .filter((i) => i.name)
@@ -350,6 +356,8 @@ function CreateInvoicePage() {
         quantity: Number(i.quantity) || 0,
         price: Number(i.price) || 0,
         tax: Number(i.tax) || 0,
+        unit: i.unit || null,
+        hsn_code: i.hsnCode || null,
       })),
   })
 

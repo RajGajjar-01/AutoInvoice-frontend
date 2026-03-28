@@ -13,15 +13,34 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DataTablesRouteImport } from './routes/data-tables'
 import { Route as LayoutRouteImport } from './routes/_layout'
-import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
-import { Route as DataTablesTableIdRouteImport } from './routes/data-tables.$tableId'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as LayoutTemplateBuilderRouteImport } from './routes/_layout/template-builder'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
+import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutInvoicesRouteImport } from './routes/_layout/invoices'
+import { Route as LayoutInvoiceTemplatesRouteImport } from './routes/_layout/invoice-templates'
+import { Route as LayoutInvoiceHistoryRouteImport } from './routes/_layout/invoice-history'
+import { Route as LayoutInsightsRouteImport } from './routes/_layout/insights'
 import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
+import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutCustomersRouteImport } from './routes/_layout/customers'
+import { Route as LayoutCreateQuotationRouteImport } from './routes/_layout/create-quotation'
+import { Route as LayoutCreateProformaRouteImport } from './routes/_layout/create-proforma'
+import { Route as LayoutCreateInvoiceRouteImport } from './routes/_layout/create-invoice'
+import { Route as LayoutCreateChallanRouteImport } from './routes/_layout/create-challan'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutItemsIndexRouteImport } from './routes/_layout/items/index'
+import { Route as LayoutInvoiceHistoryIndexRouteImport } from './routes/_layout/invoice-history/index'
+import { Route as LayoutDataTablesIndexRouteImport } from './routes/_layout/data-tables/index'
+import { Route as LayoutCustomersIndexRouteImport } from './routes/_layout/customers/index'
+import { Route as LayoutItemsItemIdRouteImport } from './routes/_layout/items.$itemId'
+import { Route as LayoutInvoiceHistoryInvoiceIdRouteImport } from './routes/_layout/invoice-history.$invoiceId'
+import { Route as LayoutDataTablesNewRouteImport } from './routes/_layout/data-tables.new'
+import { Route as LayoutDataTablesTableIdRouteImport } from './routes/_layout/data-tables.$tableId'
+import { Route as LayoutCustomersCustomerIdRouteImport } from './routes/_layout/customers.$customerId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -43,24 +62,19 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DataTablesRoute = DataTablesRouteImport.update({
-  id: '/data-tables',
-  path: '/data-tables',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutIndexRoute = LayoutIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => LayoutRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DataTablesTableIdRoute = DataTablesTableIdRouteImport.update({
-  id: '/$tableId',
-  path: '/$tableId',
-  getParentRoute: () => DataTablesRoute,
+const LayoutTemplateBuilderRoute = LayoutTemplateBuilderRouteImport.update({
+  id: '/template-builder',
+  path: '/template-builder',
+  getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
@@ -72,9 +86,34 @@ const LayoutProfileRoute = LayoutProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
   id: '/items',
   path: '/items',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutInvoicesRoute = LayoutInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutInvoiceTemplatesRoute = LayoutInvoiceTemplatesRouteImport.update({
+  id: '/invoice-templates',
+  path: '/invoice-templates',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutInvoiceHistoryRoute = LayoutInvoiceHistoryRouteImport.update({
+  id: '/invoice-history',
+  path: '/invoice-history',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutInsightsRoute = LayoutInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
@@ -82,101 +121,289 @@ const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
   path: '/data-tables',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCustomersRoute = LayoutCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCreateQuotationRoute = LayoutCreateQuotationRouteImport.update({
+  id: '/create-quotation',
+  path: '/create-quotation',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCreateProformaRoute = LayoutCreateProformaRouteImport.update({
+  id: '/create-proforma',
+  path: '/create-proforma',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCreateInvoiceRoute = LayoutCreateInvoiceRouteImport.update({
+  id: '/create-invoice',
+  path: '/create-invoice',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCreateChallanRoute = LayoutCreateChallanRouteImport.update({
+  id: '/create-challan',
+  path: '/create-challan',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutItemsIndexRoute = LayoutItemsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutItemsRoute,
+} as any)
+const LayoutInvoiceHistoryIndexRoute =
+  LayoutInvoiceHistoryIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LayoutInvoiceHistoryRoute,
+  } as any)
+const LayoutDataTablesIndexRoute = LayoutDataTablesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutDataTablesRoute,
+} as any)
+const LayoutCustomersIndexRoute = LayoutCustomersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutCustomersRoute,
+} as any)
+const LayoutItemsItemIdRoute = LayoutItemsItemIdRouteImport.update({
+  id: '/$itemId',
+  path: '/$itemId',
+  getParentRoute: () => LayoutItemsRoute,
+} as any)
+const LayoutInvoiceHistoryInvoiceIdRoute =
+  LayoutInvoiceHistoryInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => LayoutInvoiceHistoryRoute,
+  } as any)
+const LayoutDataTablesNewRoute = LayoutDataTablesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => LayoutDataTablesRoute,
+} as any)
+const LayoutDataTablesTableIdRoute = LayoutDataTablesTableIdRouteImport.update({
+  id: '/$tableId',
+  path: '/$tableId',
+  getParentRoute: () => LayoutDataTablesRoute,
+} as any)
+const LayoutCustomersCustomerIdRoute =
+  LayoutCustomersCustomerIdRouteImport.update({
+    id: '/$customerId',
+    path: '/$customerId',
+    getParentRoute: () => LayoutCustomersRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof LayoutIndexRoute
-  '/data-tables': typeof LayoutDataTablesRoute
+  '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
-  '/items': typeof LayoutItemsRoute
+  '/create-challan': typeof LayoutCreateChallanRoute
+  '/create-invoice': typeof LayoutCreateInvoiceRoute
+  '/create-proforma': typeof LayoutCreateProformaRoute
+  '/create-quotation': typeof LayoutCreateQuotationRoute
+  '/customers': typeof LayoutCustomersRouteWithChildren
+  '/dashboard': typeof LayoutDashboardRoute
+  '/data-tables': typeof LayoutDataTablesRouteWithChildren
+  '/insights': typeof LayoutInsightsRoute
+  '/invoice-history': typeof LayoutInvoiceHistoryRouteWithChildren
+  '/invoice-templates': typeof LayoutInvoiceTemplatesRoute
+  '/invoices': typeof LayoutInvoicesRoute
+  '/items': typeof LayoutItemsRouteWithChildren
+  '/notifications': typeof LayoutNotificationsRoute
   '/profile': typeof LayoutProfileRoute
   '/settings': typeof LayoutSettingsRoute
-  '/data-tables/$tableId': typeof DataTablesTableIdRoute
+  '/template-builder': typeof LayoutTemplateBuilderRoute
+  '/customers/$customerId': typeof LayoutCustomersCustomerIdRoute
+  '/data-tables/$tableId': typeof LayoutDataTablesTableIdRoute
+  '/data-tables/new': typeof LayoutDataTablesNewRoute
+  '/invoice-history/$invoiceId': typeof LayoutInvoiceHistoryInvoiceIdRoute
+  '/items/$itemId': typeof LayoutItemsItemIdRoute
+  '/customers/': typeof LayoutCustomersIndexRoute
+  '/data-tables/': typeof LayoutDataTablesIndexRoute
+  '/invoice-history/': typeof LayoutInvoiceHistoryIndexRoute
+  '/items/': typeof LayoutItemsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/data-tables': typeof LayoutDataTablesRoute
+  '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
-  '/items': typeof LayoutItemsRoute
+  '/create-challan': typeof LayoutCreateChallanRoute
+  '/create-invoice': typeof LayoutCreateInvoiceRoute
+  '/create-proforma': typeof LayoutCreateProformaRoute
+  '/create-quotation': typeof LayoutCreateQuotationRoute
+  '/dashboard': typeof LayoutDashboardRoute
+  '/insights': typeof LayoutInsightsRoute
+  '/invoice-templates': typeof LayoutInvoiceTemplatesRoute
+  '/invoices': typeof LayoutInvoicesRoute
+  '/notifications': typeof LayoutNotificationsRoute
   '/profile': typeof LayoutProfileRoute
   '/settings': typeof LayoutSettingsRoute
-  '/data-tables/$tableId': typeof DataTablesTableIdRoute
-  '/': typeof LayoutIndexRoute
+  '/template-builder': typeof LayoutTemplateBuilderRoute
+  '/customers/$customerId': typeof LayoutCustomersCustomerIdRoute
+  '/data-tables/$tableId': typeof LayoutDataTablesTableIdRoute
+  '/data-tables/new': typeof LayoutDataTablesNewRoute
+  '/invoice-history/$invoiceId': typeof LayoutInvoiceHistoryInvoiceIdRoute
+  '/items/$itemId': typeof LayoutItemsItemIdRoute
+  '/customers': typeof LayoutCustomersIndexRoute
+  '/data-tables': typeof LayoutDataTablesIndexRoute
+  '/invoice-history': typeof LayoutInvoiceHistoryIndexRoute
+  '/items': typeof LayoutItemsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_layout': typeof LayoutRouteWithChildren
-  '/data-tables': typeof DataTablesRouteWithChildren
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
-  '/_layout/data-tables': typeof LayoutDataTablesRoute
-  '/_layout/items': typeof LayoutItemsRoute
+  '/_layout/create-challan': typeof LayoutCreateChallanRoute
+  '/_layout/create-invoice': typeof LayoutCreateInvoiceRoute
+  '/_layout/create-proforma': typeof LayoutCreateProformaRoute
+  '/_layout/create-quotation': typeof LayoutCreateQuotationRoute
+  '/_layout/customers': typeof LayoutCustomersRouteWithChildren
+  '/_layout/dashboard': typeof LayoutDashboardRoute
+  '/_layout/data-tables': typeof LayoutDataTablesRouteWithChildren
+  '/_layout/insights': typeof LayoutInsightsRoute
+  '/_layout/invoice-history': typeof LayoutInvoiceHistoryRouteWithChildren
+  '/_layout/invoice-templates': typeof LayoutInvoiceTemplatesRoute
+  '/_layout/invoices': typeof LayoutInvoicesRoute
+  '/_layout/items': typeof LayoutItemsRouteWithChildren
+  '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/profile': typeof LayoutProfileRoute
   '/_layout/settings': typeof LayoutSettingsRoute
-  '/data-tables/$tableId': typeof DataTablesTableIdRoute
-  '/_layout/': typeof LayoutIndexRoute
+  '/_layout/template-builder': typeof LayoutTemplateBuilderRoute
+  '/_layout/customers/$customerId': typeof LayoutCustomersCustomerIdRoute
+  '/_layout/data-tables/$tableId': typeof LayoutDataTablesTableIdRoute
+  '/_layout/data-tables/new': typeof LayoutDataTablesNewRoute
+  '/_layout/invoice-history/$invoiceId': typeof LayoutInvoiceHistoryInvoiceIdRoute
+  '/_layout/items/$itemId': typeof LayoutItemsItemIdRoute
+  '/_layout/customers/': typeof LayoutCustomersIndexRoute
+  '/_layout/data-tables/': typeof LayoutDataTablesIndexRoute
+  '/_layout/invoice-history/': typeof LayoutInvoiceHistoryIndexRoute
+  '/_layout/items/': typeof LayoutItemsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/data-tables'
     | '/login'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/create-challan'
+    | '/create-invoice'
+    | '/create-proforma'
+    | '/create-quotation'
+    | '/customers'
+    | '/dashboard'
+    | '/data-tables'
+    | '/insights'
+    | '/invoice-history'
+    | '/invoice-templates'
+    | '/invoices'
     | '/items'
+    | '/notifications'
     | '/profile'
     | '/settings'
+    | '/template-builder'
+    | '/customers/$customerId'
     | '/data-tables/$tableId'
+    | '/data-tables/new'
+    | '/invoice-history/$invoiceId'
+    | '/items/$itemId'
+    | '/customers/'
+    | '/data-tables/'
+    | '/invoice-history/'
+    | '/items/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/data-tables'
+    | '/'
     | '/login'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
     | '/admin'
-    | '/items'
+    | '/create-challan'
+    | '/create-invoice'
+    | '/create-proforma'
+    | '/create-quotation'
+    | '/dashboard'
+    | '/insights'
+    | '/invoice-templates'
+    | '/invoices'
+    | '/notifications'
     | '/profile'
     | '/settings'
+    | '/template-builder'
+    | '/customers/$customerId'
     | '/data-tables/$tableId'
-    | '/'
+    | '/data-tables/new'
+    | '/invoice-history/$invoiceId'
+    | '/items/$itemId'
+    | '/customers'
+    | '/data-tables'
+    | '/invoice-history'
+    | '/items'
   id:
     | '__root__'
+    | '/'
     | '/_layout'
-    | '/data-tables'
     | '/login'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
     | '/_layout/admin'
+    | '/_layout/create-challan'
+    | '/_layout/create-invoice'
+    | '/_layout/create-proforma'
+    | '/_layout/create-quotation'
+    | '/_layout/customers'
+    | '/_layout/dashboard'
     | '/_layout/data-tables'
+    | '/_layout/insights'
+    | '/_layout/invoice-history'
+    | '/_layout/invoice-templates'
+    | '/_layout/invoices'
     | '/_layout/items'
+    | '/_layout/notifications'
     | '/_layout/profile'
     | '/_layout/settings'
-    | '/data-tables/$tableId'
-    | '/_layout/'
+    | '/_layout/template-builder'
+    | '/_layout/customers/$customerId'
+    | '/_layout/data-tables/$tableId'
+    | '/_layout/data-tables/new'
+    | '/_layout/invoice-history/$invoiceId'
+    | '/_layout/items/$itemId'
+    | '/_layout/customers/'
+    | '/_layout/data-tables/'
+    | '/_layout/invoice-history/'
+    | '/_layout/items/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   LayoutRoute: typeof LayoutRouteWithChildren
-  DataTablesRoute: typeof DataTablesRouteWithChildren
   LoginRoute: typeof LoginRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -213,13 +440,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/data-tables': {
-      id: '/data-tables'
-      path: '/data-tables'
-      fullPath: '/data-tables'
-      preLoaderRoute: typeof DataTablesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_layout': {
       id: '/_layout'
       path: ''
@@ -227,19 +447,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_layout/': {
-      id: '/_layout/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof LayoutIndexRouteImport
-      parentRoute: typeof LayoutRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/data-tables/$tableId': {
-      id: '/data-tables/$tableId'
-      path: '/$tableId'
-      fullPath: '/data-tables/$tableId'
-      preLoaderRoute: typeof DataTablesTableIdRouteImport
-      parentRoute: typeof DataTablesRoute
+    '/_layout/template-builder': {
+      id: '/_layout/template-builder'
+      path: '/template-builder'
+      fullPath: '/template-builder'
+      preLoaderRoute: typeof LayoutTemplateBuilderRouteImport
+      parentRoute: typeof LayoutRoute
     }
     '/_layout/settings': {
       id: '/_layout/settings'
@@ -255,11 +475,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProfileRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/notifications': {
+      id: '/_layout/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof LayoutNotificationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/items': {
       id: '/_layout/items'
       path: '/items'
       fullPath: '/items'
       preLoaderRoute: typeof LayoutItemsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/invoices': {
+      id: '/_layout/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof LayoutInvoicesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/invoice-templates': {
+      id: '/_layout/invoice-templates'
+      path: '/invoice-templates'
+      fullPath: '/invoice-templates'
+      preLoaderRoute: typeof LayoutInvoiceTemplatesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/invoice-history': {
+      id: '/_layout/invoice-history'
+      path: '/invoice-history'
+      fullPath: '/invoice-history'
+      preLoaderRoute: typeof LayoutInvoiceHistoryRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/insights': {
+      id: '/_layout/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof LayoutInsightsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/data-tables': {
@@ -269,6 +524,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDataTablesRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/dashboard': {
+      id: '/_layout/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof LayoutDashboardRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/customers': {
+      id: '/_layout/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof LayoutCustomersRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/create-quotation': {
+      id: '/_layout/create-quotation'
+      path: '/create-quotation'
+      fullPath: '/create-quotation'
+      preLoaderRoute: typeof LayoutCreateQuotationRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/create-proforma': {
+      id: '/_layout/create-proforma'
+      path: '/create-proforma'
+      fullPath: '/create-proforma'
+      preLoaderRoute: typeof LayoutCreateProformaRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/create-invoice': {
+      id: '/_layout/create-invoice'
+      path: '/create-invoice'
+      fullPath: '/create-invoice'
+      preLoaderRoute: typeof LayoutCreateInvoiceRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/create-challan': {
+      id: '/_layout/create-challan'
+      path: '/create-challan'
+      fullPath: '/create-challan'
+      preLoaderRoute: typeof LayoutCreateChallanRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
@@ -276,45 +573,174 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/items/': {
+      id: '/_layout/items/'
+      path: '/'
+      fullPath: '/items/'
+      preLoaderRoute: typeof LayoutItemsIndexRouteImport
+      parentRoute: typeof LayoutItemsRoute
+    }
+    '/_layout/invoice-history/': {
+      id: '/_layout/invoice-history/'
+      path: '/'
+      fullPath: '/invoice-history/'
+      preLoaderRoute: typeof LayoutInvoiceHistoryIndexRouteImport
+      parentRoute: typeof LayoutInvoiceHistoryRoute
+    }
+    '/_layout/data-tables/': {
+      id: '/_layout/data-tables/'
+      path: '/'
+      fullPath: '/data-tables/'
+      preLoaderRoute: typeof LayoutDataTablesIndexRouteImport
+      parentRoute: typeof LayoutDataTablesRoute
+    }
+    '/_layout/customers/': {
+      id: '/_layout/customers/'
+      path: '/'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof LayoutCustomersIndexRouteImport
+      parentRoute: typeof LayoutCustomersRoute
+    }
+    '/_layout/items/$itemId': {
+      id: '/_layout/items/$itemId'
+      path: '/$itemId'
+      fullPath: '/items/$itemId'
+      preLoaderRoute: typeof LayoutItemsItemIdRouteImport
+      parentRoute: typeof LayoutItemsRoute
+    }
+    '/_layout/invoice-history/$invoiceId': {
+      id: '/_layout/invoice-history/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/invoice-history/$invoiceId'
+      preLoaderRoute: typeof LayoutInvoiceHistoryInvoiceIdRouteImport
+      parentRoute: typeof LayoutInvoiceHistoryRoute
+    }
+    '/_layout/data-tables/new': {
+      id: '/_layout/data-tables/new'
+      path: '/new'
+      fullPath: '/data-tables/new'
+      preLoaderRoute: typeof LayoutDataTablesNewRouteImport
+      parentRoute: typeof LayoutDataTablesRoute
+    }
+    '/_layout/data-tables/$tableId': {
+      id: '/_layout/data-tables/$tableId'
+      path: '/$tableId'
+      fullPath: '/data-tables/$tableId'
+      preLoaderRoute: typeof LayoutDataTablesTableIdRouteImport
+      parentRoute: typeof LayoutDataTablesRoute
+    }
+    '/_layout/customers/$customerId': {
+      id: '/_layout/customers/$customerId'
+      path: '/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof LayoutCustomersCustomerIdRouteImport
+      parentRoute: typeof LayoutCustomersRoute
+    }
   }
 }
 
+interface LayoutCustomersRouteChildren {
+  LayoutCustomersCustomerIdRoute: typeof LayoutCustomersCustomerIdRoute
+  LayoutCustomersIndexRoute: typeof LayoutCustomersIndexRoute
+}
+
+const LayoutCustomersRouteChildren: LayoutCustomersRouteChildren = {
+  LayoutCustomersCustomerIdRoute: LayoutCustomersCustomerIdRoute,
+  LayoutCustomersIndexRoute: LayoutCustomersIndexRoute,
+}
+
+const LayoutCustomersRouteWithChildren = LayoutCustomersRoute._addFileChildren(
+  LayoutCustomersRouteChildren,
+)
+
+interface LayoutDataTablesRouteChildren {
+  LayoutDataTablesTableIdRoute: typeof LayoutDataTablesTableIdRoute
+  LayoutDataTablesNewRoute: typeof LayoutDataTablesNewRoute
+  LayoutDataTablesIndexRoute: typeof LayoutDataTablesIndexRoute
+}
+
+const LayoutDataTablesRouteChildren: LayoutDataTablesRouteChildren = {
+  LayoutDataTablesTableIdRoute: LayoutDataTablesTableIdRoute,
+  LayoutDataTablesNewRoute: LayoutDataTablesNewRoute,
+  LayoutDataTablesIndexRoute: LayoutDataTablesIndexRoute,
+}
+
+const LayoutDataTablesRouteWithChildren =
+  LayoutDataTablesRoute._addFileChildren(LayoutDataTablesRouteChildren)
+
+interface LayoutInvoiceHistoryRouteChildren {
+  LayoutInvoiceHistoryInvoiceIdRoute: typeof LayoutInvoiceHistoryInvoiceIdRoute
+  LayoutInvoiceHistoryIndexRoute: typeof LayoutInvoiceHistoryIndexRoute
+}
+
+const LayoutInvoiceHistoryRouteChildren: LayoutInvoiceHistoryRouteChildren = {
+  LayoutInvoiceHistoryInvoiceIdRoute: LayoutInvoiceHistoryInvoiceIdRoute,
+  LayoutInvoiceHistoryIndexRoute: LayoutInvoiceHistoryIndexRoute,
+}
+
+const LayoutInvoiceHistoryRouteWithChildren =
+  LayoutInvoiceHistoryRoute._addFileChildren(LayoutInvoiceHistoryRouteChildren)
+
+interface LayoutItemsRouteChildren {
+  LayoutItemsItemIdRoute: typeof LayoutItemsItemIdRoute
+  LayoutItemsIndexRoute: typeof LayoutItemsIndexRoute
+}
+
+const LayoutItemsRouteChildren: LayoutItemsRouteChildren = {
+  LayoutItemsItemIdRoute: LayoutItemsItemIdRoute,
+  LayoutItemsIndexRoute: LayoutItemsIndexRoute,
+}
+
+const LayoutItemsRouteWithChildren = LayoutItemsRoute._addFileChildren(
+  LayoutItemsRouteChildren,
+)
+
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
-  LayoutDataTablesRoute: typeof LayoutDataTablesRoute
-  LayoutItemsRoute: typeof LayoutItemsRoute
+  LayoutCreateChallanRoute: typeof LayoutCreateChallanRoute
+  LayoutCreateInvoiceRoute: typeof LayoutCreateInvoiceRoute
+  LayoutCreateProformaRoute: typeof LayoutCreateProformaRoute
+  LayoutCreateQuotationRoute: typeof LayoutCreateQuotationRoute
+  LayoutCustomersRoute: typeof LayoutCustomersRouteWithChildren
+  LayoutDashboardRoute: typeof LayoutDashboardRoute
+  LayoutDataTablesRoute: typeof LayoutDataTablesRouteWithChildren
+  LayoutInsightsRoute: typeof LayoutInsightsRoute
+  LayoutInvoiceHistoryRoute: typeof LayoutInvoiceHistoryRouteWithChildren
+  LayoutInvoiceTemplatesRoute: typeof LayoutInvoiceTemplatesRoute
+  LayoutInvoicesRoute: typeof LayoutInvoicesRoute
+  LayoutItemsRoute: typeof LayoutItemsRouteWithChildren
+  LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutProfileRoute: typeof LayoutProfileRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
-  LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutTemplateBuilderRoute: typeof LayoutTemplateBuilderRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
-  LayoutDataTablesRoute: LayoutDataTablesRoute,
-  LayoutItemsRoute: LayoutItemsRoute,
+  LayoutCreateChallanRoute: LayoutCreateChallanRoute,
+  LayoutCreateInvoiceRoute: LayoutCreateInvoiceRoute,
+  LayoutCreateProformaRoute: LayoutCreateProformaRoute,
+  LayoutCreateQuotationRoute: LayoutCreateQuotationRoute,
+  LayoutCustomersRoute: LayoutCustomersRouteWithChildren,
+  LayoutDashboardRoute: LayoutDashboardRoute,
+  LayoutDataTablesRoute: LayoutDataTablesRouteWithChildren,
+  LayoutInsightsRoute: LayoutInsightsRoute,
+  LayoutInvoiceHistoryRoute: LayoutInvoiceHistoryRouteWithChildren,
+  LayoutInvoiceTemplatesRoute: LayoutInvoiceTemplatesRoute,
+  LayoutInvoicesRoute: LayoutInvoicesRoute,
+  LayoutItemsRoute: LayoutItemsRouteWithChildren,
+  LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutProfileRoute: LayoutProfileRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
-  LayoutIndexRoute: LayoutIndexRoute,
+  LayoutTemplateBuilderRoute: LayoutTemplateBuilderRoute,
 }
 
 const LayoutRouteWithChildren =
   LayoutRoute._addFileChildren(LayoutRouteChildren)
 
-interface DataTablesRouteChildren {
-  DataTablesTableIdRoute: typeof DataTablesTableIdRoute
-}
-
-const DataTablesRouteChildren: DataTablesRouteChildren = {
-  DataTablesTableIdRoute: DataTablesTableIdRoute,
-}
-
-const DataTablesRouteWithChildren = DataTablesRoute._addFileChildren(
-  DataTablesRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   LayoutRoute: LayoutRouteWithChildren,
-  DataTablesRoute: DataTablesRouteWithChildren,
   LoginRoute: LoginRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
