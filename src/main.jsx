@@ -10,6 +10,12 @@ import "./index.css"
 import { queryClient } from "./queryClient"
 import { routeTree } from "./routeTree.gen"
 
+const isProduction = import.meta.env.PROD
+
+if (isProduction && !import.meta.env.VITE_API_URL) {
+  throw new Error("VITE_API_URL is required in production")
+}
+
 OpenAPI.BASE = import.meta.env.VITE_API_URL || "http://localhost:8000"
 OpenAPI.WITH_CREDENTIALS = true
 
