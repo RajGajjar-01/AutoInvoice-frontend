@@ -23,7 +23,14 @@ export const invoiceTemplateActiveQueryOptions = () =>
   queryOptions({
     queryKey: invoiceTemplatesQueryKeys.active(),
     queryFn: async () => {
-      return invoiceTemplatesApi.getActive()
+      try {
+        return await invoiceTemplatesApi.getActive()
+      } catch (error) {
+        if (error?.response?.status === 404) {
+          return null
+        }
+        throw error
+      }
     },
     retry: false,
   })

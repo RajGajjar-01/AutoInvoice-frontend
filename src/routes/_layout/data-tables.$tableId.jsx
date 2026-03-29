@@ -126,25 +126,8 @@ function TableViewPage() {
   const { data: currentTable } = useSuspenseQuery(
     tableDetailQueryOptions(tableId),
   )
-  const table = currentTable
-
-  // ── Table not found ────────────────────────────────────────────────────────
-  if (!table) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
-        <h2 className="text-lg font-semibold">Table not found</h2>
-        <p className="text-sm text-muted-foreground">
-          This table may have been deleted or the link is invalid.
-        </p>
-        <Button
-          variant="outline"
-          onClick={() => navigate({ to: "/data-tables" })}
-        >
-          ← Back to Data Tables
-        </Button>
-      </div>
-    )
-  }
+  const cols = currentTable?.columns ?? []
+  const allRows = currentTable?.rows ?? []
 
   const uiRowToApiData = (row, cols, patch) => {
     const data = {}
@@ -269,7 +252,22 @@ function TableViewPage() {
   }
 
   const handleAddRow = () => {
-    createRowMutation.mutate({})
+    const defaultData = {}
+    for (const col of cols) {
+      const colName = col.name || col
+      const isMandatory = col.mandatory === true
+      if (isMandatory) {
+        const colType = col.type || "Text"
+        if (colType === "Number" || colType === "Currency") {
+          defaultData[colName] = 0
+        } else if (colType === "Checkbox") {
+          defaultData[colName] = false
+        } else {
+          defaultData[colName] = ""
+        }
+      }
+    }
+    createRowMutation.mutate(defaultData)
   }
 
   const handleAddRowWithData = (rowLike) => {
@@ -331,8 +329,6 @@ function TableViewPage() {
   }
 
   // ── Re-read after mutations ────────────────────────────────────────────────
-  const allRows = currentTable.rows
-  const cols = currentTable.columns
 
   // Set of rowIds that have at least one active reminder
   const rowsWithReminders = new Set(

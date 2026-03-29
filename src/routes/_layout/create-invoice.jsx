@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import axios from "axios"
@@ -16,6 +17,8 @@ import {
   Truck,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 import { CustomersService, InvoicesService } from "@/client/sdk.gen"
 import { ModernExcelTable } from "@/components/modern-excel-table"
 import { Button } from "@/components/ui/button"
@@ -26,6 +29,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -56,6 +67,45 @@ export const Route = createFileRoute("/_layout/create-invoice")({
   head: () => ({
     meta: [{ title: "Create Invoice" }],
   }),
+})
+
+const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
+
+const invoiceFormSchema = z.object({
+  customerName: z.string().min(1, { message: "Customer name is required" }),
+  customerPhone: z.string().optional(),
+  customerEmail: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .or(z.literal(""))
+    .optional(),
+  customerGst: z
+    .string()
+    .refine((v) => !v || gstinRegex.test(v.toUpperCase()), {
+      message: "Invalid GSTIN format (e.g. 22AAAAA0000A1Z5)",
+    })
+    .optional(),
+  customerAddress: z.string().optional(),
+  invoiceDate: z.string().min(1, { message: "Invoice date is required" }),
+  dueDate: z.string().optional(),
+  currency: z.enum(["INR", "USD", "EUR", "GBP", "AED", "SGD"]),
+  poNumber: z.string().optional(),
+  placeOfSupply: z.string().optional(),
+  reverseCharge: z.boolean().optional(),
+  discountType: z.enum(["percent", "flat"]).optional(),
+  discountValue: z.coerce.number().nonnegative().optional(),
+  shippingCharge: z.coerce.number().nonnegative().optional(),
+  extraChargeLabel: z.string().optional(),
+  extraChargeAmount: z.coerce.number().nonnegative().optional(),
+  roundOff: z.boolean().optional(),
+  bankName: z.string().optional(),
+  accountName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifsc: z.string().optional(),
+  branch: z.string().optional(),
+  upi: z.string().optional(),
+  notes: z.string().optional(),
+  paymentTerms: z.string().optional(),
 })
 
 function generateInvoiceNumber() {
@@ -94,7 +144,7 @@ function CreateInvoicePage() {
 
   const _customTemplate =
     activeTemplate?.kind === "custom" ? activeTemplate?.custom_data : null
-  const importedTemplate =
+  const _importedTemplate =
     activeTemplate?.kind === "imported_pdf"
       ? {
           type: "pdf",
@@ -123,43 +173,49 @@ function CreateInvoicePage() {
   const customers = customersRes?.data ?? []
 
   const [selectedCustomerId, setSelectedCustomerId] = useState("")
-  const [customerDetails, setCustomerDetails] = useState({
-    name: "",
-    address: "",
-    gst: "",
-    phone: "",
-    email: "",
+  const [invoiceNumber] = useState(generateInvoiceNumber)
+  const [items, setItems] = useState([{ ...emptyItem }])
+  const [showBankDetails, setShowBankDetails] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+
+  const form = useForm({
+    resolver: zodResolver(invoiceFormSchema),
+    defaultValues: {
+      customerName: "",
+      customerPhone: "",
+      customerEmail: "",
+      customerGst: "",
+      customerAddress: "",
+      invoiceDate: new Date().toISOString().slice(0, 10),
+      dueDate: "",
+      currency: "INR",
+      poNumber: "",
+      placeOfSupply: "",
+      reverseCharge: false,
+      discountType: "percent",
+      discountValue: "",
+      shippingCharge: "",
+      extraChargeLabel: "Handling Charges",
+      extraChargeAmount: "",
+      roundOff: false,
+      bankName: "",
+      accountName: "",
+      accountNumber: "",
+      ifsc: "",
+      branch: "",
+      upi: "",
+      notes: "",
+      paymentTerms: "",
+    },
   })
 
-  const [invoiceNumber] = useState(generateInvoiceNumber)
-  const [invoiceDate, setInvoiceDate] = useState(
-    new Date().toISOString().slice(0, 10),
-  )
-  const [dueDate, setDueDate] = useState("")
-  const [currency, setCurrency] = useState("INR")
-  const [poNumber, setPoNumber] = useState("")
-  const [placeOfSupply, setPlaceOfSupply] = useState("")
-  const [reverseCharge, setReverseCharge] = useState(false)
-  const [items, setItems] = useState([{ ...emptyItem }])
-  const [notes, setNotes] = useState("")
-  const [paymentTerms, setPaymentTerms] = useState("")
-  // Invoice-level adjustments
-  const [discountType, setDiscountType] = useState("percent") // "percent" | "flat"
-  const [discountValue, setDiscountValue] = useState(0)
-  const [shippingCharge, setShippingCharge] = useState(0)
-  const [extraChargeLabel, setExtraChargeLabel] = useState("Handling Charges")
-  const [extraChargeAmount, setExtraChargeAmount] = useState(0)
-  const [roundOff, setRoundOff] = useState(false)
-  const [showBankDetails, setShowBankDetails] = useState(false)
-  const [bankDetails, setBankDetails] = useState({
-    bankName: "",
-    accountName: "",
-    accountNumber: "",
-    ifsc: "",
-    branch: "",
-    upi: "",
-  })
-  const [previewOpen, setPreviewOpen] = useState(false)
+  const discountType = form.watch("discountType")
+  const discountValue = form.watch("discountValue") || 0
+  const shippingCharge = form.watch("shippingCharge") || 0
+  const extraChargeAmount = form.watch("extraChargeAmount") || 0
+  const extraChargeLabel = form.watch("extraChargeLabel") || "Handling Charges"
+  const roundOff = form.watch("roundOff") || false
+  const currency = form.watch("currency")
 
   const createCustomerMutation = useMutation({
     mutationFn: async (payload) => {
@@ -187,29 +243,28 @@ function CreateInvoicePage() {
     (value) => {
       setSelectedCustomerId(value)
       if (value === "__new__") {
-        setCustomerDetails({
-          name: "",
-          address: "",
-          gst: "",
-          phone: "",
-          email: "",
+        form.reset({
+          ...form.getValues(),
+          customerName: "",
+          customerPhone: "",
+          customerEmail: "",
+          customerGst: "",
+          customerAddress: "",
         })
         return
       }
       const c = customers.find((cust) => cust.id === value)
       if (c) {
-        setCustomerDetails({
-          name: c.name || "",
-          address: c.billingAddress || c.address || "",
-          gst: c.gstin || c.gst || "",
-          phone: c.phone || "",
-          email: c.email || "",
-        })
-        if (c.paymentTerms) setPaymentTerms(c.paymentTerms)
-        if (c.notes) setNotes(c.notes)
+        form.setValue("customerName", c.name || "")
+        form.setValue("customerPhone", c.phone || "")
+        form.setValue("customerEmail", c.email || "")
+        form.setValue("customerGst", c.gstin || c.gst || "")
+        form.setValue("customerAddress", c.billingAddress || c.address || "")
+        if (c.paymentTerms) form.setValue("paymentTerms", c.paymentTerms)
+        if (c.notes) form.setValue("notes", c.notes)
       }
     },
-    [customers],
+    [customers, form],
   )
 
   const handleItemSelect = useCallback(
@@ -236,7 +291,6 @@ function CreateInvoicePage() {
     [inventoryItems],
   )
 
-  // Pre-select customer and/or item if navigated from their detail pages
   useEffect(() => {
     if (preselectedCustomerId && customers.length > 0) {
       handleCustomerSelect(preselectedCustomerId)
@@ -300,14 +354,12 @@ function CreateInvoicePage() {
         itemDisc += disc
         tax += lineTax
       }
-      // Invoice-level discount
       const taxableAfterItemDisc = sub - itemDisc
       const invDisc =
         discountType === "flat"
           ? Math.min(discountValue, taxableAfterItemDisc)
           : taxableAfterItemDisc * (discountValue / 100)
       const netBeforeTax = taxableAfterItemDisc - invDisc
-      // Recalculate tax on net if per-item tax is used (approximate redistribution)
       const effectiveTaxRate = sub > 0 ? tax / sub : 0
       const adjustedTax = netBeforeTax * effectiveTaxRate
       const beforeAdjustments =
@@ -344,21 +396,21 @@ function CreateInvoicePage() {
             ? "£"
             : currency
 
-  const buildInvoiceData = () => ({
+  const buildInvoiceData = (formData) => ({
     invoice_number: invoiceNumber,
     document_type: documentType,
-    invoice_date: invoiceDate,
-    due_date: dueDate || null,
-    currency,
+    invoice_date: formData.invoiceDate,
+    due_date: formData.dueDate || null,
+    currency: formData.currency,
     subtotal,
     total_tax: totalTax,
     grand_total: grandTotal,
     discount: invoiceDiscount || 0,
-    notes: notes || null,
-    payment_terms: paymentTerms || null,
+    notes: formData.notes || null,
+    payment_terms: formData.paymentTerms || null,
     status: "unpaid",
-    place_of_supply: placeOfSupply || null,
-    reverse_charge: reverseCharge,
+    place_of_supply: formData.placeOfSupply || null,
+    reverse_charge: formData.reverseCharge || false,
     customer_id: "",
     items: (items ?? [])
       .filter((i) => i.name)
@@ -373,11 +425,7 @@ function CreateInvoicePage() {
       })),
   })
 
-  const handleSave = async () => {
-    if (!customerDetails.name) {
-      showErrorToast("Please select or enter a customer")
-      return
-    }
+  const onSubmit = async (formData) => {
     if (items.length === 0 || !items[0].name) {
       showErrorToast("Please add at least one item")
       return
@@ -390,18 +438,18 @@ function CreateInvoicePage() {
 
       if (!customerId || customerId === "__new__") {
         const created = await createCustomerMutation.mutateAsync({
-          name: customerDetails.name,
-          phone: customerDetails.phone || null,
-          email: customerDetails.email || null,
-          address: customerDetails.address || null,
-          gst: customerDetails.gst || null,
-          notes: notes || null,
+          name: formData.customerName,
+          phone: formData.customerPhone || null,
+          email: formData.customerEmail || null,
+          address: formData.customerAddress || null,
+          gst: formData.customerGst ? formData.customerGst.toUpperCase() : null,
+          notes: formData.notes || null,
         })
         customerId = created.id
         setSelectedCustomerId(created.id)
       }
 
-      const payload = buildInvoiceData()
+      const payload = buildInvoiceData(formData)
       payload.customer_id = customerId
 
       await createInvoiceMutation.mutateAsync(payload)
@@ -411,7 +459,6 @@ function CreateInvoicePage() {
       showErrorToast("Failed to save invoice")
     }
 
-    // Deduct stock for items that have an itemId linked
     let _stockDeducted = false
     setInventoryItems((prev) => {
       const newInventory = [...prev]
@@ -421,7 +468,7 @@ function CreateInvoicePage() {
         if (idx === -1) return
 
         const currentStock = newInventory[idx].stock || 0
-        if (currentStock <= 0) return // Already zero or negative, skip deduction or let it go negative? Let's allow negative for now so records match reality
+        if (currentStock <= 0) return
 
         newInventory[idx] = {
           ...newInventory[idx],
@@ -441,16 +488,25 @@ function CreateInvoicePage() {
       return newInventory
     })
 
-    // Reset guard after short delay so user can save again if needed
     setTimeout(() => {
       savedRef.current = false
     }, 1000)
   }
 
-  // ─── Template-aware invoice HTML builder ─────────────────────────────────────
+  const _handleSave = () => {
+    form.handleSubmit(onSubmit)()
+  }
+
   const buildInvoiceHtml = () => {
+    const formData = form.getValues()
     const cs = currencySymbol
-    const cd = customerDetails
+    const cd = {
+      name: formData.customerName,
+      address: formData.customerAddress,
+      gst: formData.customerGst,
+      phone: formData.customerPhone,
+      email: formData.customerEmail,
+    }
     const biz = companyDetails || {}
     const validItems = items.filter((i) => i.name)
 
@@ -467,7 +523,14 @@ function CreateInvoicePage() {
       biz.invoiceFooter || "Thank you for your business!"
 
     const activeBankDetails = showBankDetails
-      ? bankDetails
+      ? {
+          bankName: formData.bankName || "",
+          accountName: formData.accountName || "",
+          accountNumber: formData.accountNumber || "",
+          ifsc: formData.ifsc || "",
+          branch: formData.branch || "",
+          upi: formData.upi || "",
+        }
       : biz.bankName || biz.accountNumber || biz.upi
         ? {
             bankName: biz.bankName || "",
@@ -479,7 +542,6 @@ function CreateInvoicePage() {
           }
         : null
 
-    // ── Shared: compute rows with totals ────────────────────────────────────────
     const computedRows = validItems.map((item, idx) => {
       const lineBase = item.quantity * item.price
       const disc =
@@ -546,11 +608,13 @@ function CreateInvoicePage() {
             .join(" &nbsp;|&nbsp; ")
         : ""
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // TEMPLATE 1: CLEAN TEAL
-    // Layout: Big cyan INVOICE title top-left, date box top-right, FROM/BILL TO
-    // 2 columns, bordered SL/Description/Amount table, Note at bottom
-    // ─────────────────────────────────────────────────────────────────────────
+    const notes = formData.notes || ""
+    const paymentTerms = formData.paymentTerms || ""
+    const invoiceDate = formData.invoiceDate
+    const dueDate = formData.dueDate
+    const poNumber = formData.poNumber
+    const placeOfSupply = formData.placeOfSupply
+
     if (selectedTemplate === "clean-teal") {
       const rows = computedRows
         .map(
@@ -584,11 +648,7 @@ function CreateInvoicePage() {
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
-
-  <!-- CONTENT GROWS -->
   <div style="flex:1;padding:48px 52px 32px;display:flex;flex-direction:column">
-
-    <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px">
       <p style="font-size:56px;font-weight:900;color:#0E7490;letter-spacing:-3px;line-height:1">INVOICE</p>
       <div style="text-align:right;border:1px solid #e2e8f0;padding:14px 18px;font-size:12px;color:#555;min-width:200px">
@@ -598,8 +658,6 @@ function CreateInvoicePage() {
         ${poNumber ? `<div><span style="color:#94a3b8">PO #:</span> ${poNumber}</div>` : ""}
       </div>
     </div>
-
-    <!-- FROM / BILL TO -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:36px">
       <div>
         <div style="font-size:11px;font-weight:700;color:#555;border-bottom:2.5px solid #0E7490;padding-bottom:5px;margin-bottom:10px;text-transform:uppercase">From</div>
@@ -620,8 +678,6 @@ function CreateInvoicePage() {
         ${placeOfSupply ? `<p style="color:#9ca3af;font-size:11px">Place of Supply: ${placeOfSupply}</p>` : ""}
       </div>
     </div>
-
-    <!-- Table -->
     <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1">
       <thead><tr style="background:#0E7490;color:#fff">
         <th style="padding:11px 10px;font-size:11px;text-align:center;width:40px">SL</th>
@@ -630,30 +686,16 @@ function CreateInvoicePage() {
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-
-    <!-- Summary section out of table -->
     <div style="display:flex;justify-content:flex-end;margin-top:20px;margin-bottom:20px">
       <table style="border-collapse:collapse;min-width:240px">
-        ${summaryEntries
-          .map(
-            (e) => `
-          <tr>
-            <td style="padding:6px 20px 6px 0;font-size:12px;color:#64748b;text-align:right">${e.label}</td>
-            <td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td>
-          </tr>
-        `,
-          )
-          .join("")}
+        ${summaryEntries.map((e) => `<tr><td style="padding:6px 20px 6px 0;font-size:12px;color:#64748b;text-align:right">${e.label}</td><td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td></tr>`).join("")}
         <tr>
           <td style="padding:12px 20px 12px 0;font-size:14px;font-weight:700;color:#0E7490;text-align:right;border-top:2px solid #0E7490">Grand Total</td>
           <td style="padding:12px 0;font-size:24px;font-weight:900;color:#0E7490;text-align:right;font-family:monospace;border-top:2px solid #0E7490">${cs}${grandTotal.toFixed(2)}</td>
         </tr>
       </table>
     </div>
-
     ${noteHtml ? `<div style="padding:12px;font-size:11px;border:1px solid #e2e8f0;background:#f8fafc;margin-bottom:20px"><strong>Note:</strong> ${notes || paymentTerms}</div>` : ""}
-
-    <!-- Note & Bank -->
     <div style="margin-top:auto;padding-top:32px;display:flex;justify-content:space-between;align-items:flex-end">
       <div style="max-width:320px">
         ${bankHtml ? `<div style="padding:14px 16px;background:#f0fdfe;border:1px solid #cffafe;font-size:12px;color:#555">${bankHtml}</div>` : ""}
@@ -667,24 +709,15 @@ function CreateInvoicePage() {
         </div>
       </div>
     </div>
-
   </div>
-
-  <!-- FOOTER pinned bottom -->
   <div style="background:#0E7490;padding:14px 52px;display:flex;justify-content:space-between;align-items:center;margin-top:auto">
     <p style="color:rgba(255,255,255,0.9);font-size:12px;font-style:italic">${invoiceFooterNote}</p>
     <p style="color:rgba(255,255,255,0.55);font-size:10px">Generated by AutoInvoice</p>
   </div>
-
 </div>
 </body></html>`
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // TEMPLATE 2: GEOMETRIC
-    // Layout: Bold "INVOICE" top-left, teal+pink triangle corners, date+issued to
-    // 2 cols, NO/DESC/QTY/PRICE/SUBTOTAL table with bordered rows, signature line
-    // ─────────────────────────────────────────────────────────────────────────
     if (selectedTemplate === "geometric") {
       const rows = computedRows
         .map(
@@ -717,29 +750,15 @@ function CreateInvoicePage() {
         )
         .join("")
 
-      const _sumRows = summaryEntries
-        .map(
-          (e) =>
-            `<tr><td style="padding:5px 0;font-size:12px;color:#64748b;text-align:right;padding-right:20px">${e.label}</td><td style="padding:5px 0;font-size:12px;text-align:right;color:${e.red ? "#ef4444" : "#1a1a1a"};font-family:monospace">${e.value}</td></tr>`,
-        )
-        .join("")
-
       return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;overflow:hidden">
-
-  <!-- Corner accent triangles -->
   <div style="position:fixed;top:0;right:0;width:0;height:0;border-left:90px solid transparent;border-top:90px solid #0F766E;pointer-events:none"></div>
   <div style="position:fixed;top:0;right:50px;width:0;height:0;border-left:45px solid transparent;border-top:45px solid #EC4899;pointer-events:none"></div>
   <div style="position:fixed;bottom:0;left:0;width:0;height:0;border-right:70px solid transparent;border-bottom:70px solid #EC4899;pointer-events:none"></div>
-
-  <!-- CONTENT GROWS -->
   <div style="flex:1;padding:52px 52px 36px;display:flex;flex-direction:column">
-
     <p style="font-size:48px;font-weight:900;letter-spacing:-2px;color:#1a1a1a;margin-bottom:36px;line-height:1">INVOICE</p>
-
-    <!-- Date + From/Issued To -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:36px">
       <div style="font-size:12px;color:#555">
         <p style="margin-bottom:8px">Date Issued:<br><strong style="font-size:13px;color:#1a1a1a">${invoiceDate}</strong></p>
@@ -753,7 +772,6 @@ function CreateInvoicePage() {
         ${bizAddress ? `<p style="color:#64748b;font-size:11px;margin-top:2px">${bizAddress}</p>` : ""}
         ${bizPhone ? `<p style="color:#64748b;font-size:11px">${bizPhone}</p>` : ""}
         ${bizGstin ? `<p style="color:#64748b;font-size:11px">GSTIN: ${bizGstin}</p>` : ""}
-
         <p style="color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:16px;margin-bottom:6px">Issued To</p>
         <p style="font-weight:700;font-size:13px">${cd.name || "—"}</p>
         ${cd.address ? `<p style="color:#64748b;font-size:11px;margin-top:2px;line-height:1.5">${cd.address}</p>` : ""}
@@ -762,8 +780,6 @@ function CreateInvoicePage() {
         ${cd.gst ? `<p style="color:#64748b;font-size:11px">GSTIN: ${cd.gst}</p>` : ""}
       </div>
     </div>
-
-    <!-- Items table -->
     <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0">
       <thead><tr style="background:#f8f8f8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#666">
         <th style="padding:11px 10px;text-align:center;width:40px;border-bottom:1px solid #e2e8f0">NO</th>
@@ -774,29 +790,15 @@ function CreateInvoicePage() {
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-
-    <!-- Summary section out of table -->
     <div style="display:flex;justify-content:flex-end;margin-top:20px;margin-bottom:20px">
       <table style="border-collapse:collapse;min-width:260px">
-        ${summaryEntries
-          .map(
-            (e) => `
-          <tr>
-            <td style="padding:6px 20px 6px 0;font-size:12px;color:#64748b;text-align:right">${e.label}</td>
-            <td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td>
-          </tr>
-        `,
-          )
-          .join("")}
+        ${summaryEntries.map((e) => `<tr><td style="padding:6px 20px 6px 0;font-size:12px;color:#64748b;text-align:right">${e.label}</td><td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td></tr>`).join("")}
         <tr>
           <td style="padding:12px 20px 12px 0;font-size:14px;font-weight:700;color:#1a1a1a;text-align:right;border-top:1.5px solid #e2e8f0">Grand Total</td>
           <td style="padding:12px 0;font-size:24px;font-weight:900;color:#0F766E;text-align:right;font-family:monospace;border-top:1.5px solid #e2e8f0">${cs}${grandTotal.toFixed(2)}</td>
         </tr>
       </table>
     </div>
-
-
-    <!-- Summary + Signature -->
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:48px">
       <div style="max-width:320px">
         ${bankHtml ? `<p style="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a1a1a">Payment Details:</p><p style="font-size:12px;color:#64748b;line-height:1.6">${bankHtml}</p>` : ""}
@@ -810,25 +812,15 @@ function CreateInvoicePage() {
         </div>
       </div>
     </div>
-
   </div>
-
-  <!-- FOOTER pinned bottom -->
   <div style="background:#0F766E;padding:14px 52px;display:flex;justify-content:space-between;align-items:center;margin-top:auto;position:relative;z-index:2">
     <p style="color:rgba(255,255,255,0.9);font-size:12px;font-style:italic">${invoiceFooterNote}</p>
     <p style="color:rgba(255,255,255,0.55);font-size:10px">Generated by AutoInvoice</p>
   </div>
-
 </div>
 </body></html>`
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // TEMPLATE 3: CIRCLE STUDIO
-    // Layout: Centered circle logo header, minimalist b&w, clean type,
-    // Description/Unit Price/QTY/Total table, bank details bottom-left,
-    // "thank you" italic script bottom-right
-    // ─────────────────────────────────────────────────────────────────────────
     if (selectedTemplate === "circle-studio") {
       const rows = computedRows
         .map(
@@ -856,23 +848,11 @@ function CreateInvoicePage() {
         )
         .join("")
 
-      const _sumRows = summaryEntries
-        .filter((e) => e.label !== "Subtotal")
-        .map(
-          (e) =>
-            `<tr><td style="padding:4px 16px 4px 0;font-size:12px;color:#6b7280">${e.label}</td><td style="padding:4px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td></tr>`,
-        )
-        .join("")
-
       return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
-
-  <!-- CONTENT GROWS -->
   <div style="flex:1;padding:48px 52px 36px;display:flex;flex-direction:column">
-
-    <!-- Centered logo -->
     <div style="text-align:center;margin-bottom:36px">
       <div style="width:80px;height:80px;border-radius:50%;border:2.5px solid #1a1a1a;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:8px">
         ${
@@ -883,8 +863,6 @@ function CreateInvoicePage() {
       </div>
       <p style="font-size:11px;color:#9ca3af;letter-spacing:1px;text-transform:uppercase">${bizTagline || bizEmail || bizName}</p>
     </div>
-
-    <!-- Issued to + Invoice no -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:32px">
       <div>
         <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">ISSUED TO:</p>
@@ -902,8 +880,6 @@ function CreateInvoicePage() {
         ${poNumber ? `<p style="font-size:12px;color:#6b7280">PO: ${poNumber}</p>` : ""}
       </div>
     </div>
-
-    <!-- Table -->
     <table style="width:100%;border-collapse:collapse">
       <thead><tr style="border-top:2.5px solid #1a1a1a;border-bottom:2.5px solid #1a1a1a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">
         <th style="padding:11px 14px;text-align:left">DESCRIPTION</th>
@@ -913,30 +889,14 @@ function CreateInvoicePage() {
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-
-    <!-- Summary section out of table -->
     <div style="display:flex;justify-content:flex-end;margin-top:20px;margin-bottom:20px">
       <table style="border-collapse:collapse;min-width:240px">
-        ${summaryEntries
-          .map(
-            (e) => `
-          <tr>
-            <td style="padding:6px 24px 6px 0;font-size:12px;color:#6b7280;text-align:right;text-transform:uppercase;letter-spacing:1px">${e.label}</td>
-            <td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td>
-          </tr>
-        `,
-          )
-          .join("")}
+        ${summaryEntries.map((e) => `<tr><td style="padding:6px 24px 6px 0;font-size:12px;color:#6b7280;text-align:right;text-transform:uppercase;letter-spacing:1px">${e.label}</td><td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td></tr>`).join("")}
       </table>
     </div>
-
-    <!-- Total line -->
     <div style="border-top:2.5px solid #1a1a1a;border-bottom:2.5px solid #1a1a1a;padding:12px 0;display:flex;justify-content:space-between;font-weight:900;font-size:24px;margin-top:0">
       <span style="letter-spacing:2px">AMOUNT DUE</span><span style="font-family:monospace">${cs}${grandTotal.toFixed(2)}</span>
     </div>
-
-
-    <!-- Bank + Thank you -->
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:48px">
       <div style="font-size:12px;color:#6b7280;max-width:280px">
         ${
@@ -978,25 +938,15 @@ function CreateInvoicePage() {
         <p style="font-size:11px;color:#9ca3af;margin-top:4px">${invoiceFooterNote}</p>
       </div>
     </div>
-
   </div>
-
-  <!-- FOOTER pinned bottom -->
   <div style="border-top:2px solid #1a1a1a;padding:12px 52px;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;margin-top:auto">
     <p style="font-size:12px;color:#6b7280">${bizName} &bull; ${bizEmail || bizPhone}</p>
     <p style="font-size:10px;color:#9ca3af">Generated by AutoInvoice</p>
   </div>
-
 </div>
 </body></html>`
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // TEMPLATE 4: AIZEN BOLD
-    // Layout: Company logo top-left with geometric black+red triangles top-right,
-    // big centered "INVOICE" title, invoice meta in 3 cols, light table with
-    // alternating rows, red "Total" badge at bottom-right
-    // ─────────────────────────────────────────────────────────────────────────
     if (selectedTemplate === "aizen-bold") {
       const rows = computedRows
         .map(
@@ -1030,8 +980,6 @@ function CreateInvoicePage() {
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
-
-  <!-- Company header + geometric accents -->
   <div style="padding:24px 44px 20px;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #e5e7eb">
     <div style="position:absolute;top:0;right:0;width:0;height:0;border-left:70px solid transparent;border-top:70px solid #1a1a1a"></div>
     <div style="position:absolute;top:0;right:38px;width:0;height:0;border-left:36px solid transparent;border-top:36px solid #ef4444"></div>
@@ -1045,11 +993,7 @@ function CreateInvoicePage() {
       <p style="font-size:10px;color:#9ca3af;letter-spacing:2px;text-transform:uppercase">${bizTagline || "Professional Services"}</p>
     </div>
   </div>
-
-  <!-- INVOICE title centered -->
   <p style="text-align:center;font-weight:900;font-size:30px;letter-spacing:8px;padding:14px 0;border-bottom:1px solid #e5e7eb;margin:0">INVOICE</p>
-
-  <!-- Invoice meta 3 cols -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:20px 44px;border-bottom:1px solid #e5e7eb;font-size:12px">
     <div>
       <p style="color:#9ca3af;margin-bottom:4px;font-size:10px;text-transform:uppercase;letter-spacing:1px">Invoice To:</p>
@@ -1073,10 +1017,7 @@ function CreateInvoicePage() {
       ${poNumber ? `<p style="color:#6b7280">PO #: ${poNumber}</p>` : ""}
     </div>
   </div>
-
-  <!-- CONTENT GROWS -->
   <div style="flex:1;padding:0 44px 36px;display:flex;flex-direction:column">
-    <!-- Items table -->
     <table style="width:100%;border-collapse:collapse;margin-top:20px">
       <thead><tr style="background:#f3f4f6;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280">
         <th style="padding:11px 14px;text-align:left">Description</th>
@@ -1086,20 +1027,9 @@ function CreateInvoicePage() {
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-
-    <!-- Summary section out of table -->
     <div style="display:flex;justify-content:flex-end;margin-top:24px;margin-bottom:24px">
       <table style="border-collapse:collapse;min-width:280px">
-        ${summaryEntries
-          .map(
-            (e) => `
-          <tr>
-            <td style="padding:6px 24px 6px 0;font-size:12px;color:#6b7280;text-align:right;text-transform:uppercase;letter-spacing:1px">${e.label}</td>
-            <td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td>
-          </tr>
-        `,
-          )
-          .join("")}
+        ${summaryEntries.map((e) => `<tr><td style="padding:6px 24px 6px 0;font-size:12px;color:#6b7280;text-align:right;text-transform:uppercase;letter-spacing:1px">${e.label}</td><td style="padding:6px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1a1a1a"}">${e.value}</td></tr>`).join("")}
         <tr>
           <td style="padding:16px 24px 16px 0;font-size:16px;font-weight:900;color:#1a1a1a;text-align:right;text-transform:uppercase;letter-spacing:1px">Grand Total</td>
           <td style="padding:0;text-align:right">
@@ -1110,8 +1040,6 @@ function CreateInvoicePage() {
         </tr>
       </table>
     </div>
-
-    <!-- Bank + Notes -->
     <div style="margin-top:auto;padding-top:40px;display:flex;justify-content:space-between;align-items:flex-end">
       <div style="max-width:320px">
         ${bankHtml ? `<div style="font-size:12px;color:#6b7280"><strong style="color:#1a1a1a">Payment Details</strong><br>${bankHtml}</div>` : ""}
@@ -1126,195 +1054,14 @@ function CreateInvoicePage() {
       </div>
     </div>
   </div>
-
-  <!-- FOOTER pinned bottom -->
   <div style="background:#1a1a1a;padding:14px 44px;display:flex;justify-content:space-between;align-items:center;margin-top:auto">
-    <p style="color:rgba(255,255,255,0.8);font-size:12px;font-style:italic">${invoiceFooterNote}</p>
-    <p style="color:rgba(255,255,255,0.4);font-size:10px">Generated by AutoInvoice</p>
+    <p style="color:rgba(255,255,255,0.9);font-size:12px">${invoiceFooterNote}</p>
+    <p style="color:rgba(255,255,255,0.55);font-size:10px">Generated by AutoInvoice</p>
   </div>
-
 </div>
 </body></html>`
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // TEMPLATE 5: SIMPLE BOXED / NAVY CORPORATE
-    // Layout: Full dark navy header (logo left, INVOICE right), light blue-grey
-    // company strip, clean 2-col billed-to/invoice-details, numbered table,
-    // navy "AMOUNT DUE" box footer
-    // ─────────────────────────────────────────────────────────────────────────
-    if (selectedTemplate === "simple-boxed") {
-      const rows = computedRows
-        .map(
-          (r, i) =>
-            '<tr style="background:' +
-            (i % 2 === 0 ? "#fff" : "#f8f9fb") +
-            ';border-bottom:1px solid #edf0f5">' +
-            '<td style="padding:11px 10px;font-size:12px;text-align:center;color:#6b7280;width:40px;border-right:1px solid #edf0f5">' +
-            (i + 1) +
-            "</td>" +
-            '<td style="padding:11px 14px;font-size:12px;color:#1e2d5b">' +
-            r.item.name +
-            (r.item.description
-              ? `<div style="font-size:10px;color:#9ca3af;margin-top:2px">${r.item.description}</div>`
-              : "") +
-            "</td>" +
-            '<td style="padding:11px 14px;font-size:12px;text-align:center;color:#374151">' +
-            r.item.quantity +
-            (r.item.unit ? ` ${r.item.unit}` : "") +
-            "</td>" +
-            '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;color:#374151">' +
-            cs +
-            Number(r.item.price).toFixed(2) +
-            "</td>" +
-            '<td style="padding:11px 14px;font-size:12px;text-align:right;font-family:monospace;font-weight:700;color:#1e2d5b">' +
-            cs +
-            r.lineTotal.toFixed(2) +
-            "</td>" +
-            "</tr>",
-        )
-        .join("")
-
-      const _sumRows = summaryEntries
-        .map(
-          (e) =>
-            `<tr><td style="padding:5px 20px 5px 0;font-size:12px;color:#6b7280;text-align:right">${e.label}</td><td style="padding:5px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1e2d5b"}">${e.value}</td></tr>`,
-        )
-        .join("")
-
-      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${invoiceNumber}</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
-<body>
-<div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
-
-  <!-- Navy header -->
-  <div style="background:#1e2d5b;padding:28px 48px;display:flex;justify-content:space-between;align-items:center">
-    <div>
-      ${
-        bizLogo
-          ? `<img src="${bizLogo}" style="height:40px;max-width:110px;object-fit:contain;display:block;margin-bottom:8px">`
-          : `<div style="width:40px;height:40px;background:#f47321;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:20px;margin-bottom:8px">${bizName.charAt(0)}</div>`
-      }
-      <p style="color:#fff;font-weight:700;font-size:14px">${bizName}</p>
-      <p style="color:rgba(255,255,255,0.55);font-size:11px">${bizTagline || bizEmail || ""}</p>
-      ${bizPhone ? `<p style="color:rgba(255,255,255,0.5);font-size:10px">${bizPhone}</p>` : ""}
-    </div>
-    <div style="text-align:right">
-      <p style="font-weight:900;font-size:38px;color:#fff;letter-spacing:4px;line-height:1">INVOICE</p>
-      <p style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:8px">Ref No. ${invoiceNumber}</p>
-      <p style="font-size:11px;color:rgba(255,255,255,0.6)">Date: ${invoiceDate}</p>
-      ${dueDate ? `<p style="font-size:11px;color:#f47321">Due: ${dueDate}</p>` : ""}
-    </div>
-  </div>
-
-  <!-- Company detail strip -->
-  <div style="background:#eef1f7;padding:9px 48px;border-bottom:1px solid #dce1ed;font-size:11px;color:#6b7280">
-    <strong style="color:#1e2d5b">${bizName}</strong> &nbsp;|&nbsp;
-    ${[bizAddress, bizGstin ? `GSTIN: ${bizGstin}` : "", bizPhone ? `Tel: ${bizPhone}` : "", bizEmail].filter(Boolean).join("  |  ")}
-  </div>
-
-  <!-- CONTENT GROWS -->
-  <div style="flex:1;padding:32px 48px 36px;display:flex;flex-direction:column">
-    <!-- Billed To + Invoice Details -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid #edf0f5">
-      <div>
-        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:10px">Billed To</p>
-        <p style="font-weight:700;font-size:14px;color:#1e2d5b">${cd.name || "—"}</p>
-        ${cd.address ? `<p style="font-size:12px;color:#6b7280;margin-top:4px;line-height:1.5">${cd.address}</p>` : ""}
-        ${cd.phone ? `<p style="font-size:12px;color:#6b7280">${cd.phone}</p>` : ""}
-        ${cd.email ? `<p style="font-size:12px;color:#6b7280">${cd.email}</p>` : ""}
-        ${cd.gst ? `<p style="font-size:11px;color:#6b7280">GSTIN: ${cd.gst}</p>` : ""}
-        ${placeOfSupply ? `<p style="font-size:10px;color:#9ca3af;margin-top:3px">Place of Supply: ${placeOfSupply}</p>` : ""}
-      </div>
-      <div>
-        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:10px">Invoice Details</p>
-        <table style="font-size:12px;border-collapse:collapse;width:100%">
-          <tr><td style="color:#6b7280;padding-bottom:5px;width:50%">Invoice No.</td><td style="font-family:monospace;color:#1e2d5b;font-weight:600">${invoiceNumber}</td></tr>
-          <tr><td style="color:#6b7280;padding-bottom:5px">Invoice Date</td><td style="color:#1e2d5b">${invoiceDate}</td></tr>
-          <tr><td style="color:#6b7280;padding-bottom:5px">Currency</td><td style="color:#1e2d5b">${currency}</td></tr>
-          ${poNumber ? `<tr><td style="color:#6b7280;padding-bottom:5px">PO Number</td><td style="color:#1e2d5b;font-family:monospace">${poNumber}</td></tr>` : ""}
-          ${reverseCharge ? '<tr><td style="color:#6b7280">Reverse Charge</td><td style="color:#ef4444;font-weight:600">Applicable</td></tr>' : ""}
-        </table>
-      </div>
-    </div>
-
-    <!-- Items table -->
-    <table style="width:100%;border-collapse:collapse">
-      <thead><tr style="background:#1e2d5b">
-        <th style="padding:11px 10px;text-align:center;font-size:11px;font-weight:600;color:#fff;width:40px">No.</th>
-        <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;color:#fff">Description</th>
-        <th style="padding:11px 14px;text-align:center;font-size:11px;font-weight:600;color:#fff">Quantity</th>
-        <th style="padding:11px 14px;text-align:right;font-size:11px;font-weight:600;color:#fff">Unit Price</th>
-        <th style="padding:11px 14px;text-align:right;font-size:11px;font-weight:600;color:#fff">Amount</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-
-    <!-- Summary section out of table -->
-    <div style="display:flex;justify-content:flex-end;margin-top:24px;margin-bottom:24px">
-      <table style="border-collapse:collapse;min-width:280px">
-        ${summaryEntries
-          .map(
-            (e) => `
-          <tr>
-            <td style="padding:8px 24px 8px 0;font-size:12px;color:#6b7280;text-align:right">${e.label}</td>
-            <td style="padding:8px 0;font-size:12px;text-align:right;font-family:monospace;color:${e.red ? "#ef4444" : "#1e2d5b"}">${e.value}</td>
-          </tr>
-        `,
-          )
-          .join("")}
-        <tr>
-          <td style="padding:16px 24px 16px 0;font-size:14px;font-weight:700;color:#1e2d5b;text-align:right;border-top:2.5px solid #1e2d5b">Amount Due</td>
-          <td style="padding:14px 20px;background:#1e2d5b;font-size:26px;font-weight:900;color:#fff;font-family:monospace;text-align:right;white-space:nowrap;border-radius:0 0 4px 4px">${cs}${grandTotal.toFixed(2)}</td>
-        </tr>
-      </table>
-    </div>
-
-    ${roundOff ? '<div style="text-align:right;font-size:10px;color:#9ca3af;margin-top:4px">* Amount rounded off</div>' : ""}
-
-    <!-- Bank + Notes -->
-    ${
-      bankHtml || notes || paymentTerms
-        ? '<div style="margin-top:auto;padding-top:48px;display:flex;justify-content:space-between;align-items:flex-end">' +
-          '<div style="max-width:320px;font-size:12px;color:#6b7280">' +
-          (bankHtml
-            ? `<p style="font-weight:700;color:#1e2d5b;margin-bottom:5px">Bank / Payment Details</p><p>${bankHtml}</p>`
-            : "") +
-          (notes
-            ? `<p style="margin-top:10px"><strong>Notes:</strong> ${notes}</p>`
-            : "") +
-          (paymentTerms
-            ? `<p style="margin-top:4px"><strong>Payment Terms:</strong> ${paymentTerms}</p>`
-            : "") +
-          "</div>" +
-          '<div style="text-align:right;min-width:180px">' +
-          '<div style="border-top:2px solid #1e2d5b;padding-top:8px;text-align:center">' +
-          '<p style="font-size:13px;font-weight:700;color:#1e2d5b">Authorized Signatory</p>' +
-          '<p style="font-size:10px;color:#9ca3af;margin-top:2px">For ' +
-          bizName +
-          "</p>" +
-          "</div>" +
-          "</div>" +
-          "</div>"
-        : ""
-    }
-  </div>
-
-  <!-- FOOTER pinned bottom -->
-  <div style="background:#eef1f7;padding:14px 48px;display:flex;justify-content:space-between;align-items:center;border-top:2.5px solid #1e2d5b;margin-top:auto">
-    <p style="font-size:12px;color:#6b7280;font-style:italic">${invoiceFooterNote}</p>
-    <p style="font-size:10px;color:#9ca3af">Generated by AutoInvoice</p>
-  </div>
-
-</div>
-</body></html>`
-    }
-
-    // ── IMPORTED ────────────────────────────────────────────────────────────
-    if (selectedTemplate === "imported" && importedTemplate?.html) {
-      return importedTemplate.html
-    }
-    // ── FALLBACK (clean-teal) ────────────────────────────────────────────────
     const rows = computedRows
       .map(
         (r, i) =>
@@ -1386,7 +1133,6 @@ function CreateInvoicePage() {
   }
 
   const handleWhatsApp = async () => {
-    // 1. Validate invoice has items
     const activeItems = items.filter(
       (i) => i.name || i.description || i.price > 0,
     )
@@ -1397,11 +1143,11 @@ function CreateInvoicePage() {
 
     const html = buildInvoiceHtml()
     const filename = `${invoiceNumber}.pdf`
+    const formData = form.getValues()
 
-    // 2. Prepare professional text summary (needed for fallback)
     let text = `*INVOICE ${invoiceNumber}*\n`
-    text += `*Customer:* ${customerDetails.name || "N/A"}\n`
-    text += `*Date:* ${invoiceDate}\n`
+    text += `*Customer:* ${formData.customerName || "N/A"}\n`
+    text += `*Date:* ${formData.invoiceDate}\n`
     text += `*Grand Total: ${currencySymbol}${grandTotal.toFixed(2)}*\n`
     text += `--------------------------\n`
 
@@ -1411,7 +1157,6 @@ function CreateInvoicePage() {
     text += `--------------------------\n`
     text += `\n_Please find the detailed PDF attached._`
 
-    // Try Web Share API (Mobile/Modern Browsers)
     if (typeof navigator !== "undefined" && navigator.share) {
       showSuccessToast("Generating PDF for sharing...")
       try {
@@ -1426,7 +1171,6 @@ function CreateInvoicePage() {
         const pdfBlob = await html2pdf().set(opt).from(html).output("blob")
         const file = new File([pdfBlob], filename, { type: "application/pdf" })
 
-        // Attempt to share the actual file if possible
         try {
           await navigator.share({
             files: [file],
@@ -1435,7 +1179,6 @@ function CreateInvoicePage() {
           })
           return
         } catch (_shareErr) {
-          // Fallback to text share if file share fails/unsupported
           await navigator.share({
             title: `Invoice ${invoiceNumber}`,
             text: text,
@@ -1447,7 +1190,6 @@ function CreateInvoicePage() {
       }
     }
 
-    // Desktop/Fallback: WhatsApp Link
     if (typeof navigator !== "undefined" && !navigator.share) {
       showSuccessToast(
         "Summary shared. On Desktop, please download and attach PDF manually.",
@@ -1457,7 +1199,8 @@ function CreateInvoicePage() {
   }
 
   const handleEmail = async () => {
-    if (!customerDetails.email) {
+    const formData = form.getValues()
+    if (!formData.customerEmail) {
       showErrorToast("Please provide a customer email first")
       return
     }
@@ -1469,28 +1212,24 @@ function CreateInvoicePage() {
     try {
       showSuccessToast("Sending invoice via email...")
       await axios.post(`${apiUrl}/api/v1/utils/send-invoice/`, {
-        email_to: customerDetails.email,
+        email_to: formData.customerEmail,
         subject: finalSubject,
         html_content: html,
       })
-      showSuccessToast(`Invoice successfully sent to ${customerDetails.email}`)
+      showSuccessToast(`Invoice successfully sent to ${formData.customerEmail}`)
       return
     } catch (err) {
       console.error("Email API failed:", err)
-      // Fallback to mailto
-      const mailBody = `Dear ${customerDetails.name},\n\nPlease find your invoice ${invoiceNumber} for ${currencySymbol}${grandTotal.toFixed(2)} attached.\n\nDue Date: ${dueDate || "N/A"}\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
+      const mailBody = `Dear ${formData.customerName},\n\nPlease find your invoice ${invoiceNumber} for ${currencySymbol}${grandTotal.toFixed(2)} attached.\n\nDue Date: ${formData.dueDate || "N/A"}\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
       window.open(
-        `mailto:${customerDetails.email}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`,
+        `mailto:${formData.customerEmail}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`,
       )
       return
     }
-
-    // cleanup
   }
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Link to="/invoices">
           <Button variant="ghost" size="icon">
@@ -1505,562 +1244,686 @@ function CreateInvoicePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Customer Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Customer Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Select Customer</Label>
-                <Select
-                  value={selectedCustomerId}
-                  onValueChange={handleCustomerSelect}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__new__">+ Add New Customer</SelectItem>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Name</Label>
-                  <Input
-                    value={customerDetails.name}
-                    onChange={(e) =>
-                      setCustomerDetails((p) => ({
-                        ...p,
-                        name: e.target.value,
-                      }))
-                    }
-                    placeholder="Customer name"
-                  />
-                </div>
-                <div>
-                  <Label>Phone</Label>
-                  <Input
-                    value={customerDetails.phone}
-                    onChange={(e) =>
-                      setCustomerDetails((p) => ({
-                        ...p,
-                        phone: e.target.value,
-                      }))
-                    }
-                    placeholder="Phone"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Email</Label>
-                  <Input
-                    value={customerDetails.email}
-                    onChange={(e) =>
-                      setCustomerDetails((p) => ({
-                        ...p,
-                        email: e.target.value,
-                      }))
-                    }
-                    placeholder="Email"
-                  />
-                </div>
-                <div>
-                  <Label>GST</Label>
-                  <Input
-                    value={customerDetails.gst}
-                    onChange={(e) =>
-                      setCustomerDetails((p) => ({ ...p, gst: e.target.value }))
-                    }
-                    placeholder="GST number"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Address</Label>
-                <Input
-                  value={customerDetails.address}
-                  onChange={(e) =>
-                    setCustomerDetails((p) => ({
-                      ...p,
-                      address: e.target.value,
-                    }))
-                  }
-                  placeholder="Full address"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Invoice Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Invoice Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div>
-                  <Label>Invoice Number</Label>
-                  <Input value={invoiceNumber} readOnly className="bg-muted" />
-                </div>
-                <div>
-                  <Label>Invoice Date</Label>
-                  <Input
-                    type="date"
-                    value={invoiceDate}
-                    onChange={(e) => setInvoiceDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Due Date</Label>
-                  <Input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Currency</Label>
-                  <Select value={currency} onValueChange={setCurrency}>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        >
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Customer Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Select Customer</Label>
+                  <Select
+                    value={selectedCustomerId}
+                    onValueChange={handleCustomerSelect}
+                  >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Choose a customer" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="INR">₹ INR</SelectItem>
-                      <SelectItem value="USD">$ USD</SelectItem>
-                      <SelectItem value="EUR">€ EUR</SelectItem>
-                      <SelectItem value="GBP">£ GBP</SelectItem>
-                      <SelectItem value="AED">د.إ AED</SelectItem>
-                      <SelectItem value="SGD">S$ SGD</SelectItem>
+                      <SelectItem value="__new__">
+                        + Add New Customer
+                      </SelectItem>
+                      {customers.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              {/* PO Number + Place of Supply + Reverse Charge */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-                <div>
-                  <Label>PO / Reference No.</Label>
-                  <Input
-                    value={poNumber}
-                    onChange={(e) => setPoNumber(e.target.value)}
-                    placeholder="e.g. PO-00123"
-                  />
-                </div>
-                <div>
-                  <Label>Place of Supply</Label>
-                  <Input
-                    value={placeOfSupply}
-                    onChange={(e) => setPlaceOfSupply(e.target.value)}
-                    placeholder="e.g. Maharashtra"
-                  />
-                </div>
-                <div className="flex flex-col justify-end">
-                  <Label className="mb-2">Reverse Charge</Label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setReverseCharge((v) => !v)}
-                      className={`relative w-10 h-5 rounded-full transition-colors ${reverseCharge ? "bg-primary" : "bg-muted"}`}
-                    >
-                      <span
-                        className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${reverseCharge ? "left-5" : "left-0.5"}`}
-                      />
-                    </button>
-                    <span className="text-xs text-muted-foreground">
-                      {reverseCharge ? "Applicable" : "Not Applicable"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Items Table - Advanced Excel Style */}
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-lg">Invoice Items</CardTitle>
-              <p className="text-xs text-muted-foreground italic">
-                Tip: Use arrow keys to navigate table cells
-              </p>
-            </CardHeader>
-            <CardContent>
-              <ModernExcelTable
-                items={items}
-                inventoryItems={inventoryItems}
-                updateItem={updateItem}
-                handleItemSelect={handleItemSelect}
-                addItem={addItem}
-                removeItem={removeItem}
-                currencySymbol={currencySymbol}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Invoice-level Adjustments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                Adjustments &amp; Charges
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Invoice discount */}
-                <div>
-                  <Label className="flex items-center gap-1">
-                    <Percent className="h-3 w-3" /> Invoice Discount
-                  </Label>
-                  <div className="flex gap-1 mt-1">
-                    <Select
-                      value={discountType}
-                      onValueChange={setDiscountType}
-                    >
-                      <SelectTrigger className="w-20 h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="percent">%</SelectItem>
-                        <SelectItem value="flat">₹ Flat</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={discountValue === 0 ? "" : discountValue}
-                      placeholder="0"
-                      onChange={(e) =>
-                        setDiscountValue(Number(e.target.value) || 0)
-                      }
-                      className="flex-1 h-9"
-                    />
-                  </div>
-                </div>
-                {/* Shipping */}
-                <div>
-                  <Label className="flex items-center gap-1">
-                    <Truck className="h-3 w-3" /> Shipping / Freight
-                  </Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={shippingCharge === 0 ? "" : shippingCharge}
-                    placeholder="0.00"
-                    onChange={(e) =>
-                      setShippingCharge(Number(e.target.value) || 0)
-                    }
-                    className="mt-1 h-9"
-                  />
-                </div>
-                {/* Extra charge */}
-                <div>
-                  <Label className="flex items-center gap-1">
-                    <PackagePlus className="h-3 w-3" /> Other Charges
-                  </Label>
-                  <div className="flex gap-1 mt-1">
-                    <Input
-                      value={extraChargeLabel}
-                      onChange={(e) => setExtraChargeLabel(e.target.value)}
-                      placeholder="Label"
-                      className="flex-1 h-9 text-xs"
-                    />
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={extraChargeAmount === 0 ? "" : extraChargeAmount}
-                      placeholder="0.00"
-                      onChange={(e) =>
-                        setExtraChargeAmount(Number(e.target.value) || 0)
-                      }
-                      className="w-24 h-9"
-                    />
-                  </div>
-                </div>
-              </div>
-              {/* Round off toggle */}
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setRoundOff((v) => !v)}
-                  className={`relative w-10 h-5 rounded-full transition-colors ${roundOff ? "bg-primary" : "bg-muted"}`}
-                >
-                  <span
-                    className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${roundOff ? "left-5" : "left-0.5"}`}
-                  />
-                </button>
-                <Label
-                  className="cursor-pointer"
-                  onClick={() => setRoundOff((v) => !v)}
-                >
-                  Round off grand total to nearest ₹
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Bank / Payment Details */}
-          <Card>
-            <CardHeader>
-              <button
-                type="button"
-                className="flex items-center justify-between w-full"
-                onClick={() => setShowBankDetails((v) => !v)}
-              >
-                <CardTitle className="text-lg">
-                  Bank &amp; Payment Details
-                </CardTitle>
-                {showBankDetails ? (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                )}
-              </button>
-            </CardHeader>
-            {showBankDetails && (
-              <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Bank Name</Label>
-                    <Input
-                      value={bankDetails.bankName}
-                      onChange={(e) =>
-                        setBankDetails((p) => ({
-                          ...p,
-                          bankName: e.target.value,
-                        }))
-                      }
-                      placeholder="e.g. HDFC Bank"
-                    />
-                  </div>
-                  <div>
-                    <Label>Account Holder Name</Label>
-                    <Input
-                      value={bankDetails.accountName}
-                      onChange={(e) =>
-                        setBankDetails((p) => ({
-                          ...p,
-                          accountName: e.target.value,
-                        }))
-                      }
-                      placeholder="Name on account"
-                    />
-                  </div>
-                  <div>
-                    <Label>Account Number</Label>
-                    <Input
-                      value={bankDetails.accountNumber}
-                      onChange={(e) =>
-                        setBankDetails((p) => ({
-                          ...p,
-                          accountNumber: e.target.value,
-                        }))
-                      }
-                      placeholder="XXXXXXXXXXXX"
-                    />
-                  </div>
-                  <div>
-                    <Label>IFSC Code</Label>
-                    <Input
-                      value={bankDetails.ifsc}
-                      onChange={(e) =>
-                        setBankDetails((p) => ({ ...p, ifsc: e.target.value }))
-                      }
-                      placeholder="e.g. HDFC0000123"
-                      className="font-mono"
-                    />
-                  </div>
-                  <div>
-                    <Label>Branch</Label>
-                    <Input
-                      value={bankDetails.branch}
-                      onChange={(e) =>
-                        setBankDetails((p) => ({
-                          ...p,
-                          branch: e.target.value,
-                        }))
-                      }
-                      placeholder="Branch name"
-                    />
-                  </div>
-                  <div>
-                    <Label>UPI ID</Label>
-                    <Input
-                      value={bankDetails.upi}
-                      onChange={(e) =>
-                        setBankDetails((p) => ({ ...p, upi: e.target.value }))
-                      }
-                      placeholder="yourname@upi"
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="customerName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Name <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Customer name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="customerPhone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Phone" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="customerEmail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="customerGst"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>GST</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="GST number"
+                            className="uppercase font-mono"
+                            onChange={(e) =>
+                              field.onChange(e.target.value.toUpperCase())
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="customerAddress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Full address" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Invoice Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <FormItem>
+                    <FormLabel>Invoice Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        value={invoiceNumber}
+                        readOnly
+                        className="bg-muted"
+                      />
+                    </FormControl>
+                  </FormItem>
+                  <FormField
+                    control={form.control}
+                    name="invoiceDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Invoice Date{" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Due Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Currency</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="INR">₹ INR</SelectItem>
+                            <SelectItem value="USD">$ USD</SelectItem>
+                            <SelectItem value="EUR">€ EUR</SelectItem>
+                            <SelectItem value="GBP">£ GBP</SelectItem>
+                            <SelectItem value="AED">د.إ AED</SelectItem>
+                            <SelectItem value="SGD">S$ SGD</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                  <FormField
+                    control={form.control}
+                    name="poNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>PO / Reference No.</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g. PO-00123" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="placeOfSupply"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Place of Supply</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g. Maharashtra" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="reverseCharge"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Reverse Charge</FormLabel>
+                        <FormControl>
+                          <div className="flex items-center gap-2 pt-2">
+                            <button
+                              type="button"
+                              onClick={() => field.onChange(!field.value)}
+                              className={`relative w-10 h-5 rounded-full transition-colors ${field.value ? "bg-primary" : "bg-muted"}`}
+                            >
+                              <span
+                                className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${field.value ? "left-5" : "left-0.5"}`}
+                              />
+                            </button>
+                            <span className="text-xs text-muted-foreground">
+                              {field.value ? "Applicable" : "Not Applicable"}
+                            </span>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </CardContent>
-            )}
-          </Card>
+            </Card>
 
-          {/* Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Notes & Terms</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Notes</Label>
-                <Input
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any additional notes to display on the invoice"
+            <Card className="mb-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-lg">Invoice Items</CardTitle>
+                <p className="text-xs text-muted-foreground italic">
+                  Tip: Use arrow keys to navigate table cells
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ModernExcelTable
+                  items={items}
+                  inventoryItems={inventoryItems}
+                  updateItem={updateItem}
+                  handleItemSelect={handleItemSelect}
+                  addItem={addItem}
+                  removeItem={removeItem}
+                  currencySymbol={currencySymbol}
                 />
-              </div>
-              <div>
-                <Label>Payment Terms</Label>
-                <Input
-                  value={paymentTerms}
-                  onChange={(e) => setPaymentTerms(e.target.value)}
-                  placeholder="e.g. Net 30, Due on receipt"
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Adjustments &amp; Charges
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      <Percent className="h-3 w-3" /> Invoice Discount
+                    </FormLabel>
+                    <div className="flex gap-1">
+                      <FormField
+                        control={form.control}
+                        name="discountType"
+                        render={({ field }) => (
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger className="w-20 h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="percent">%</SelectItem>
+                              <SelectItem value="flat">₹ Flat</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="discountValue"
+                        render={({ field }) => (
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              {...field}
+                              value={field.value || ""}
+                              placeholder="0"
+                              className="flex-1 h-9"
+                            />
+                          </FormControl>
+                        )}
+                      />
+                    </div>
+                  </FormItem>
+                  <FormField
+                    control={form.control}
+                    name="shippingCharge"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1">
+                          <Truck className="h-3 w-3" /> Shipping / Freight
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            {...field}
+                            value={field.value || ""}
+                            placeholder="0.00"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      <PackagePlus className="h-3 w-3" /> Other Charges
+                    </FormLabel>
+                    <div className="flex gap-1">
+                      <FormField
+                        control={form.control}
+                        name="extraChargeLabel"
+                        render={({ field }) => (
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Label"
+                              className="flex-1 h-9 text-xs"
+                            />
+                          </FormControl>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="extraChargeAmount"
+                        render={({ field }) => (
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              {...field}
+                              value={field.value || ""}
+                              placeholder="0.00"
+                              className="w-24 h-9"
+                            />
+                          </FormControl>
+                        )}
+                      />
+                    </div>
+                  </FormItem>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="roundOff"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-3 pt-1">
+                        <FormControl>
+                          <button
+                            type="button"
+                            onClick={() => field.onChange(!field.value)}
+                            className={`relative w-10 h-5 rounded-full transition-colors ${field.value ? "bg-primary" : "bg-muted"}`}
+                          >
+                            <span
+                              className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${field.value ? "left-5" : "left-0.5"}`}
+                            />
+                          </button>
+                        </FormControl>
+                        <FormLabel className="cursor-pointer">
+                          Round off grand total to nearest ₹
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
                 />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
 
-        {/* Right Column: Summary & Actions */}
-        <div className="space-y-6">
-          <Card className="sticky top-24">
-            <CardHeader>
-              <CardTitle className="text-lg">Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>
-                  {currencySymbol}
-                  {subtotal.toFixed(2)}
-                </span>
-              </div>
-              {itemsDiscount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Item Discounts</span>
-                  <span className="text-emerald-600">
-                    −{currencySymbol}
-                    {itemsDiscount.toFixed(2)}
-                  </span>
-                </div>
-              )}
-              {invoiceDiscount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Invoice Discount
-                  </span>
-                  <span className="text-emerald-600">
-                    −{currencySymbol}
-                    {invoiceDiscount.toFixed(2)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tax / GST</span>
-                <span>
-                  {currencySymbol}
-                  {totalTax.toFixed(2)}
-                </span>
-              </div>
-              {Number(shippingCharge) > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span>
-                    +{currencySymbol}
-                    {Number(shippingCharge).toFixed(2)}
-                  </span>
-                </div>
-              )}
-              {Number(extraChargeAmount) > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {extraChargeLabel || "Other Charges"}
-                  </span>
-                  <span>
-                    +{currencySymbol}
-                    {Number(extraChargeAmount).toFixed(2)}
-                  </span>
-                </div>
-              )}
-              {roundOff && (
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Round Off</span>
-                  <span className="text-muted-foreground">
-                    {Math.round(grandTotal) - grandTotal >= 0 ? "+" : ""}
-                    {(Math.round(grandTotal) - grandTotal).toFixed(2)}
-                  </span>
-                </div>
-              )}
-              <Separator />
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span className="text-primary">
-                  {currencySymbol}
-                  {grandTotal.toFixed(2)}
-                </span>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2 pt-2">
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={handlePreviewAndPrint}
+            <Card>
+              <CardHeader>
+                <button
+                  type="button"
+                  className="flex items-center justify-between w-full"
+                  onClick={() => setShowBankDetails((v) => !v)}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Preview Invoice
-                </Button>
-                <Button className="w-full" onClick={handleSave}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Invoice
-                </Button>
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={handleDownloadPDF}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download PDF
-                </Button>
+                  <CardTitle className="text-lg">
+                    Bank &amp; Payment Details
+                  </CardTitle>
+                  {showBankDetails ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+              </CardHeader>
+              {showBankDetails && (
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="bankName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bank Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="e.g. HDFC Bank" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="accountName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Holder Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Name on account" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="accountNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="XXXXXXXXXXXX" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="ifsc"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>IFSC Code</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="e.g. HDFC0000123"
+                              className="font-mono"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="branch"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Branch</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Branch name" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="upi"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>UPI ID</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="yourname@upi" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Notes & Terms</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Any additional notes to display on the invoice"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="paymentTerms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Terms</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="e.g. Net 30, Due on receipt"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="sticky top-24">
+              <CardHeader>
+                <CardTitle className="text-lg">Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>
+                    {currencySymbol}
+                    {subtotal.toFixed(2)}
+                  </span>
+                </div>
+                {itemsDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Item Discounts
+                    </span>
+                    <span className="text-emerald-600">
+                      −{currencySymbol}
+                      {itemsDiscount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {invoiceDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Invoice Discount
+                    </span>
+                    <span className="text-emerald-600">
+                      −{currencySymbol}
+                      {invoiceDiscount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tax / GST</span>
+                  <span>
+                    {currencySymbol}
+                    {totalTax.toFixed(2)}
+                  </span>
+                </div>
+                {Number(shippingCharge) > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span>
+                      +{currencySymbol}
+                      {Number(shippingCharge).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {Number(extraChargeAmount) > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {extraChargeLabel || "Other Charges"}
+                    </span>
+                    <span>
+                      +{currencySymbol}
+                      {Number(extraChargeAmount).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {roundOff && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Round Off</span>
+                    <span className="text-muted-foreground">
+                      {Math.round(grandTotal) - grandTotal >= 0 ? "+" : ""}
+                      {(Math.round(grandTotal) - grandTotal).toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <Separator />
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={handleWhatsApp}
-                >
-                  <Send className="mr-2 h-4 w-4" />
-                  Send via WhatsApp
-                </Button>
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={handleEmail}
-                >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Send via Email
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span className="text-primary">
+                    {currencySymbol}
+                    {grandTotal.toFixed(2)}
+                  </span>
+                </div>
 
-      {/* Preview Dialog — renders active template in an iframe */}
+                <Separator />
+
+                <div className="space-y-2 pt-2">
+                  <Button
+                    type="button"
+                    className="w-full"
+                    variant="outline"
+                    onClick={handlePreviewAndPrint}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview Invoice
+                  </Button>
+                  <Button type="submit" className="w-full">
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Invoice
+                  </Button>
+                  <Button
+                    type="button"
+                    className="w-full"
+                    variant="outline"
+                    onClick={handleDownloadPDF}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
+                  </Button>
+                  <Separator />
+                  <Button
+                    type="button"
+                    className="w-full"
+                    variant="outline"
+                    onClick={handleWhatsApp}
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Send via WhatsApp
+                  </Button>
+                  <Button
+                    type="button"
+                    className="w-full"
+                    variant="outline"
+                    onClick={handleEmail}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    Send via Email
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </form>
+      </Form>
+
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>

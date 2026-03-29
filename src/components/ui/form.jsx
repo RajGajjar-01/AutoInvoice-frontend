@@ -33,7 +33,7 @@ const FormItemContext = React.createContext({});
 function FormItem({ className, ...props }) {
     const id = React.useId();
     return (<FormItemContext.Provider value={{ id }}>
-      <div data-slot="form-item" className={cn("grid gap-2", className)} {...props}/>
+      <div data-slot="form-item" className={cn("space-y-2", className)} {...props}/>
     </FormItemContext.Provider>);
 }
 function FormLabel({ className, ...props }) {
