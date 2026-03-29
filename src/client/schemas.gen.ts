@@ -22,10 +22,10 @@ export const AdminUserCreateSchema = {
             ],
             title: 'Full Name'
         },
-        email_confirm: {
+        is_superuser: {
             type: 'boolean',
-            title: 'Email Confirm',
-            default: true
+            title: 'Is Superuser',
+            default: false
         }
     },
     type: 'object',
@@ -80,48 +80,20 @@ export const AdminUserUpdateSchema = {
             ],
             title: 'Is Superuser'
         },
-        ban_duration: {
+        is_active: {
             anyOf: [
                 {
-                    type: 'string'
+                    type: 'boolean'
                 },
                 {
                     type: 'null'
                 }
             ],
-            title: 'Ban Duration'
+            title: 'Is Active'
         }
     },
     type: 'object',
     title: 'AdminUserUpdate'
-} as const;
-
-export const AuthIdentitySchema = {
-    properties: {
-        id: {
-            type: 'string',
-            title: 'Id'
-        },
-        provider: {
-            type: 'string',
-            title: 'Provider'
-        },
-        identity_data: {
-            anyOf: [
-                {
-                    additionalProperties: true,
-                    type: 'object'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Identity Data'
-        }
-    },
-    type: 'object',
-    required: ['id', 'provider'],
-    title: 'AuthIdentity'
 } as const;
 
 export const AuthResponseSchema = {
@@ -160,14 +132,12 @@ export const AuthResponseSchema = {
         user: {
             anyOf: [
                 {
-                    additionalProperties: true,
-                    type: 'object'
+                    '$ref': '#/components/schemas/UserPublic'
                 },
                 {
                     type: 'null'
                 }
-            ],
-            title: 'User'
+            ]
         }
     },
     type: 'object',
@@ -175,67 +145,17 @@ export const AuthResponseSchema = {
     title: 'AuthResponse'
 } as const;
 
-export const AuthSessionSchema = {
+export const Body_invoice_templates_parse_excel_previewSchema = {
     properties: {
-        id: {
+        file: {
             type: 'string',
-            title: 'Id'
-        },
-        created_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Created At'
-        },
-        expires_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Expires At'
-        },
-        user_agent: {
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'User Agent'
-        },
-        ip: {
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Ip'
-        },
-        is_current: {
-            type: 'boolean',
-            title: 'Is Current',
-            default: false
+            format: 'binary',
+            title: 'File'
         }
     },
     type: 'object',
-    required: ['id'],
-    title: 'AuthSession'
+    required: ['file'],
+    title: 'Body_invoice-templates-parse_excel_preview'
 } as const;
 
 export const CompanySettingsCreateSchema = {
@@ -1905,18 +1825,6 @@ export const DocumentTypeSchema = {
     title: 'DocumentType'
 } as const;
 
-export const EmailRequestSchema = {
-    properties: {
-        email: {
-            type: 'string',
-            title: 'Email'
-        }
-    },
-    type: 'object',
-    required: ['email'],
-    title: 'EmailRequest'
-} as const;
-
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -2337,6 +2245,33 @@ export const InvoiceTemplateCreateSchema = {
                 }
             ],
             title: 'Imported Pdf Data Url'
+        },
+        imported_excel_columns: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Imported Excel Columns'
+        },
+        imported_excel_data: {
+            anyOf: [
+                {
+                    items: {
+                        additionalProperties: true,
+                        type: 'object'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Imported Excel Data'
         }
     },
     type: 'object',
@@ -2346,7 +2281,7 @@ export const InvoiceTemplateCreateSchema = {
 
 export const InvoiceTemplateKindSchema = {
     type: 'string',
-    enum: ['built_in', 'custom', 'imported_html', 'imported_pdf'],
+    enum: ['built_in', 'custom', 'imported_html', 'imported_pdf', 'imported_excel'],
     title: 'InvoiceTemplateKind'
 } as const;
 
@@ -2410,6 +2345,33 @@ export const InvoiceTemplatePublicSchema = {
                 }
             ],
             title: 'Imported Pdf Data Url'
+        },
+        imported_excel_columns: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Imported Excel Columns'
+        },
+        imported_excel_data: {
+            anyOf: [
+                {
+                    items: {
+                        additionalProperties: true,
+                        type: 'object'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Imported Excel Data'
         },
         id: {
             type: 'string',
@@ -2517,6 +2479,33 @@ export const InvoiceTemplateUpdateSchema = {
                 }
             ],
             title: 'Imported Pdf Data Url'
+        },
+        imported_excel_columns: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Imported Excel Columns'
+        },
+        imported_excel_data: {
+            anyOf: [
+                {
+                    items: {
+                        additionalProperties: true,
+                        type: 'object'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Imported Excel Data'
         }
     },
     type: 'object',
@@ -3299,6 +3288,24 @@ export const MessageSchema = {
     title: 'Message'
 } as const;
 
+export const NewPasswordSchema = {
+    properties: {
+        token: {
+            type: 'string',
+            title: 'Token'
+        },
+        new_password: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 8,
+            title: 'New Password'
+        }
+    },
+    type: 'object',
+    required: ['token', 'new_password'],
+    title: 'NewPassword'
+} as const;
+
 export const NotificationCreateSchema = {
     properties: {
         type: {
@@ -3551,22 +3558,6 @@ export const NotificationsPublicSchema = {
     title: 'NotificationsPublic'
 } as const;
 
-export const OAuthURLResponseSchema = {
-    properties: {
-        url: {
-            type: 'string',
-            title: 'Url'
-        },
-        provider: {
-            type: 'string',
-            title: 'Provider'
-        }
-    },
-    type: 'object',
-    required: ['url', 'provider'],
-    title: 'OAuthURLResponse'
-} as const;
-
 export const PaginatedResponse_DataTablePublic_Schema = {
     properties: {
         data: {
@@ -3644,105 +3635,16 @@ export const PrivateUserCreateSchema = {
             type: 'boolean',
             title: 'Is Verified',
             default: false
-        }
-    },
-    type: 'object',
-    required: ['email', 'password', 'full_name'],
-    title: 'PrivateUserCreate'
-} as const;
-
-export const ProfilePublicSchema = {
-    properties: {
-        full_name: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Full Name'
-        },
-        avatar_url: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 500
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Avatar Url'
         },
         is_superuser: {
             type: 'boolean',
             title: 'Is Superuser',
             default: false
-        },
-        id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'Id'
-        },
-        email: {
-            type: 'string',
-            title: 'Email'
-        },
-        is_verified: {
-            type: 'boolean',
-            title: 'Is Verified',
-            default: false
-        },
-        created_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Created At'
-        },
-        updated_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Updated At'
         }
     },
     type: 'object',
-    required: ['id', 'email'],
-    title: 'ProfilePublic'
-} as const;
-
-export const ProfilesPublicSchema = {
-    properties: {
-        data: {
-            items: {
-                '$ref': '#/components/schemas/ProfilePublic'
-            },
-            type: 'array',
-            title: 'Data'
-        },
-        count: {
-            type: 'integer',
-            title: 'Count'
-        }
-    },
-    type: 'object',
-    required: ['data', 'count'],
-    title: 'ProfilesPublic'
+    required: ['email', 'password', 'full_name'],
+    title: 'PrivateUserCreate'
 } as const;
 
 export const TableReminderCreateSchema = {
@@ -3840,32 +3742,18 @@ export const TableRowUpdateSchema = {
     title: 'TableRowUpdate'
 } as const;
 
-export const UpdatePasswordSchema = {
+export const TokenSchema = {
     properties: {
-        new_password: {
+        access_token: {
             type: 'string',
-            maxLength: 128,
-            minLength: 8,
-            title: 'New Password'
-        }
-    },
-    type: 'object',
-    required: ['new_password'],
-    title: 'UpdatePassword'
-} as const;
-
-export const UserPublicSchema = {
-    properties: {
-        id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'Id'
+            title: 'Access Token'
         },
-        email: {
+        token_type: {
             type: 'string',
-            title: 'Email'
+            title: 'Token Type',
+            default: 'bearer'
         },
-        full_name: {
+        refresh_token: {
             anyOf: [
                 {
                     type: 'string'
@@ -3874,7 +3762,106 @@ export const UserPublicSchema = {
                     type: 'null'
                 }
             ],
+            title: 'Refresh Token'
+        },
+        expires_in: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expires In'
+        }
+    },
+    type: 'object',
+    required: ['access_token'],
+    title: 'Token'
+} as const;
+
+export const UserCreateSchema = {
+    properties: {
+        email: {
+            type: 'string',
+            maxLength: 255,
+            format: 'email',
+            title: 'Email'
+        },
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active',
+            default: true
+        },
+        is_superuser: {
+            type: 'boolean',
+            title: 'Is Superuser',
+            default: false
+        },
+        full_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Full Name'
+        },
+        password: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 8,
+            title: 'Password'
+        }
+    },
+    type: 'object',
+    required: ['email', 'password'],
+    title: 'UserCreate'
+} as const;
+
+export const UserPublicSchema = {
+    properties: {
+        email: {
+            type: 'string',
+            maxLength: 255,
+            format: 'email',
+            title: 'Email'
+        },
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active',
+            default: true
+        },
+        is_superuser: {
+            type: 'boolean',
+            title: 'Is Superuser',
+            default: false
+        },
+        full_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Full Name'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        is_verified: {
+            type: 'boolean',
+            title: 'Is Verified',
+            default: false
         },
         avatar_url: {
             anyOf: [
@@ -3886,16 +3873,6 @@ export const UserPublicSchema = {
                 }
             ],
             title: 'Avatar Url'
-        },
-        is_superuser: {
-            type: 'boolean',
-            title: 'Is Superuser',
-            default: false
-        },
-        is_verified: {
-            type: 'boolean',
-            title: 'Is Verified',
-            default: false
         },
         created_at: {
             anyOf: [
@@ -3923,23 +3900,34 @@ export const UserPublicSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'email'],
+    required: ['email', 'id'],
     title: 'UserPublic'
 } as const;
 
-export const UserRegisterSchema = {
+export const UserUpdateSchema = {
     properties: {
         email: {
-            type: 'string',
-            maxLength: 255,
-            format: 'email',
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    format: 'email'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Email'
         },
-        password: {
-            type: 'string',
-            maxLength: 128,
-            minLength: 8,
-            title: 'Password'
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active',
+            default: true
+        },
+        is_superuser: {
+            type: 'boolean',
+            title: 'Is Superuser',
+            default: false
         },
         full_name: {
             anyOf: [
@@ -3952,11 +3940,23 @@ export const UserRegisterSchema = {
                 }
             ],
             title: 'Full Name'
+        },
+        password: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128,
+                    minLength: 8
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Password'
         }
     },
     type: 'object',
-    required: ['email', 'password'],
-    title: 'UserRegister'
+    title: 'UserUpdate'
 } as const;
 
 export const UserUpdateMeSchema = {
@@ -3989,6 +3989,25 @@ export const UserUpdateMeSchema = {
     },
     type: 'object',
     title: 'UserUpdateMe'
+} as const;
+
+export const UsersPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/UserPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'UsersPublic'
 } as const;
 
 export const ValidationErrorSchema = {

@@ -5,7 +5,6 @@ import {
   useNavigate,
 } from "@tanstack/react-router"
 import { useEffect } from "react"
-import { Footer } from "@/components/Common/Footer"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
@@ -44,7 +43,6 @@ function Layout() {
         <main className="flex-1 flex flex-col p-4">
           <Outlet />
         </main>
-        <Footer />
       </SidebarInset>
     </SidebarProvider>
   )

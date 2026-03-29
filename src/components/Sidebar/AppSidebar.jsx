@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { SidebarAppearance } from "@/components/Common/Appearance"
+import { Logo } from "@/components/Common/Logo"
 import { Button } from "@/components/ui/button"
 import {
   Sidebar,
@@ -64,9 +65,7 @@ export function AppSidebar() {
         onMouseEnter={() => setIsHeaderHovered(true)}
         onMouseLeave={() => setIsHeaderHovered(false)}
       >
-        <span className="text-lg tracking-tight transition-opacity group-data-[collapsible=icon]:hidden">
-          AutoInvoice
-        </span>
+        <Logo variant="responsive" className="px-4" />
         <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
           <Button
             variant="ghost"

@@ -1,5 +1,8 @@
-<svg width="120" height="32" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="2" y="2" width="28" height="28" rx="6" fill="#06b6d4"/>
-  <rect x="8" y="8" width="16" height="16" rx="2" fill="white" opacity="0.9"/>
-  <rect x="12" y="12" width="8" height="8" rx="1" fill="#06b6d4"/>
+<svg width="200" height="50" viewBox="0 0 200 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0, 5) scale(0.4)">
+    <rect x="40" y="15" width="55" height="18" rx="9" fill="#00BF8F"/>
+    <rect x="5" y="41" width="55" height="18" rx="9" fill="#00BF8F"/>
+    <rect x="40" y="67" width="55" height="18" rx="9" fill="#00BF8F"/>
+  </g>
+  <text x="50" y="34" fill="#0F172A" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="24">AutoInvoice</text>
 </svg>

@@ -4,7 +4,7 @@ export type AdminUserCreate = {
     email: string;
     password: string;
     full_name?: (string | null);
-    email_confirm?: boolean;
+    is_superuser?: boolean;
 };
 
 export type AdminUserUpdate = {
@@ -12,15 +12,7 @@ export type AdminUserUpdate = {
     password?: (string | null);
     full_name?: (string | null);
     is_superuser?: (boolean | null);
-    ban_duration?: (string | null);
-};
-
-export type AuthIdentity = {
-    id: string;
-    provider: string;
-    identity_data?: ({
-    [key: string]: unknown;
-} | null);
+    is_active?: (boolean | null);
 };
 
 export type AuthResponse = {
@@ -28,18 +20,11 @@ export type AuthResponse = {
     token_type?: string;
     refresh_token?: (string | null);
     expires_in?: (number | null);
-    user?: ({
-    [key: string]: unknown;
-} | null);
+    user?: (UserPublic | null);
 };
 
-export type AuthSession = {
-    id: string;
-    created_at?: (string | null);
-    expires_at?: (string | null);
-    user_agent?: (string | null);
-    ip?: (string | null);
-    is_current?: boolean;
+export type Body_invoice_templates_parse_excel_preview = {
+    file: (Blob | File);
 };
 
 export type CompanySettingsCreate = {
@@ -244,10 +229,6 @@ export type DataTableWithRows = {
 
 export type DocumentType = 'invoice' | 'quotation' | 'proforma' | 'challan';
 
-export type EmailRequest = {
-    email: string;
-};
-
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -323,9 +304,15 @@ export type InvoiceTemplateCreate = {
 } | null);
     imported_html?: (string | null);
     imported_pdf_data_url?: (string | null);
+    imported_excel_columns?: ({
+    [key: string]: unknown;
+} | null);
+    imported_excel_data?: (Array<{
+    [key: string]: unknown;
+}> | null);
 };
 
-export type InvoiceTemplateKind = 'built_in' | 'custom' | 'imported_html' | 'imported_pdf';
+export type InvoiceTemplateKind = 'built_in' | 'custom' | 'imported_html' | 'imported_pdf' | 'imported_excel';
 
 export type InvoiceTemplatePublic = {
     name: string;
@@ -337,6 +324,12 @@ export type InvoiceTemplatePublic = {
 } | null);
     imported_html?: (string | null);
     imported_pdf_data_url?: (string | null);
+    imported_excel_columns?: ({
+    [key: string]: unknown;
+} | null);
+    imported_excel_data?: (Array<{
+    [key: string]: unknown;
+}> | null);
     id: string;
     owner_id: string;
     created_at: string;
@@ -358,6 +351,12 @@ export type InvoiceTemplateUpdate = {
 } | null);
     imported_html?: (string | null);
     imported_pdf_data_url?: (string | null);
+    imported_excel_columns?: ({
+    [key: string]: unknown;
+} | null);
+    imported_excel_data?: (Array<{
+    [key: string]: unknown;
+}> | null);
 };
 
 export type InvoiceUpdate = {
@@ -468,6 +467,11 @@ export type Message = {
     message: string;
 };
 
+export type NewPassword = {
+    token: string;
+    new_password: string;
+};
+
 export type NotificationCreate = {
     type?: NotificationType;
     title: string;
@@ -507,11 +511,6 @@ export type NotificationUpdate = {
     read?: (boolean | null);
 };
 
-export type OAuthURLResponse = {
-    url: string;
-    provider: string;
-};
-
 export type PaginatedResponse_DataTablePublic_ = {
     data: Array<unknown>;
     total: number;
@@ -533,22 +532,7 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_verified?: boolean;
-};
-
-export type ProfilePublic = {
-    full_name?: (string | null);
-    avatar_url?: (string | null);
     is_superuser?: boolean;
-    id: string;
-    email: string;
-    is_verified?: boolean;
-    created_at?: (string | null);
-    updated_at?: (string | null);
-};
-
-export type ProfilesPublic = {
-    data: Array<ProfilePublic>;
-    count: number;
 };
 
 export type TableReminderCreate = {
@@ -587,25 +571,44 @@ export type TableRowUpdate = {
     };
 };
 
-export type UpdatePassword = {
-    new_password: string;
+export type Token = {
+    access_token: string;
+    token_type?: string;
+    refresh_token?: (string | null);
+    expires_in?: (number | null);
+};
+
+export type UserCreate = {
+    email: string;
+    is_active?: boolean;
+    is_superuser?: boolean;
+    full_name?: (string | null);
+    password: string;
 };
 
 export type UserPublic = {
-    id: string;
     email: string;
-    full_name?: (string | null);
-    avatar_url?: (string | null);
+    is_active?: boolean;
     is_superuser?: boolean;
+    full_name?: (string | null);
+    id: string;
     is_verified?: boolean;
+    avatar_url?: (string | null);
     created_at?: (string | null);
     updated_at?: (string | null);
 };
 
-export type UserRegister = {
-    email: string;
-    password: string;
+export type UsersPublic = {
+    data: Array<UserPublic>;
+    count: number;
+};
+
+export type UserUpdate = {
+    email?: (string | null);
+    is_active?: boolean;
+    is_superuser?: boolean;
     full_name?: (string | null);
+    password?: (string | null);
 };
 
 export type UserUpdateMe = {
@@ -625,7 +628,6 @@ export type ValidationError = {
 
 export type AdminListUsersData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     page?: number;
     pageSize?: number;
 };
@@ -634,7 +636,6 @@ export type AdminListUsersResponse = (PaginatedResponse_UserPublic_);
 
 export type AdminCreateUserData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: AdminUserCreate;
 };
 
@@ -642,7 +643,6 @@ export type AdminCreateUserResponse = (UserPublic);
 
 export type AdminGetUserData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     userId: string;
 };
 
@@ -650,7 +650,6 @@ export type AdminGetUserResponse = (UserPublic);
 
 export type AdminUpdateUserData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: AdminUserUpdate;
     userId: string;
 };
@@ -659,31 +658,13 @@ export type AdminUpdateUserResponse = (UserPublic);
 
 export type AdminDeleteUserData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     userId: string;
 };
 
 export type AdminDeleteUserResponse = (Message);
 
-export type AdminListUserSessionsData = {
-    accessToken?: (string | null);
-    authorization?: (string | null);
-    userId: string;
-};
-
-export type AdminListUserSessionsResponse = (Array<AuthSession>);
-
-export type AdminRevokeUserSessionData = {
-    accessToken?: (string | null);
-    authorization?: (string | null);
-    sessionId: string;
-    userId: string;
-};
-
-export type AdminRevokeUserSessionResponse = (Message);
-
 export type AuthSignupData = {
-    requestBody: UserRegister;
+    requestBody: UserCreate;
 };
 
 export type AuthSignupResponse = (AuthResponse);
@@ -698,59 +679,52 @@ export type AuthRefreshTokenData = {
     refreshToken?: (string | null);
 };
 
-export type AuthRefreshTokenResponse = (AuthResponse);
-
-export type AuthLogoutData = {
-    authorization?: (string | null);
-};
+export type AuthRefreshTokenResponse = (Token);
 
 export type AuthLogoutResponse = (Message);
 
 export type AuthGetCurrentUserInfoData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type AuthGetCurrentUserInfoResponse = (UserPublic);
 
 export type AuthUpdateCurrentUserData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: UserUpdateMe;
 };
 
 export type AuthUpdateCurrentUserResponse = (UserPublic);
 
 export type AuthForgotPasswordData = {
-    requestBody: EmailRequest;
+    email: string;
 };
 
 export type AuthForgotPasswordResponse = (Message);
 
+export type AuthResetPasswordData = {
+    requestBody: NewPassword;
+};
+
+export type AuthResetPasswordResponse = (Message);
+
 export type AuthUpdatePasswordData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
-    requestBody: UpdatePassword;
+    requestBody: {
+        [key: string]: (string);
+    };
 };
 
 export type AuthUpdatePasswordResponse = (Message);
 
-export type AuthResendVerificationData = {
-    requestBody: EmailRequest;
-};
-
-export type AuthResendVerificationResponse = (Message);
-
 export type CompanySettingsGetCompanySettingsData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type CompanySettingsGetCompanySettingsResponse = (CompanySettingsPublic);
 
 export type CompanySettingsCreateCompanySettingsData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: CompanySettingsCreate;
 };
 
@@ -758,7 +732,6 @@ export type CompanySettingsCreateCompanySettingsResponse = (CompanySettingsPubli
 
 export type CompanySettingsUpdateCompanySettingsData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: CompanySettingsUpdate;
 };
 
@@ -766,14 +739,12 @@ export type CompanySettingsUpdateCompanySettingsResponse = (CompanySettingsPubli
 
 export type CompanySettingsDeleteCompanySettingsData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type CompanySettingsDeleteCompanySettingsResponse = (Message);
 
 export type CustomersReadCustomersData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     limit?: number;
     skip?: number;
 };
@@ -782,7 +753,6 @@ export type CustomersReadCustomersResponse = (CustomersPublic);
 
 export type CustomersCreateCustomerData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: CustomerCreate;
 };
 
@@ -790,7 +760,6 @@ export type CustomersCreateCustomerResponse = (CustomerPublic);
 
 export type CustomersReadCustomerData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -798,7 +767,6 @@ export type CustomersReadCustomerResponse = (CustomerPublic);
 
 export type CustomersUpdateCustomerData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
     requestBody: CustomerUpdate;
 };
@@ -807,15 +775,17 @@ export type CustomersUpdateCustomerResponse = (CustomerPublic);
 
 export type CustomersDeleteCustomerData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
 export type CustomersDeleteCustomerResponse = (Message);
 
+export type HealthResponse = ({
+    [key: string]: unknown;
+});
+
 export type InvoicesGetDashboardStatsData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     documentType?: (DocumentType | null);
 };
 
@@ -823,7 +793,6 @@ export type InvoicesGetDashboardStatsResponse = (DashboardStats);
 
 export type InvoicesReadInvoicesData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     customerId?: (string | null);
     documentType?: (DocumentType | null);
     limit?: number;
@@ -835,7 +804,6 @@ export type InvoicesReadInvoicesResponse = (InvoicesPublic);
 
 export type InvoicesCreateInvoiceData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: InvoiceCreate;
 };
 
@@ -843,7 +811,6 @@ export type InvoicesCreateInvoiceResponse = (InvoicePublic);
 
 export type InvoicesReadInvoiceData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -851,7 +818,6 @@ export type InvoicesReadInvoiceResponse = (InvoiceWithCustomer);
 
 export type InvoicesUpdateInvoiceData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
     requestBody: InvoiceUpdate;
 };
@@ -860,7 +826,6 @@ export type InvoicesUpdateInvoiceResponse = (InvoicePublic);
 
 export type InvoicesDeleteInvoiceData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -868,7 +833,6 @@ export type InvoicesDeleteInvoiceResponse = (Message);
 
 export type InvoiceTemplatesReadInvoiceTemplatesData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     limit?: number;
     skip?: number;
 };
@@ -877,7 +841,6 @@ export type InvoiceTemplatesReadInvoiceTemplatesResponse = (InvoiceTemplatesPubl
 
 export type InvoiceTemplatesCreateInvoiceTemplateData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: InvoiceTemplateCreate;
 };
 
@@ -885,14 +848,12 @@ export type InvoiceTemplatesCreateInvoiceTemplateResponse = (InvoiceTemplatePubl
 
 export type InvoiceTemplatesReadActiveInvoiceTemplateData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type InvoiceTemplatesReadActiveInvoiceTemplateResponse = (InvoiceTemplatePublic);
 
 export type InvoiceTemplatesReadInvoiceTemplateData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -900,7 +861,6 @@ export type InvoiceTemplatesReadInvoiceTemplateResponse = (InvoiceTemplatePublic
 
 export type InvoiceTemplatesUpdateInvoiceTemplateData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
     requestBody: InvoiceTemplateUpdate;
 };
@@ -909,7 +869,6 @@ export type InvoiceTemplatesUpdateInvoiceTemplateResponse = (InvoiceTemplatePubl
 
 export type InvoiceTemplatesDeleteInvoiceTemplateData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -917,15 +876,20 @@ export type InvoiceTemplatesDeleteInvoiceTemplateResponse = (Message);
 
 export type InvoiceTemplatesActivateInvoiceTemplateData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
 export type InvoiceTemplatesActivateInvoiceTemplateResponse = (InvoiceTemplatePublic);
 
+export type InvoiceTemplatesParseExcelPreviewData = {
+    accessToken?: (string | null);
+    formData: Body_invoice_templates_parse_excel_preview;
+};
+
+export type InvoiceTemplatesParseExcelPreviewResponse = (unknown);
+
 export type ItemsReadItemsData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     category?: (string | null);
     limit?: number;
     search?: (string | null);
@@ -937,7 +901,6 @@ export type ItemsReadItemsResponse = (ItemsPublic);
 
 export type ItemsCreateItemData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: ItemCreate;
 };
 
@@ -945,7 +908,6 @@ export type ItemsCreateItemResponse = (ItemPublic);
 
 export type ItemsReadItemData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -953,7 +915,6 @@ export type ItemsReadItemResponse = (ItemPublic);
 
 export type ItemsUpdateItemData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
     requestBody: ItemUpdate;
 };
@@ -962,7 +923,6 @@ export type ItemsUpdateItemResponse = (ItemPublic);
 
 export type ItemsDeleteItemData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -970,7 +930,6 @@ export type ItemsDeleteItemResponse = (Message);
 
 export type ItemsAdjustStockData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
     quantity: number;
     reason?: (string | null);
@@ -981,14 +940,12 @@ export type ItemsAdjustStockResponse = (ItemPublic);
 
 export type ItemsListCategoriesData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type ItemsListCategoriesResponse = (Array<(string)>);
 
 export type NotificationsGetNotificationsData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     limit?: number;
     skip?: number;
     type?: (NotificationType | null);
@@ -999,7 +956,6 @@ export type NotificationsGetNotificationsResponse = (NotificationsPublic);
 
 export type NotificationsCreateNotificationData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: NotificationCreate;
 };
 
@@ -1007,14 +963,12 @@ export type NotificationsCreateNotificationResponse = (NotificationPublic);
 
 export type NotificationsClearAllData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type NotificationsClearAllResponse = (Message);
 
 export type NotificationsGetNotificationData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -1022,7 +976,6 @@ export type NotificationsGetNotificationResponse = (NotificationPublic);
 
 export type NotificationsUpdateNotificationData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
     requestBody: NotificationUpdate;
 };
@@ -1031,7 +984,6 @@ export type NotificationsUpdateNotificationResponse = (NotificationPublic);
 
 export type NotificationsDeleteNotificationData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     id: string;
 };
 
@@ -1039,53 +991,9 @@ export type NotificationsDeleteNotificationResponse = (Message);
 
 export type NotificationsMarkAllReadData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type NotificationsMarkAllReadResponse = (Message);
-
-export type OauthGetOauthUrlData = {
-    provider: string;
-    /**
-     * URL to redirect after OAuth
-     */
-    redirectTo?: (string | null);
-};
-
-export type OauthGetOauthUrlResponse = (OAuthURLResponse);
-
-export type OauthUnlinkOauthProviderData = {
-    accessToken?: (string | null);
-    authorization?: (string | null);
-    identityId: string;
-    provider: string;
-};
-
-export type OauthUnlinkOauthProviderResponse = (Message);
-
-export type OauthOauthCallbackData = {
-    code?: (string | null);
-    error?: (string | null);
-    errorDescription?: (string | null);
-};
-
-export type OauthOauthCallbackResponse = (unknown);
-
-export type OauthLinkOauthProviderData = {
-    accessToken?: (string | null);
-    authorization?: (string | null);
-    provider: string;
-    redirectTo?: (string | null);
-};
-
-export type OauthLinkOauthProviderResponse = (OAuthURLResponse);
-
-export type OauthGetOauthIdentitiesData = {
-    accessToken?: (string | null);
-    authorization?: (string | null);
-};
-
-export type OauthGetOauthIdentitiesResponse = (Array<AuthIdentity>);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;
@@ -1095,7 +1003,6 @@ export type PrivateCreateUserResponse = (UserPublic);
 
 export type TablesListTablesData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     limit?: number;
     search?: (string | null);
     skip?: number;
@@ -1107,7 +1014,6 @@ export type TablesListTablesResponse = (PaginatedResponse_DataTablePublic_);
 
 export type TablesCreateTableData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: DataTableCreate;
 };
 
@@ -1115,7 +1021,6 @@ export type TablesCreateTableResponse = (DataTablePublic);
 
 export type TablesGetTableData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     tableId: string;
 };
 
@@ -1123,7 +1028,6 @@ export type TablesGetTableResponse = (DataTableWithRows);
 
 export type TablesUpdateTableData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: DataTableUpdate;
     tableId: string;
 };
@@ -1132,7 +1036,6 @@ export type TablesUpdateTableResponse = (DataTablePublic);
 
 export type TablesDeleteTableData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     tableId: string;
 };
 
@@ -1140,7 +1043,6 @@ export type TablesDeleteTableResponse = (void);
 
 export type TablesDuplicateTableData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     tableId: string;
 };
 
@@ -1148,7 +1050,6 @@ export type TablesDuplicateTableResponse = (DataTablePublic);
 
 export type TablesCreateTableRowData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: TableRowCreate;
     tableId: string;
 };
@@ -1157,7 +1058,6 @@ export type TablesCreateTableRowResponse = (TableRowPublic);
 
 export type TablesUpdateTableRowData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: TableRowUpdate;
     rowId: string;
     tableId: string;
@@ -1167,7 +1067,6 @@ export type TablesUpdateTableRowResponse = (TableRowPublic);
 
 export type TablesDeleteTableRowData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     rowId: string;
     tableId: string;
 };
@@ -1176,7 +1075,6 @@ export type TablesDeleteTableRowResponse = (void);
 
 export type TablesBulkDeleteTableRowsData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: Array<(string)>;
     tableId: string;
 };
@@ -1185,7 +1083,6 @@ export type TablesBulkDeleteTableRowsResponse = (unknown);
 
 export type TablesCreateTableReminderData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: TableReminderCreate;
     tableId: string;
 };
@@ -1194,32 +1091,28 @@ export type TablesCreateTableReminderResponse = (TableReminderPublic);
 
 export type TablesDeleteTableReminderData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     reminderId: string;
     tableId: string;
 };
 
 export type TablesDeleteTableReminderResponse = (void);
 
-export type UsersReadProfilesData = {
+export type UsersReadUsersData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     limit?: number;
     skip?: number;
 };
 
-export type UsersReadProfilesResponse = (ProfilesPublic);
+export type UsersReadUsersResponse = (UsersPublic);
 
 export type UsersReadUserMeData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type UsersReadUserMeResponse = (UserPublic);
 
 export type UsersUpdateUserMeData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     requestBody: UserUpdateMe;
 };
 
@@ -1227,30 +1120,27 @@ export type UsersUpdateUserMeResponse = (UserPublic);
 
 export type UsersDeleteUserMeData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
 };
 
 export type UsersDeleteUserMeResponse = (Message);
 
-export type UsersUpdatePasswordMeData = {
-    accessToken?: (string | null);
-    authorization?: (string | null);
-    requestBody: UpdatePassword;
-};
-
-export type UsersUpdatePasswordMeResponse = (Message);
-
 export type UsersReadUserByIdData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     userId: string;
 };
 
 export type UsersReadUserByIdResponse = (UserPublic);
 
+export type UsersUpdateUserData = {
+    accessToken?: (string | null);
+    requestBody: UserUpdate;
+    userId: string;
+};
+
+export type UsersUpdateUserResponse = (UserPublic);
+
 export type UsersDeleteUserData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     userId: string;
 };
 
@@ -1258,7 +1148,6 @@ export type UsersDeleteUserResponse = (Message);
 
 export type UtilsTestEmailData = {
     accessToken?: (string | null);
-    authorization?: (string | null);
     emailTo: string;
 };
 

@@ -3,18 +3,14 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminListUsersData, AdminListUsersResponse, AdminCreateUserData, AdminCreateUserResponse, AdminGetUserData, AdminGetUserResponse, AdminUpdateUserData, AdminUpdateUserResponse, AdminDeleteUserData, AdminDeleteUserResponse, AdminListUserSessionsData, AdminListUserSessionsResponse, AdminRevokeUserSessionData, AdminRevokeUserSessionResponse, AuthSignupData, AuthSignupResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutData, AuthLogoutResponse, AuthGetCurrentUserInfoData, AuthGetCurrentUserInfoResponse, AuthUpdateCurrentUserData, AuthUpdateCurrentUserResponse, AuthForgotPasswordData, AuthForgotPasswordResponse, AuthUpdatePasswordData, AuthUpdatePasswordResponse, AuthResendVerificationData, AuthResendVerificationResponse, CompanySettingsGetCompanySettingsData, CompanySettingsGetCompanySettingsResponse, CompanySettingsCreateCompanySettingsData, CompanySettingsCreateCompanySettingsResponse, CompanySettingsUpdateCompanySettingsData, CompanySettingsUpdateCompanySettingsResponse, CompanySettingsDeleteCompanySettingsData, CompanySettingsDeleteCompanySettingsResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, InvoicesGetDashboardStatsData, InvoicesGetDashboardStatsResponse, InvoicesReadInvoicesData, InvoicesReadInvoicesResponse, InvoicesCreateInvoiceData, InvoicesCreateInvoiceResponse, InvoicesReadInvoiceData, InvoicesReadInvoiceResponse, InvoicesUpdateInvoiceData, InvoicesUpdateInvoiceResponse, InvoicesDeleteInvoiceData, InvoicesDeleteInvoiceResponse, InvoiceTemplatesReadInvoiceTemplatesData, InvoiceTemplatesReadInvoiceTemplatesResponse, InvoiceTemplatesCreateInvoiceTemplateData, InvoiceTemplatesCreateInvoiceTemplateResponse, InvoiceTemplatesReadActiveInvoiceTemplateData, InvoiceTemplatesReadActiveInvoiceTemplateResponse, InvoiceTemplatesReadInvoiceTemplateData, InvoiceTemplatesReadInvoiceTemplateResponse, InvoiceTemplatesUpdateInvoiceTemplateData, InvoiceTemplatesUpdateInvoiceTemplateResponse, InvoiceTemplatesDeleteInvoiceTemplateData, InvoiceTemplatesDeleteInvoiceTemplateResponse, InvoiceTemplatesActivateInvoiceTemplateData, InvoiceTemplatesActivateInvoiceTemplateResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, ItemsAdjustStockData, ItemsAdjustStockResponse, ItemsListCategoriesData, ItemsListCategoriesResponse, NotificationsGetNotificationsData, NotificationsGetNotificationsResponse, NotificationsCreateNotificationData, NotificationsCreateNotificationResponse, NotificationsClearAllData, NotificationsClearAllResponse, NotificationsGetNotificationData, NotificationsGetNotificationResponse, NotificationsUpdateNotificationData, NotificationsUpdateNotificationResponse, NotificationsDeleteNotificationData, NotificationsDeleteNotificationResponse, NotificationsMarkAllReadData, NotificationsMarkAllReadResponse, OauthGetOauthUrlData, OauthGetOauthUrlResponse, OauthUnlinkOauthProviderData, OauthUnlinkOauthProviderResponse, OauthOauthCallbackData, OauthOauthCallbackResponse, OauthLinkOauthProviderData, OauthLinkOauthProviderResponse, OauthGetOauthIdentitiesData, OauthGetOauthIdentitiesResponse, PrivateCreateUserData, PrivateCreateUserResponse, TablesListTablesData, TablesListTablesResponse, TablesCreateTableData, TablesCreateTableResponse, TablesGetTableData, TablesGetTableResponse, TablesUpdateTableData, TablesUpdateTableResponse, TablesDeleteTableData, TablesDeleteTableResponse, TablesDuplicateTableData, TablesDuplicateTableResponse, TablesCreateTableRowData, TablesCreateTableRowResponse, TablesUpdateTableRowData, TablesUpdateTableRowResponse, TablesDeleteTableRowData, TablesDeleteTableRowResponse, TablesBulkDeleteTableRowsData, TablesBulkDeleteTableRowsResponse, TablesCreateTableReminderData, TablesCreateTableReminderResponse, TablesDeleteTableReminderData, TablesDeleteTableReminderResponse, UsersReadProfilesData, UsersReadProfilesResponse, UsersReadUserMeData, UsersReadUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersDeleteUserMeData, UsersDeleteUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminListUsersData, AdminListUsersResponse, AdminCreateUserData, AdminCreateUserResponse, AdminGetUserData, AdminGetUserResponse, AdminUpdateUserData, AdminUpdateUserResponse, AdminDeleteUserData, AdminDeleteUserResponse, AuthSignupData, AuthSignupResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutResponse, AuthGetCurrentUserInfoData, AuthGetCurrentUserInfoResponse, AuthUpdateCurrentUserData, AuthUpdateCurrentUserResponse, AuthForgotPasswordData, AuthForgotPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthUpdatePasswordData, AuthUpdatePasswordResponse, CompanySettingsGetCompanySettingsData, CompanySettingsGetCompanySettingsResponse, CompanySettingsCreateCompanySettingsData, CompanySettingsCreateCompanySettingsResponse, CompanySettingsUpdateCompanySettingsData, CompanySettingsUpdateCompanySettingsResponse, CompanySettingsDeleteCompanySettingsData, CompanySettingsDeleteCompanySettingsResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, HealthResponse, InvoicesGetDashboardStatsData, InvoicesGetDashboardStatsResponse, InvoicesReadInvoicesData, InvoicesReadInvoicesResponse, InvoicesCreateInvoiceData, InvoicesCreateInvoiceResponse, InvoicesReadInvoiceData, InvoicesReadInvoiceResponse, InvoicesUpdateInvoiceData, InvoicesUpdateInvoiceResponse, InvoicesDeleteInvoiceData, InvoicesDeleteInvoiceResponse, InvoiceTemplatesReadInvoiceTemplatesData, InvoiceTemplatesReadInvoiceTemplatesResponse, InvoiceTemplatesCreateInvoiceTemplateData, InvoiceTemplatesCreateInvoiceTemplateResponse, InvoiceTemplatesReadActiveInvoiceTemplateData, InvoiceTemplatesReadActiveInvoiceTemplateResponse, InvoiceTemplatesReadInvoiceTemplateData, InvoiceTemplatesReadInvoiceTemplateResponse, InvoiceTemplatesUpdateInvoiceTemplateData, InvoiceTemplatesUpdateInvoiceTemplateResponse, InvoiceTemplatesDeleteInvoiceTemplateData, InvoiceTemplatesDeleteInvoiceTemplateResponse, InvoiceTemplatesActivateInvoiceTemplateData, InvoiceTemplatesActivateInvoiceTemplateResponse, InvoiceTemplatesParseExcelPreviewData, InvoiceTemplatesParseExcelPreviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, ItemsAdjustStockData, ItemsAdjustStockResponse, ItemsListCategoriesData, ItemsListCategoriesResponse, NotificationsGetNotificationsData, NotificationsGetNotificationsResponse, NotificationsCreateNotificationData, NotificationsCreateNotificationResponse, NotificationsClearAllData, NotificationsClearAllResponse, NotificationsGetNotificationData, NotificationsGetNotificationResponse, NotificationsUpdateNotificationData, NotificationsUpdateNotificationResponse, NotificationsDeleteNotificationData, NotificationsDeleteNotificationResponse, NotificationsMarkAllReadData, NotificationsMarkAllReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, TablesListTablesData, TablesListTablesResponse, TablesCreateTableData, TablesCreateTableResponse, TablesGetTableData, TablesGetTableResponse, TablesUpdateTableData, TablesUpdateTableResponse, TablesDeleteTableData, TablesDeleteTableResponse, TablesDuplicateTableData, TablesDuplicateTableResponse, TablesCreateTableRowData, TablesCreateTableRowResponse, TablesUpdateTableRowData, TablesUpdateTableRowResponse, TablesDeleteTableRowData, TablesDeleteTableRowResponse, TablesBulkDeleteTableRowsData, TablesBulkDeleteTableRowsResponse, TablesCreateTableReminderData, TablesCreateTableReminderResponse, TablesDeleteTableReminderData, TablesDeleteTableReminderResponse, UsersReadUsersData, UsersReadUsersResponse, UsersReadUserMeData, UsersReadUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersDeleteUserMeData, UsersDeleteUserMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminService {
     /**
      * List Users
-     * List all users (paginated).
-     *
-     * Requires superuser privileges.
      * @param data The data for the request.
      * @param data.page
      * @param data.pageSize
-     * @param data.authorization
      * @param data.accessToken
      * @returns PaginatedResponse_UserPublic_ Successful Response
      * @throws ApiError
@@ -25,9 +21,6 @@ export class AdminService {
             url: '/api/v1/admin/users',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 page: data.page,
@@ -41,12 +34,8 @@ export class AdminService {
     
     /**
      * Create User
-     * Create a new user via admin API.
-     *
-     * Requires superuser privileges.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns UserPublic Successful Response
      * @throws ApiError
@@ -58,9 +47,6 @@ export class AdminService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -71,12 +57,8 @@ export class AdminService {
     
     /**
      * Get User
-     * Get user by ID.
-     *
-     * Requires superuser privileges.
      * @param data The data for the request.
      * @param data.userId
-     * @param data.authorization
      * @param data.accessToken
      * @returns UserPublic Successful Response
      * @throws ApiError
@@ -91,9 +73,6 @@ export class AdminService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -102,13 +81,9 @@ export class AdminService {
     
     /**
      * Update User
-     * Update user by ID.
-     *
-     * Requires superuser privileges.
      * @param data The data for the request.
      * @param data.userId
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns UserPublic Successful Response
      * @throws ApiError
@@ -123,9 +98,6 @@ export class AdminService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -136,12 +108,8 @@ export class AdminService {
     
     /**
      * Delete User
-     * Delete user by ID.
-     *
-     * Requires superuser privileges.
      * @param data The data for the request.
      * @param data.userId
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -156,73 +124,6 @@ export class AdminService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * List User Sessions
-     * List all active sessions for a user.
-     *
-     * Requires superuser privileges.
-     * @param data The data for the request.
-     * @param data.userId
-     * @param data.authorization
-     * @param data.accessToken
-     * @returns AuthSession Successful Response
-     * @throws ApiError
-     */
-    public static listUserSessions(data: AdminListUserSessionsData): CancelablePromise<AdminListUserSessionsResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/admin/users/{user_id}/sessions',
-            path: {
-                user_id: data.userId
-            },
-            cookies: {
-                access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Revoke User Session
-     * Revoke a specific session for a user.
-     *
-     * Requires superuser privileges.
-     * @param data The data for the request.
-     * @param data.userId
-     * @param data.sessionId
-     * @param data.authorization
-     * @param data.accessToken
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static revokeUserSession(data: AdminRevokeUserSessionData): CancelablePromise<AdminRevokeUserSessionResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/admin/users/{user_id}/sessions/{session_id}',
-            path: {
-                user_id: data.userId,
-                session_id: data.sessionId
-            },
-            cookies: {
-                access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -233,9 +134,6 @@ export class AdminService {
 export class AuthService {
     /**
      * Signup
-     * Sign up a new user.
-     *
-     * Creates user and returns session tokens as HttpOnly cookies.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns AuthResponse Successful Response
@@ -255,9 +153,6 @@ export class AuthService {
     
     /**
      * Login
-     * Login with email and password.
-     *
-     * Returns access_token and refresh_token as HttpOnly cookies.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns AuthResponse Successful Response
@@ -277,10 +172,9 @@ export class AuthService {
     
     /**
      * Refresh Token
-     * Refresh access token using refresh token from cookie.
      * @param data The data for the request.
      * @param data.refreshToken
-     * @returns AuthResponse Successful Response
+     * @returns Token Successful Response
      * @throws ApiError
      */
     public static refreshToken(data: AuthRefreshTokenData = {}): CancelablePromise<AuthRefreshTokenResponse> {
@@ -298,30 +192,19 @@ export class AuthService {
     
     /**
      * Logout
-     * Logout - invalidates the session and clears cookies.
-     * @param data The data for the request.
-     * @param data.authorization
      * @returns Message Successful Response
      * @throws ApiError
      */
-    public static logout(data: AuthLogoutData = {}): CancelablePromise<AuthLogoutResponse> {
+    public static logout(): CancelablePromise<AuthLogoutResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/auth/logout',
-            headers: {
-                authorization: data.authorization
-            },
-            errors: {
-                422: 'Validation Error'
-            }
+            url: '/api/v1/auth/logout'
         });
     }
     
     /**
      * Get Current User Info
-     * Get current user info from JWT token.
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns UserPublic Successful Response
      * @throws ApiError
@@ -333,9 +216,6 @@ export class AuthService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -344,10 +224,8 @@ export class AuthService {
     
     /**
      * Update Current User
-     * Update current user information.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns UserPublic Successful Response
      * @throws ApiError
@@ -359,9 +237,6 @@ export class AuthService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -372,9 +247,8 @@ export class AuthService {
     
     /**
      * Forgot Password
-     * Request password reset email.
      * @param data The data for the request.
-     * @param data.requestBody
+     * @param data.email
      * @returns Message Successful Response
      * @throws ApiError
      */
@@ -382,6 +256,26 @@ export class AuthService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/auth/forgot-password',
+            query: {
+                email: data.email
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reset Password
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static resetPassword(data: AuthResetPasswordData): CancelablePromise<AuthResetPasswordResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/reset-password',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -392,12 +286,8 @@ export class AuthService {
     
     /**
      * Update Password
-     * Update user password.
-     *
-     * Uses access token from cookie.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -409,29 +299,6 @@ export class AuthService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Resend Verification
-     * Resend email verification.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static resendVerification(data: AuthResendVerificationData): CancelablePromise<AuthResendVerificationResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/auth/resend-verification',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -446,7 +313,6 @@ export class CompanySettingsService {
      * Get Company Settings
      * Get company settings for the current user.
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns CompanySettingsPublic Successful Response
      * @throws ApiError
@@ -457,9 +323,6 @@ export class CompanySettingsService {
             url: '/api/v1/company-settings/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             errors: {
                 422: 'Validation Error'
@@ -472,7 +335,6 @@ export class CompanySettingsService {
      * Create company settings for the current user.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns CompanySettingsPublic Successful Response
      * @throws ApiError
@@ -483,9 +345,6 @@ export class CompanySettingsService {
             url: '/api/v1/company-settings/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -500,7 +359,6 @@ export class CompanySettingsService {
      * Update company settings for the current user.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns CompanySettingsPublic Successful Response
      * @throws ApiError
@@ -511,9 +369,6 @@ export class CompanySettingsService {
             url: '/api/v1/company-settings/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -527,7 +382,6 @@ export class CompanySettingsService {
      * Delete Company Settings
      * Delete company settings for the current user.
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -538,9 +392,6 @@ export class CompanySettingsService {
             url: '/api/v1/company-settings/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             errors: {
                 422: 'Validation Error'
@@ -556,7 +407,6 @@ export class CustomersService {
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
-     * @param data.authorization
      * @param data.accessToken
      * @returns CustomersPublic Successful Response
      * @throws ApiError
@@ -567,9 +417,6 @@ export class CustomersService {
             url: '/api/v1/customers/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 skip: data.skip,
@@ -586,7 +433,6 @@ export class CustomersService {
      * Create a new customer.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns CustomerPublic Successful Response
      * @throws ApiError
@@ -597,9 +443,6 @@ export class CustomersService {
             url: '/api/v1/customers/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -614,7 +457,6 @@ export class CustomersService {
      * Get customer by ID.
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns CustomerPublic Successful Response
      * @throws ApiError
@@ -629,9 +471,6 @@ export class CustomersService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -644,7 +483,6 @@ export class CustomersService {
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns CustomerPublic Successful Response
      * @throws ApiError
@@ -659,9 +497,6 @@ export class CustomersService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -675,7 +510,6 @@ export class CustomersService {
      * Delete a customer.
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -690,12 +524,24 @@ export class CustomersService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+}
+
+export class DefaultService {
+    /**
+     * Health
+     * Health check endpoint for Railway and Docker.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static health(): CancelablePromise<HealthResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/health'
         });
     }
 }
@@ -708,7 +554,6 @@ export class InvoicesService {
      * - **document_type**: Filter stats by document type (invoice, quotation, proforma, challan)
      * @param data The data for the request.
      * @param data.documentType
-     * @param data.authorization
      * @param data.accessToken
      * @returns DashboardStats Successful Response
      * @throws ApiError
@@ -719,9 +564,6 @@ export class InvoicesService {
             url: '/api/v1/invoices/stats',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 document_type: data.documentType
@@ -745,7 +587,6 @@ export class InvoicesService {
      * @param data.status
      * @param data.documentType
      * @param data.customerId
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoicesPublic Successful Response
      * @throws ApiError
@@ -756,9 +597,6 @@ export class InvoicesService {
             url: '/api/v1/invoices/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 skip: data.skip,
@@ -784,7 +622,6 @@ export class InvoicesService {
      * - challan: Delivery challan
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoicePublic Successful Response
      * @throws ApiError
@@ -795,9 +632,6 @@ export class InvoicesService {
             url: '/api/v1/invoices/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -812,7 +646,6 @@ export class InvoicesService {
      * Get invoice by ID with customer details.
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoiceWithCustomer Successful Response
      * @throws ApiError
@@ -827,9 +660,6 @@ export class InvoicesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -842,7 +672,6 @@ export class InvoicesService {
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoicePublic Successful Response
      * @throws ApiError
@@ -857,9 +686,6 @@ export class InvoicesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -873,7 +699,6 @@ export class InvoicesService {
      * Delete an invoice.
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -888,9 +713,6 @@ export class InvoicesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -904,7 +726,6 @@ export class InvoiceTemplatesService {
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoiceTemplatesPublic Successful Response
      * @throws ApiError
@@ -915,9 +736,6 @@ export class InvoiceTemplatesService {
             url: '/api/v1/invoice-templates/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 skip: data.skip,
@@ -933,7 +751,6 @@ export class InvoiceTemplatesService {
      * Create Invoice Template
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoiceTemplatePublic Successful Response
      * @throws ApiError
@@ -944,9 +761,6 @@ export class InvoiceTemplatesService {
             url: '/api/v1/invoice-templates/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -959,7 +773,6 @@ export class InvoiceTemplatesService {
     /**
      * Read Active Invoice Template
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoiceTemplatePublic Successful Response
      * @throws ApiError
@@ -971,9 +784,6 @@ export class InvoiceTemplatesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -984,7 +794,6 @@ export class InvoiceTemplatesService {
      * Read Invoice Template
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoiceTemplatePublic Successful Response
      * @throws ApiError
@@ -999,9 +808,6 @@ export class InvoiceTemplatesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1013,7 +819,6 @@ export class InvoiceTemplatesService {
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoiceTemplatePublic Successful Response
      * @throws ApiError
@@ -1028,9 +833,6 @@ export class InvoiceTemplatesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -1043,7 +845,6 @@ export class InvoiceTemplatesService {
      * Delete Invoice Template
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -1058,9 +859,6 @@ export class InvoiceTemplatesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1071,7 +869,6 @@ export class InvoiceTemplatesService {
      * Activate Invoice Template
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns InvoiceTemplatePublic Successful Response
      * @throws ApiError
@@ -1086,9 +883,29 @@ export class InvoiceTemplatesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Parse Excel Preview
+     * @param data The data for the request.
+     * @param data.formData
+     * @param data.accessToken
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static parseExcelPreview(data: InvoiceTemplatesParseExcelPreviewData): CancelablePromise<InvoiceTemplatesParseExcelPreviewResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/invoice-templates/parse-excel',
+            cookies: {
+                access_token: data.accessToken
             },
+            formData: data.formData,
+            mediaType: 'multipart/form-data',
             errors: {
                 422: 'Validation Error'
             }
@@ -1110,7 +927,6 @@ export class ItemsService {
      * @param data.search
      * @param data.category
      * @param data.stockStatus
-     * @param data.authorization
      * @param data.accessToken
      * @returns ItemsPublic Successful Response
      * @throws ApiError
@@ -1121,9 +937,6 @@ export class ItemsService {
             url: '/api/v1/items/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 skip: data.skip,
@@ -1143,7 +956,6 @@ export class ItemsService {
      * Create new item.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns ItemPublic Successful Response
      * @throws ApiError
@@ -1154,9 +966,6 @@ export class ItemsService {
             url: '/api/v1/items/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -1171,7 +980,6 @@ export class ItemsService {
      * Get item by ID.
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns ItemPublic Successful Response
      * @throws ApiError
@@ -1186,9 +994,6 @@ export class ItemsService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1201,7 +1006,6 @@ export class ItemsService {
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns ItemPublic Successful Response
      * @throws ApiError
@@ -1216,9 +1020,6 @@ export class ItemsService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -1232,7 +1033,6 @@ export class ItemsService {
      * Delete an item.
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -1246,9 +1046,6 @@ export class ItemsService {
             },
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             errors: {
                 422: 'Validation Error'
@@ -1268,7 +1065,6 @@ export class ItemsService {
      * @param data.quantity
      * @param data.reason
      * @param data.reference
-     * @param data.authorization
      * @param data.accessToken
      * @returns ItemPublic Successful Response
      * @throws ApiError
@@ -1282,9 +1078,6 @@ export class ItemsService {
             },
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 quantity: data.quantity,
@@ -1301,7 +1094,6 @@ export class ItemsService {
      * List Categories
      * Get list of distinct categories used by user's items.
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns string Successful Response
      * @throws ApiError
@@ -1312,9 +1104,6 @@ export class ItemsService {
             url: '/api/v1/items/categories/list',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             errors: {
                 422: 'Validation Error'
@@ -1335,7 +1124,6 @@ export class NotificationsService {
      * @param data.limit
      * @param data.unreadOnly
      * @param data.type
-     * @param data.authorization
      * @param data.accessToken
      * @returns NotificationsPublic Successful Response
      * @throws ApiError
@@ -1346,9 +1134,6 @@ export class NotificationsService {
             url: '/api/v1/notifications/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 skip: data.skip,
@@ -1367,7 +1152,6 @@ export class NotificationsService {
      * Create a new notification.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns NotificationPublic Successful Response
      * @throws ApiError
@@ -1378,9 +1162,6 @@ export class NotificationsService {
             url: '/api/v1/notifications/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -1394,7 +1175,6 @@ export class NotificationsService {
      * Clear All
      * Delete all notifications for the current user.
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -1405,9 +1185,6 @@ export class NotificationsService {
             url: '/api/v1/notifications/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             errors: {
                 422: 'Validation Error'
@@ -1420,7 +1197,6 @@ export class NotificationsService {
      * Get a specific notification.
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns NotificationPublic Successful Response
      * @throws ApiError
@@ -1435,9 +1211,6 @@ export class NotificationsService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1450,7 +1223,6 @@ export class NotificationsService {
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns NotificationPublic Successful Response
      * @throws ApiError
@@ -1465,9 +1237,6 @@ export class NotificationsService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -1481,7 +1250,6 @@ export class NotificationsService {
      * Delete a notification.
      * @param data The data for the request.
      * @param data.id
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -1496,9 +1264,6 @@ export class NotificationsService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1509,7 +1274,6 @@ export class NotificationsService {
      * Mark All Read
      * Mark all notifications as read.
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -1521,170 +1285,6 @@ export class NotificationsService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-}
-
-export class OauthService {
-    /**
-     * Get Oauth Url
-     * Get OAuth authorization URL for a provider.
-     *
-     * Frontend should redirect user to this URL to start OAuth flow.
-     *
-     * Supported providers: google, github, apple, discord, twitter, facebook,
-     * microsoft, azure, bitbucket, figma, fly, gitlab, kakao, keycloak,
-     * linkedin, linkedin_oidc, notion, slack, spotify, twitch, workos
-     * @param data The data for the request.
-     * @param data.provider
-     * @param data.redirectTo URL to redirect after OAuth
-     * @returns OAuthURLResponse Successful Response
-     * @throws ApiError
-     */
-    public static getOauthUrl(data: OauthGetOauthUrlData): CancelablePromise<OauthGetOauthUrlResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/auth/oauth/{provider}',
-            path: {
-                provider: data.provider
-            },
-            query: {
-                redirect_to: data.redirectTo
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Unlink Oauth Provider
-     * Unlink an OAuth provider from the current user account.
-     *
-     * Requires:
-     * - Valid access token in Authorization header
-     * - The identity_id to unlink (get from /auth/oauth/identities)
-     * @param data The data for the request.
-     * @param data.provider
-     * @param data.identityId
-     * @param data.authorization
-     * @param data.accessToken
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static unlinkOauthProvider(data: OauthUnlinkOauthProviderData): CancelablePromise<OauthUnlinkOauthProviderResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/auth/oauth/{provider}',
-            path: {
-                provider: data.provider
-            },
-            cookies: {
-                access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
-            },
-            query: {
-                identity_id: data.identityId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Oauth Callback
-     * Handle OAuth callback from providers.
-     *
-     * In most cases, the frontend handles the callback directly.
-     *
-     * The frontend receives the tokens and calls /auth/me to get user info.
-     * @param data The data for the request.
-     * @param data.code
-     * @param data.error
-     * @param data.errorDescription
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static oauthCallback(data: OauthOauthCallbackData = {}): CancelablePromise<OauthOauthCallbackResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/auth/oauth/callback',
-            query: {
-                code: data.code,
-                error: data.error,
-                error_description: data.errorDescription
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Link Oauth Provider
-     * Link an OAuth provider to the current user account.
-     *
-     * Requires valid access token in Authorization header.
-     * @param data The data for the request.
-     * @param data.provider
-     * @param data.redirectTo
-     * @param data.authorization
-     * @param data.accessToken
-     * @returns OAuthURLResponse Successful Response
-     * @throws ApiError
-     */
-    public static linkOauthProvider(data: OauthLinkOauthProviderData): CancelablePromise<OauthLinkOauthProviderResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/auth/oauth/link/{provider}',
-            path: {
-                provider: data.provider
-            },
-            cookies: {
-                access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
-            },
-            query: {
-                redirect_to: data.redirectTo
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Get Oauth Identities
-     * Get all OAuth identities linked to the current user.
-     *
-     * Returns list of providers the user has linked.
-     * @param data The data for the request.
-     * @param data.authorization
-     * @param data.accessToken
-     * @returns AuthIdentity Successful Response
-     * @throws ApiError
-     */
-    public static getOauthIdentities(data: OauthGetOauthIdentitiesData = {}): CancelablePromise<OauthGetOauthIdentitiesResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/auth/oauth/identities',
-            cookies: {
-                access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1695,7 +1295,6 @@ export class OauthService {
 export class PrivateService {
     /**
      * Create User
-     * Create a new user (private endpoint).
      * @param data The data for the request.
      * @param data.requestBody
      * @returns UserPublic Successful Response
@@ -1730,7 +1329,6 @@ export class TablesService {
      * @param data.sortBy
      * @param data.sortOrder
      * @param data.search
-     * @param data.authorization
      * @param data.accessToken
      * @returns PaginatedResponse_DataTablePublic_ Successful Response
      * @throws ApiError
@@ -1741,9 +1339,6 @@ export class TablesService {
             url: '/api/v1/tables',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 skip: data.skip,
@@ -1766,7 +1361,6 @@ export class TablesService {
      * - **columns**: Array of column definitions
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns DataTablePublic Successful Response
      * @throws ApiError
@@ -1777,9 +1371,6 @@ export class TablesService {
             url: '/api/v1/tables',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -1794,7 +1385,6 @@ export class TablesService {
      * Get a specific table with all rows and reminders.
      * @param data The data for the request.
      * @param data.tableId
-     * @param data.authorization
      * @param data.accessToken
      * @returns DataTableWithRows Successful Response
      * @throws ApiError
@@ -1809,9 +1399,6 @@ export class TablesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1825,7 +1412,6 @@ export class TablesService {
      * @param data The data for the request.
      * @param data.tableId
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns DataTablePublic Successful Response
      * @throws ApiError
@@ -1840,9 +1426,6 @@ export class TablesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -1856,7 +1439,6 @@ export class TablesService {
      * Delete a table and all associated rows (cascade).
      * @param data The data for the request.
      * @param data.tableId
-     * @param data.authorization
      * @param data.accessToken
      * @returns void Successful Response
      * @throws ApiError
@@ -1871,9 +1453,6 @@ export class TablesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1885,7 +1464,6 @@ export class TablesService {
      * Duplicate a table with all its rows.
      * @param data The data for the request.
      * @param data.tableId
-     * @param data.authorization
      * @param data.accessToken
      * @returns DataTablePublic Successful Response
      * @throws ApiError
@@ -1900,9 +1478,6 @@ export class TablesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1915,7 +1490,6 @@ export class TablesService {
      * @param data The data for the request.
      * @param data.tableId
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns TableRowPublic Successful Response
      * @throws ApiError
@@ -1929,9 +1503,6 @@ export class TablesService {
             },
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -1948,7 +1519,6 @@ export class TablesService {
      * @param data.tableId
      * @param data.rowId
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns TableRowPublic Successful Response
      * @throws ApiError
@@ -1964,9 +1534,6 @@ export class TablesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -1981,7 +1548,6 @@ export class TablesService {
      * @param data The data for the request.
      * @param data.tableId
      * @param data.rowId
-     * @param data.authorization
      * @param data.accessToken
      * @returns void Successful Response
      * @throws ApiError
@@ -1997,9 +1563,6 @@ export class TablesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -2012,7 +1575,6 @@ export class TablesService {
      * @param data The data for the request.
      * @param data.tableId
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns unknown Successful Response
      * @throws ApiError
@@ -2026,9 +1588,6 @@ export class TablesService {
             },
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -2044,7 +1603,6 @@ export class TablesService {
      * @param data The data for the request.
      * @param data.tableId
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns TableReminderPublic Successful Response
      * @throws ApiError
@@ -2058,9 +1616,6 @@ export class TablesService {
             },
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -2076,7 +1631,6 @@ export class TablesService {
      * @param data The data for the request.
      * @param data.tableId
      * @param data.reminderId
-     * @param data.authorization
      * @param data.accessToken
      * @returns void Successful Response
      * @throws ApiError
@@ -2092,9 +1646,6 @@ export class TablesService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -2104,25 +1655,20 @@ export class TablesService {
 
 export class UsersService {
     /**
-     * Read Profiles
-     * Retrieve profiles (superuser only).
+     * Read Users
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
-     * @param data.authorization
      * @param data.accessToken
-     * @returns ProfilesPublic Successful Response
+     * @returns UsersPublic Successful Response
      * @throws ApiError
      */
-    public static readProfiles(data: UsersReadProfilesData = {}): CancelablePromise<UsersReadProfilesResponse> {
+    public static readUsers(data: UsersReadUsersData = {}): CancelablePromise<UsersReadUsersResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/users/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 skip: data.skip,
@@ -2136,9 +1682,7 @@ export class UsersService {
     
     /**
      * Read User Me
-     * Get current user.
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns UserPublic Successful Response
      * @throws ApiError
@@ -2150,9 +1694,6 @@ export class UsersService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -2161,10 +1702,8 @@ export class UsersService {
     
     /**
      * Update User Me
-     * Update own user profile.
      * @param data The data for the request.
      * @param data.requestBody
-     * @param data.authorization
      * @param data.accessToken
      * @returns UserPublic Successful Response
      * @throws ApiError
@@ -2176,9 +1715,6 @@ export class UsersService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -2189,9 +1725,7 @@ export class UsersService {
     
     /**
      * Delete User Me
-     * Delete own user account.
      * @param data The data for the request.
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -2203,37 +1737,6 @@ export class UsersService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Update Password Me
-     * Update own password.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @param data.authorization
-     * @param data.accessToken
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static updatePasswordMe(data: UsersUpdatePasswordMeData): CancelablePromise<UsersUpdatePasswordMeResponse> {
-        return __request(OpenAPI, {
-            method: 'PATCH',
-            url: '/api/v1/users/me/password',
-            cookies: {
-                access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
@@ -2242,10 +1745,8 @@ export class UsersService {
     
     /**
      * Read User By Id
-     * Get a specific user by id.
      * @param data The data for the request.
      * @param data.userId
-     * @param data.authorization
      * @param data.accessToken
      * @returns UserPublic Successful Response
      * @throws ApiError
@@ -2260,9 +1761,33 @@ export class UsersService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update User
+     * @param data The data for the request.
+     * @param data.userId
+     * @param data.requestBody
+     * @param data.accessToken
+     * @returns UserPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateUser(data: UsersUpdateUserData): CancelablePromise<UsersUpdateUserResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/users/{user_id}',
+            path: {
+                user_id: data.userId
             },
+            cookies: {
+                access_token: data.accessToken
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
@@ -2271,10 +1796,8 @@ export class UsersService {
     
     /**
      * Delete User
-     * Delete a user (superuser only).
      * @param data The data for the request.
      * @param data.userId
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -2289,9 +1812,6 @@ export class UsersService {
             cookies: {
                 access_token: data.accessToken
             },
-            headers: {
-                authorization: data.authorization
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -2305,7 +1825,6 @@ export class UtilsService {
      * Test emails.
      * @param data The data for the request.
      * @param data.emailTo
-     * @param data.authorization
      * @param data.accessToken
      * @returns Message Successful Response
      * @throws ApiError
@@ -2316,9 +1835,6 @@ export class UtilsService {
             url: '/api/v1/utils/test-email/',
             cookies: {
                 access_token: data.accessToken
-            },
-            headers: {
-                authorization: data.authorization
             },
             query: {
                 email_to: data.emailTo

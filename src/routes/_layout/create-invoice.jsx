@@ -15,7 +15,7 @@ import {
   Send,
   Truck,
 } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { CustomersService, InvoicesService } from "@/client/sdk.gen"
 import { ModernExcelTable } from "@/components/modern-excel-table"
 import { Button } from "@/components/ui/button"
@@ -87,7 +87,8 @@ function CreateInvoicePage() {
       : activeTemplate?.kind === "custom"
         ? "custom"
         : activeTemplate?.kind === "imported_html" ||
-            activeTemplate?.kind === "imported_pdf"
+            activeTemplate?.kind === "imported_pdf" ||
+            activeTemplate?.kind === "imported_excel"
           ? "imported"
           : "clean-teal"
 
@@ -108,7 +109,15 @@ function CreateInvoicePage() {
             name: activeTemplate?.name,
             savedAt: activeTemplate?.updated_at,
           }
-        : null
+        : activeTemplate?.kind === "imported_excel"
+          ? {
+              type: "excel",
+              columns: activeTemplate?.imported_excel_columns,
+              data: activeTemplate?.imported_excel_data,
+              name: activeTemplate?.name,
+              savedAt: activeTemplate?.updated_at,
+            }
+          : null
 
   const { data: customersRes } = useQuery(customersListQueryOptions())
   const customers = customersRes?.data ?? []
@@ -174,6 +183,59 @@ function CreateInvoicePage() {
     },
   })
 
+  const handleCustomerSelect = useCallback(
+    (value) => {
+      setSelectedCustomerId(value)
+      if (value === "__new__") {
+        setCustomerDetails({
+          name: "",
+          address: "",
+          gst: "",
+          phone: "",
+          email: "",
+        })
+        return
+      }
+      const c = customers.find((cust) => cust.id === value)
+      if (c) {
+        setCustomerDetails({
+          name: c.name || "",
+          address: c.billingAddress || c.address || "",
+          gst: c.gstin || c.gst || "",
+          phone: c.phone || "",
+          email: c.email || "",
+        })
+        if (c.paymentTerms) setPaymentTerms(c.paymentTerms)
+        if (c.notes) setNotes(c.notes)
+      }
+    },
+    [customers],
+  )
+
+  const handleItemSelect = useCallback(
+    (index, itemId) => {
+      const invItem = inventoryItems.find((i) => i.id === itemId)
+      if (!invItem) return
+
+      setItems((prev) =>
+        prev.map((item, i) =>
+          i === index
+            ? {
+                ...item,
+                itemId: invItem.id,
+                name: invItem.name,
+                description: invItem.description || "",
+                price: invItem.salePrice || 0,
+                tax: invItem.taxRate || 0,
+                unit: invItem.unit || "pcs",
+              }
+            : item,
+        ),
+      )
+    },
+    [inventoryItems],
+  )
+
   // Pre-select customer and/or item if navigated from their detail pages
   useEffect(() => {
     if (preselectedCustomerId && customers.length > 0) {
@@ -187,45 +249,20 @@ function CreateInvoicePage() {
     ) {
       handleItemSelect(0, preselectedItemId)
     }
-    // Only run once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     preselectedCustomerId,
     preselectedItemId,
     customers.length,
-    handleCustomerSelect,
-    handleItemSelect,
     inventoryItems.length,
     items.length,
     items[0].name,
+    handleCustomerSelect,
+    handleItemSelect,
   ])
 
-  const handleCustomerSelect = (value) => {
-    setSelectedCustomerId(value)
-    if (value === "__new__") {
-      setCustomerDetails({
-        name: "",
-        address: "",
-        gst: "",
-        phone: "",
-        email: "",
-      })
-      return
-    }
-    const c = customers.find((cust) => cust.id === value)
-    if (c) {
-      setCustomerDetails({
-        name: c.name || "",
-        address: c.billingAddress || c.address || "",
-        gst: c.gstin || c.gst || "",
-        phone: c.phone || "",
-        email: c.email || "",
-      })
-      // Also pre-fill payment terms and notes if available
-      if (c.paymentTerms) setPaymentTerms(c.paymentTerms)
-      if (c.notes) setNotes(c.notes)
-    }
-  }
+  const addItem = () => setItems((prev) => [...prev, { ...emptyItem }])
+  const removeItem = (index) =>
+    setItems((prev) => prev.filter((_, i) => i !== index))
 
   const updateItem = (index, field, value) => {
     setItems((prev) =>
@@ -245,31 +282,6 @@ function CreateInvoicePage() {
       ),
     )
   }
-
-  const handleItemSelect = (index, itemId) => {
-    const invItem = inventoryItems.find((i) => i.id === itemId)
-    if (!invItem) return
-
-    setItems((prev) =>
-      prev.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              itemId: invItem.id, // reference to deduct stock later
-              name: invItem.name,
-              description: invItem.description || "",
-              price: invItem.salePrice || 0,
-              tax: invItem.taxRate || 0,
-              unit: invItem.unit || "pcs",
-            }
-          : item,
-      ),
-    )
-  }
-
-  const addItem = () => setItems((prev) => [...prev, { ...emptyItem }])
-  const removeItem = (index) =>
-    setItems((prev) => prev.filter((_, i) => i !== index))
 
   const { subtotal, totalTax, itemsDiscount, invoiceDiscount, grandTotal } =
     useMemo(() => {
