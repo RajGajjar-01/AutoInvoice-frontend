@@ -11,8 +11,8 @@ RUN npm ci --prefer-offline
 # Copy source code
 COPY . .
 
-# Build argument for API URL - use / for relative path (nginx proxy)
-ARG VITE_API_URL=/
+# Build argument for API URL - empty string for relative path (nginx proxy)
+ARG VITE_API_URL=
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build the app

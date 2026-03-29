@@ -1,6 +1,6 @@
 [build]
 builder = "dockerfile"
-buildArgs = ["VITE_API_URL=/"]
+buildArgs = ["VITE_API_URL="]
 
 [deploy]
 healthcheckPath = "/health"
