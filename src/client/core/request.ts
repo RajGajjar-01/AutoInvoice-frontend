@@ -8,6 +8,8 @@ import { CancelablePromise } from './CancelablePromise';
 import type { OnCancel } from './CancelablePromise';
 import type { OpenAPIConfig } from './OpenAPI';
 
+let refreshPromise: Promise<void> | null = null;
+
 export const isString = (value: unknown): value is string => {
 	return typeof value === 'string';
 };
@@ -313,8 +315,48 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions<T>,
 			const body = getRequestBody(options);
 			const headers = await getHeaders(config, options);
 
+			const shouldAttemptRefresh = (status: number): boolean => {
+				if (![401, 403].includes(status)) return false;
+				const u = options.url;
+				if (u === '/api/v1/auth/refresh') return false;
+				if (u === '/api/v1/auth/login') return false;
+				if (u === '/api/v1/auth/signup') return false;
+				if (u === '/api/v1/auth/logout') return false;
+				if (u === '/api/v1/auth/forgot-password') return false;
+				if (u === '/api/v1/auth/reset-password') return false;
+				return true;
+			};
+
+			const refreshAndRetry = async (): Promise<AxiosResponse<T>> => {
+				if (!refreshPromise) {
+					refreshPromise = axios.request({
+						method: 'POST',
+						url: `${config.BASE}/api/v1/auth/refresh`,
+						withCredentials: true,
+					}).then(
+						() => undefined,
+						(err) => {
+							throw err;
+						},
+					).finally(() => {
+						refreshPromise = null;
+					});
+				}
+
+				await refreshPromise;
+				const retryHeaders = await getHeaders(config, options);
+				return sendRequest<T>(config, options, url, body, formData, retryHeaders, onCancel, axiosClient);
+			};
+
 			if (!onCancel.isCancelled) {
 				let response = await sendRequest<T>(config, options, url, body, formData, headers, onCancel, axiosClient);
+				if (shouldAttemptRefresh(response.status)) {
+					try {
+						response = await refreshAndRetry();
+					} catch {
+						// ignore and fall through to standard error handling
+					}
+				}
 
 				for (const fn of config.interceptors.response._fns) {
 					response = await fn(response);

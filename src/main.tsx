@@ -1,0 +1,58 @@
+import { QueryClientProvider } from "@tanstack/react-query"
+import { createRouter, RouterProvider } from "@tanstack/react-router"
+import axios from "axios"
+import { StrictMode } from "react"
+import ReactDOM from "react-dom/client"
+import { OpenAPI } from "./client"
+import { ThemeProvider } from "./components/theme-provider"
+import { Toaster } from "./components/ui/sonner"
+import "./index.css"
+import { queryClient } from "./queryClient"
+import { routeTree } from "./routeTree.gen"
+
+const isProduction = import.meta.env.PROD
+
+// In production, VITE_API_URL can be empty for relative URLs (nginx proxy)
+// or a full URL for direct API access
+OpenAPI.BASE =
+  import.meta.env.VITE_API_URL || (isProduction ? "" : "http://localhost:8000")
+OpenAPI.WITH_CREDENTIALS = true
+
+const getCookie = (name: string): string | undefined => {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()?.split(";").shift()
+  return undefined
+}
+
+axios.interceptors.request.use((config) => {
+  const method = (config.method || "get").toLowerCase()
+  if (!["get", "head", "options"].includes(method)) {
+    const csrf = getCookie("csrf_token")
+    if (csrf) {
+      config.headers = config.headers ?? {}
+      config.headers["X-CSRF-Token"] = csrf
+    }
+  }
+  return config
+})
+
+const router = createRouter({ routeTree })
+
+// Register router for type safety
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router
+  }
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <Toaster richColors closeButton />
+      </QueryClientProvider>
+    </ThemeProvider>
+  </StrictMode>,
+)
