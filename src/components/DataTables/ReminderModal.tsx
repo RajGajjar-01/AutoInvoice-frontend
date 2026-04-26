@@ -44,7 +44,7 @@ interface ReminderModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   tableId: string
-  rowId: string
+  rowId: string | null
   rowLabel: string
 }
 
@@ -115,6 +115,8 @@ export function ReminderModal({
   })
 
   const onSubmit = (data: FormValues) => {
+    if (!rowId) return
+
     createReminderMutation.mutate({
       row_id: rowId,
       title: data.title,

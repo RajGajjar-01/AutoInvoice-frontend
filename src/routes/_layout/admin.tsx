@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
-import { Suspense } from "react"
+import { Suspense, useMemo } from "react"
 import { AdminService, UsersService } from "@/client"
 import AddUser from "@/components/Admin/AddUser"
 import { columns } from "@/components/Admin/columns"
@@ -37,10 +37,14 @@ export const Route = createFileRoute("/_layout/admin")({
 function UsersTableContent() {
   const { user: currentUser } = useAuth()
   const { data: users } = useSuspenseQuery(getUsersQueryOptions())
-  const tableData = users.data.map((user) => ({
-    ...user,
-    isCurrentUser: currentUser?.id === user.id,
-  }))
+  const tableData = useMemo(
+    () =>
+      users.data.map((user) => ({
+        ...user,
+        isCurrentUser: currentUser?.id === user.id,
+      })),
+    [currentUser?.id, users.data],
+  )
   return <DataTable columns={columns} data={tableData} />
 }
 

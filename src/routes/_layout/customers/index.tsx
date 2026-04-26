@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import { Building2, ContactRound, Search, Users } from "lucide-react"
-import { useState } from "react"
+import { useDeferredValue, useMemo, useState } from "react"
 import { DataTable } from "@/components/Common/DataTable"
 import AddCustomer from "@/components/Customers/AddCustomer"
 import { columns } from "@/components/Customers/columns"
@@ -89,33 +89,60 @@ function CustomersPage() {
   const customers: Customer[] = data?.data ?? []
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<string>("all")
+  const deferredSearch = useDeferredValue(search)
 
-  // Stats
+  const { customerCount, supplierCount } = useMemo(() => {
+    let customersTotal = 0
+    let suppliersTotal = 0
+
+    for (const customer of customers) {
+      if (
+        customer.partyType === "customer" ||
+        customer.partyType === "both" ||
+        !customer.partyType
+      ) {
+        customersTotal++
+      }
+
+      if (customer.partyType === "supplier" || customer.partyType === "both") {
+        suppliersTotal++
+      }
+    }
+
+    return {
+      customerCount: customersTotal,
+      supplierCount: suppliersTotal,
+    }
+  }, [customers])
+
+  const filtered = useMemo(() => {
+    const q = deferredSearch.trim().toLowerCase()
+
+    return customers.filter((customer) => {
+      if (typeFilter !== "all" && customer.partyType !== typeFilter) {
+        return false
+      }
+
+      if (!q) return true
+
+      const tags = Array.isArray(customer.tags)
+        ? customer.tags.join(" ")
+        : (customer.tags ?? "")
+
+      return (
+        customer.name?.toLowerCase().includes(q) ||
+        customer.email?.toLowerCase().includes(q) ||
+        customer.phone?.toLowerCase().includes(q) ||
+        customer.whatsapp?.toLowerCase().includes(q) ||
+        customer.gstin?.toLowerCase().includes(q) ||
+        customer.gst?.toLowerCase().includes(q) ||
+        customer.billingAddress?.toLowerCase().includes(q) ||
+        tags.toLowerCase().includes(q)
+      )
+    })
+  }, [customers, deferredSearch, typeFilter])
+
   const totalCount = customers.length
-  const customerCount = customers.filter(
-    (c) => c.partyType === "customer" || c.partyType === "both" || !c.partyType,
-  ).length
-  const supplierCount = customers.filter(
-    (c) => c.partyType === "supplier" || c.partyType === "both",
-  ).length
-
-  // Filtering
-  const filtered = customers.filter((c) => {
-    if (typeFilter !== "all" && c.partyType !== typeFilter) return false
-    const q = search.toLowerCase()
-    if (!q) return true
-    const tagsStr = Array.isArray(c.tags) ? c.tags.join(" ") : (c.tags ?? "")
-    return (
-      c.name?.toLowerCase().includes(q) ||
-      c.email?.toLowerCase().includes(q) ||
-      c.phone?.toLowerCase().includes(q) ||
-      c.whatsapp?.toLowerCase().includes(q) ||
-      c.gstin?.toLowerCase().includes(q) ||
-      c.gst?.toLowerCase().includes(q) ||
-      c.billingAddress?.toLowerCase().includes(q) ||
-      tagsStr.toLowerCase().includes(q)
-    )
-  })
 
   return (
     <div className="flex flex-col gap-6">

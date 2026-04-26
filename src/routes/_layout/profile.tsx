@@ -287,7 +287,7 @@ function AccountPage() {
     company.name && company.email && company.phone && company.address
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {/* ── Header ── */}
       <div className="flex items-start justify-between">
         <div>

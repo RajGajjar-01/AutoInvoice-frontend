@@ -346,7 +346,7 @@ function InvoicesPage() {
       </div>
 
       {/* ── Two-column body ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         {/* Recent Invoices — spans 2 cols */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-4">

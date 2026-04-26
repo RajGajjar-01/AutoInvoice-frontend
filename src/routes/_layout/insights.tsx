@@ -471,7 +471,7 @@ function InsightsPage() {
       </div>
 
       {/* ── Revenue Trend + Invoice Status ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         {/* Area Chart – Revenue Trend */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
@@ -614,7 +614,7 @@ function InsightsPage() {
             />
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Unpaid */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-sm">
@@ -675,7 +675,7 @@ function InsightsPage() {
       )}
 
       {/* ── Top Customers + Monthly Volume ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top Customers – horizontal bar */}
         <Card>
           <CardHeader className="pb-2">

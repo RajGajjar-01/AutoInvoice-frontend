@@ -1,7 +1,8 @@
-import { CalendarDays } from "lucide-react"
-import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -57,9 +58,55 @@ const PAYMENT_STATUS_COLORS: Record<string, string> = {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"] as const
+
 function isPastDate(dateStr: string | null | undefined) {
   if (!dateStr) return false
   return new Date(dateStr) < new Date()
+}
+
+function parseIsoDate(value: unknown) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null
+  }
+
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function toIsoDateString(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function getMonthStart(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+function addMonths(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1)
+}
+
+function isSameDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+function buildMonthDays(month: Date) {
+  const monthStart = getMonthStart(month)
+  const gridStart = new Date(monthStart)
+  gridStart.setDate(monthStart.getDate() - monthStart.getDay())
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const day = new Date(gridStart)
+    day.setDate(gridStart.getDate() + index)
+    return day
+  })
 }
 
 interface TableCellProps {
@@ -72,6 +119,8 @@ interface TableCellProps {
   dropdownOptions?: string[]
   allRows?: Record<string, unknown>[]
   cols?: { name: string }[]
+  navRowIndex?: number
+  navColIndex?: number
 }
 
 /**
@@ -82,7 +131,7 @@ interface TableCellProps {
  *   suggestions     – string[]  (for Text type datalist)
  *   dropdownOptions – string[]  (for Dropdown type)
  */
-export function TableCell({
+function TableCellComponent({
   type,
   value,
   onChange,
@@ -92,15 +141,34 @@ export function TableCell({
   dropdownOptions = [],
   allRows = [],
   cols = [],
+  navRowIndex,
+  navColIndex,
 }: TableCellProps) {
+  void suggestions
+  void navRowIndex
+  void navColIndex
+
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value ?? "")
   const inputRef = useRef<HTMLInputElement>(null)
-  const datalistId = useId()
+  const editIntentRef = useRef<"keyboard" | "pointer">("pointer")
+  const isDateType =
+    type === "Date" || type === "Due Date" || type === "Expiry Date"
+  const parsedDateValue = useMemo(() => parseIsoDate(value), [value])
+  const [visibleMonth, setVisibleMonth] = useState(() =>
+    getMonthStart(parsedDateValue ?? new Date()),
+  )
+  const monthDays = useMemo(() => buildMonthDays(visibleMonth), [visibleMonth])
 
   useEffect(() => {
     setDraft(value ?? "")
   }, [value])
+
+  useEffect(() => {
+    if (editing && isDateType) {
+      setVisibleMonth(getMonthStart(parsedDateValue ?? new Date()))
+    }
+  }, [editing, isDateType, parsedDateValue])
 
   const isFormula = typeof value === "string" && value.startsWith("=")
 
@@ -113,13 +181,29 @@ export function TableCell({
 
   useEffect(() => {
     if (editing && inputRef.current) {
-      inputRef.current.focus()
-      if (inputRef.current.select) inputRef.current.select()
+      const input = inputRef.current
+      input.focus()
+
+      if (editIntentRef.current === "keyboard" && input.select) {
+        input.select()
+        return
+      }
+
+      const caretPosition = input.value.length
+      input.setSelectionRange?.(caretPosition, caretPosition)
     }
   }, [editing])
 
+  const beginEditing = (intent: "keyboard" | "pointer" = "pointer") => {
+    editIntentRef.current = intent
+    setDraft(value ?? "")
+    setEditing(true)
+  }
+
   const commit = () => {
-    onChange(draft)
+    if (String(draft) !== String(value ?? "")) {
+      onChange(draft)
+    }
     setEditing(false)
   }
 
@@ -160,14 +244,12 @@ export function TableCell({
   // ── Checkbox ───────────────────────────────────────────────────────────────
   if (type === "Checkbox") {
     return (
-      <div
-        className="flex items-center justify-center px-3 py-2 outline-none focus-within:bg-muted/30 h-full"
-        onKeyDown={handleKeyDown}
-        onFocus={onFocus}
-      >
+      <div className="flex items-center justify-center px-3 py-2 outline-none focus-within:bg-muted/30 h-full">
         <Checkbox
           checked={!!value}
           onCheckedChange={(checked) => onChange(checked)}
+          onFocus={onFocus}
+          onKeyDown={handleKeyDown}
         />
       </div>
     )
@@ -210,31 +292,30 @@ export function TableCell({
             : dropdownOptions
     const colors =
       type === "Status"
-        ? STATUS_OPTIONS.reduce(
-            (acc, opt) => ({ ...acc, [opt]: STATUS_COLORS[opt] }),
-            {} as Record<string, string>,
-          )
+        ? STATUS_COLORS
         : type === "Tag"
-          ? TAG_OPTIONS.reduce(
-              (acc, opt) => ({ ...acc, [opt]: TAG_COLORS[opt] }),
-              {} as Record<string, string>,
-            )
-          : PAYMENT_STATUS_OPTIONS.reduce(
-              (acc, opt) => ({ ...acc, [opt]: PAYMENT_STATUS_COLORS[opt] }),
-              {} as Record<string, string>,
-            )
+          ? TAG_COLORS
+          : PAYMENT_STATUS_COLORS
 
     const cellBg =
       type !== "Dropdown" && value && colors?.[String(value)]
         ? colors[String(value)]
         : ""
 
-    return (
+    return editing ? (
       <div
         className={`outline-none h-full w-full ${cellBg}`}
         style={{ minHeight: "100%" }}
       >
-        <Select value={String(value || "")} onValueChange={onChange}>
+        <Select
+          open={editing}
+          value={String(value || "")}
+          onOpenChange={setEditing}
+          onValueChange={(nextValue) => {
+            onChange(nextValue)
+            setEditing(false)
+          }}
+        >
           <SelectTrigger
             className="h-full w-full border-0 bg-transparent px-3 py-1.5 shadow-none focus:ring-0 text-xs font-medium rounded-none"
             onKeyDown={handleSelectKeyDown}
@@ -257,56 +338,168 @@ export function TableCell({
           </SelectContent>
         </Select>
       </div>
-    )
-  }
-
-  // ── Due Date / Expiry Date — inline edit with past-date highlight ──────────
-  if (type === "Due Date" || type === "Expiry Date") {
-    const past = isPastDate(String(value))
-    if (editing) {
-      return (
-        <div className="flex items-center px-1 py-1 w-full">
-          <Input
-            ref={inputRef}
-            type="date"
-            value={String(draft)}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={commit}
-            className="h-7 text-xs border-primary focus:ring-1 focus:ring-primary w-full"
-          />
-        </div>
-      )
-    }
-    return (
-      <div
-        className="px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded flex items-center gap-1.5 outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
+    ) : (
+      <button
+        type="button"
+        className={cn(
+          "h-full w-full overflow-hidden px-3 py-1.5 text-left text-xs font-medium rounded outline-none hover:bg-foreground/[0.02] focus:bg-transparent focus-visible:ring-0",
+          cellBg,
+        )}
         onClick={() => {
-          setDraft(value ?? "")
-          setEditing(true)
+          onFocus?.()
+          beginEditing()
         }}
+        onFocus={onFocus}
         onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            setDraft(value ?? "")
-            setEditing(true)
-            e.preventDefault()
-          }
-          handleKeyDown(e)
+          handleSelectKeyDown(e)
         }}
       >
         {value ? (
-          <>
-            <CalendarDays
-              className={`h-3.5 w-3.5 shrink-0 ${past ? "text-destructive" : "text-muted-foreground"}`}
-            />
-            <span className={past ? "text-destructive font-medium" : ""}>
-              {String(value)}
-            </span>
-          </>
+          <span className="block truncate font-medium text-xs">
+            {String(value)}
+          </span>
         ) : (
-          <span className="text-muted-foreground/40 select-none">—</span>
+          <span className="text-muted-foreground">—</span>
         )}
-      </div>
+      </button>
+    )
+  }
+
+  if (isDateType) {
+    const past = isPastDate(String(value))
+    return (
+      <Popover open={editing} onOpenChange={setEditing}>
+        <PopoverAnchor asChild>
+          <button
+            type="button"
+            className="flex min-h-8 w-full items-center gap-1.5 overflow-hidden rounded px-3 py-1 text-left text-sm cursor-text outline-none transition-colors hover:bg-foreground/[0.02] focus:bg-transparent focus-visible:ring-0"
+            onClick={() => {
+              onFocus?.()
+              beginEditing()
+            }}
+            onFocus={onFocus}
+            onKeyDown={(e) => {
+              handleKeyDown(e)
+            }}
+          >
+            {value ? (
+              <>
+                <CalendarDays
+                  className={`h-3.5 w-3.5 shrink-0 ${past ? "text-destructive" : "text-muted-foreground"}`}
+                />
+                <span
+                  className={cn(
+                    "block truncate",
+                    past && "text-destructive font-medium",
+                  )}
+                >
+                  {String(value)}
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground/40 select-none">—</span>
+            )}
+          </button>
+        </PopoverAnchor>
+        <PopoverContent
+          align="start"
+          className="w-[280px] p-3"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <div className="flex items-center justify-between pb-2">
+            <button
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={() =>
+                setVisibleMonth((current) => addMonths(current, -1))
+              }
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="text-sm font-medium">
+              {visibleMonth.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}
+            </div>
+            <button
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={() =>
+                setVisibleMonth((current) => addMonths(current, 1))
+              }
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-1 pb-1">
+            {WEEKDAY_LABELS.map((day) => (
+              <div
+                key={day}
+                className="flex h-8 items-center justify-center text-xs font-medium text-muted-foreground"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {monthDays.map((day) => {
+              const isSelected = parsedDateValue
+                ? isSameDay(day, parsedDateValue)
+                : false
+              const isOutsideMonth = day.getMonth() !== visibleMonth.getMonth()
+
+              return (
+                <button
+                  key={toIsoDateString(day)}
+                  type="button"
+                  className={cn(
+                    "flex h-8 items-center justify-center rounded-md text-sm transition-colors",
+                    isSelected
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted",
+                    isOutsideMonth && "text-muted-foreground/45",
+                  )}
+                  onClick={() => {
+                    const nextValue = toIsoDateString(day)
+                    setDraft(nextValue)
+                    onChange(nextValue)
+                    setEditing(false)
+                  }}
+                >
+                  {day.getDate()}
+                </button>
+              )
+            })}
+          </div>
+          <div className="mt-3 flex justify-between border-t pt-3">
+            <button
+              type="button"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => {
+                onChange("")
+                setEditing(false)
+              }}
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              className="text-xs font-medium text-primary transition-colors hover:text-primary/80"
+              onClick={() => {
+                const today = new Date()
+                const nextValue = toIsoDateString(today)
+                setVisibleMonth(getMonthStart(today))
+                setDraft(nextValue)
+                onChange(nextValue)
+                setEditing(false)
+              }}
+            >
+              Today
+            </button>
+          </div>
+        </PopoverContent>
+      </Popover>
     )
   }
 
@@ -314,7 +507,7 @@ export function TableCell({
   if (type === "Attachment") {
     if (editing) {
       return (
-        <div className="flex items-center px-1 py-1 w-full">
+        <div className="flex min-h-8 w-full min-w-0 items-center overflow-hidden bg-transparent px-3 py-1">
           <Input
             ref={inputRef}
             type="text"
@@ -323,83 +516,60 @@ export function TableCell({
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={commit}
-            className="h-7 text-xs border-primary focus:ring-1 focus:ring-primary w-full"
+            className="h-auto w-full min-w-0 border-0 bg-transparent px-0 py-0 text-sm shadow-none focus-visible:ring-0"
           />
         </div>
       )
     }
     return (
-      <div
-        className="px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30"
+      <button
+        type="button"
+        className="min-h-8 w-full overflow-hidden rounded px-3 py-1 text-left text-sm cursor-text outline-none transition-colors hover:bg-foreground/[0.02] focus:bg-transparent focus-visible:ring-0"
         onClick={() => {
-          setDraft(value ?? "")
-          setEditing(true)
+          onFocus?.()
+          beginEditing("pointer")
         }}
+        onFocus={onFocus}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            setDraft(value ?? "")
-            setEditing(true)
+            beginEditing("keyboard")
             e.preventDefault()
           }
           handleKeyDown(e)
         }}
       >
         {value ? (
-          <span className="text-xs">{String(value)}</span>
+          <span className="block truncate text-xs">{String(value)}</span>
         ) : (
           <span className="text-muted-foreground/40 text-xs select-none">
             No file
           </span>
         )}
-      </div>
+      </button>
     )
   }
 
-  // ── Text / Number / Date / Amount — inline edit ────────────────────────────
+  // ── Text / Number / Amount — inline edit ───────────────────────────────────
   if (editing) {
-    const inputType =
-      type === "Number" || type === "Amount (₹)"
-        ? "number"
-        : type === "Date"
-          ? "date"
-          : "text"
+    const inputMode =
+      type === "Number" || type === "Amount (₹)" ? "decimal" : undefined
 
     return (
-      <div
-        className="flex items-center px-1 py-1 w-full bg-background shadow-sm ring-1 ring-primary rounded z-10 relative"
-        onFocus={onFocus}
-      >
-        {type === "Text" || isFormula ? (
-          <div className="w-full">
-            <input
-              ref={inputRef}
-              list={`dl-${datalistId}`}
-              value={String(draft)}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={commit}
-              className="flex h-7 w-full border-0 bg-transparent px-2 py-1 text-xs text-foreground focus:outline-none"
-              placeholder=""
-            />
-            {type === "Text" && (
-              <datalist id={`dl-${datalistId}`}>
-                {suggestions.map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
-            )}
-          </div>
-        ) : (
-          <Input
+      <div className="relative flex min-h-8 w-full min-w-0 items-center overflow-hidden bg-transparent px-3 py-1">
+        <div className="w-full min-w-0">
+          <input
             ref={inputRef}
+            size={1}
             value={String(draft)}
+            inputMode={inputMode}
             onChange={(e) => setDraft(e.target.value)}
+            onFocus={onFocus}
             onKeyDown={handleKeyDown}
             onBlur={commit}
-            type={inputType}
-            className="h-7 text-xs border-0 bg-transparent focus-visible:ring-0 w-full"
+            className="flex h-auto w-full min-w-0 border-0 bg-transparent px-0 py-0 text-sm text-foreground focus:outline-none"
+            placeholder=""
           />
-        )}
+        </div>
       </div>
     )
   }
@@ -410,22 +580,20 @@ export function TableCell({
       : computedValue || ""
 
   return (
-    <div
+    <button
+      type="button"
       className={cn(
-        "px-3 py-1 text-sm cursor-text min-h-8 hover:bg-muted/50 transition-colors rounded outline-none focus:ring-1 focus:ring-primary focus:bg-muted/30 relative flex items-center",
+        "relative flex min-h-8 w-full items-center overflow-hidden rounded px-3 py-1 text-left text-sm cursor-text outline-none transition-colors hover:bg-foreground/[0.02] focus:bg-transparent focus-visible:ring-0",
         isFormula && "bg-primary/5",
       )}
       onClick={() => {
-        setDraft(value ?? "")
-        setEditing(true)
         onFocus?.()
+        beginEditing("pointer")
       }}
       onFocus={onFocus}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
-          setDraft(value ?? "")
-          setEditing(true)
-          onFocus?.()
+          beginEditing("keyboard")
           e.preventDefault()
         }
         handleKeyDown(e)
@@ -435,14 +603,53 @@ export function TableCell({
         <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-primary/50 opacity-50" />
       )}
       {displayValue ? (
-        <span className={cn(isFormula && "font-mono text-primary")}>
+        <span
+          className={cn(
+            "block truncate",
+            isFormula && "font-mono text-primary",
+          )}
+        >
           {String(displayValue)}
         </span>
       ) : (
         <span className="text-muted-foreground/40 select-none">—</span>
       )}
-    </div>
+    </button>
   )
 }
+
+function shallowEqualArray<T>(a: T[], b: T[]) {
+  if (a === b) return true
+  if (a.length !== b.length) return false
+  return a.every((value, index) => value === b[index])
+}
+
+function areTableCellPropsEqual(
+  prev: Readonly<TableCellProps>,
+  next: Readonly<TableCellProps>,
+) {
+  if (prev.type !== next.type || prev.value !== next.value) return false
+  if (prev.navRowIndex !== next.navRowIndex) return false
+  if (prev.navColIndex !== next.navColIndex) return false
+  if (
+    !shallowEqualArray(prev.dropdownOptions ?? [], next.dropdownOptions ?? [])
+  )
+    return false
+  if (!shallowEqualArray(prev.suggestions ?? [], next.suggestions ?? []))
+    return false
+
+  const prevIsFormula =
+    typeof prev.value === "string" && prev.value.startsWith("=")
+  const nextIsFormula =
+    typeof next.value === "string" && next.value.startsWith("=")
+
+  if (prevIsFormula || nextIsFormula) {
+    if (prev.allRows !== next.allRows || prev.cols !== next.cols) return false
+  }
+
+  return true
+}
+
+export const TableCell = memo(TableCellComponent, areTableCellPropsEqual)
 
 export default TableCell

@@ -1214,17 +1214,12 @@ const invoices = [
   }),
 ]
 
-// ─── Data Tables seed ─────────────────────────────────────────────────────────
-// Data Tables are backend-backed; demo seeding is intentionally disabled.
-function seedTablesStore() {}
-
 // ─── Public API ───────────────────────────────────────────────────────────────
 export function seedDemoData() {
   localStorage.setItem("customers", JSON.stringify(customers))
   localStorage.setItem("items", JSON.stringify(items))
   localStorage.setItem("invoices", JSON.stringify(invoices))
   localStorage.setItem("selected-template", JSON.stringify("professional"))
-  seedTablesStore()
 }
 
 export function clearDemoData() {
@@ -1237,5 +1232,7 @@ export function clearDemoData() {
     "imported-template",
     "demo-tables",
   ]
-  keys.forEach((k) => localStorage.removeItem(k))
+  keys.forEach((k) => {
+    localStorage.removeItem(k)
+  })
 }

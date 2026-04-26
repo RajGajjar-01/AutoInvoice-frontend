@@ -1,3 +1,4 @@
+import { useQueries, useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
@@ -13,37 +14,107 @@ import {
   X,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { notificationStore } from "@/components/DataTables/notificationStore"
-import { tablesStore } from "@/components/DataTables/tableStore"
+import { useShallow } from "zustand/react/shallow"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  type Notification,
+  useNotificationStore,
+} from "@/features/data-tables/notification-store"
+import {
+  tableDetailQueryOptions,
+  tablesListQueryOptions,
+} from "@/features/data-tables/queries"
+import { queryClient } from "@/queryClient"
 
 export const Route = createFileRoute("/_layout/notifications")({
   component: NotificationsPage,
+  loader: () =>
+    queryClient.ensureQueryData(tablesListQueryOptions({ limit: 100 })),
   head: () => ({
     meta: [{ title: "Notifications" }],
   }),
 })
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
-
-interface Notification {
-  id: string
-  title: string
-  description?: string
-  type: "reminder" | "due_date" | "expiry" | "info"
-  read: boolean
-  createdAt: string
-  tableName?: string
-  rowLabel?: string
-  tableId?: string
-  rowId?: string
+interface TableColumn {
+  name: string
+  type: string
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+interface TableRow {
+  id: string
+  [key: string]: unknown
+}
+
+interface ReminderDetail {
+  id: string
+  title?: unknown
+  description?: unknown
+  date?: unknown
+  rowId?: unknown
+}
+
+interface TableDetail {
+  id: string
+  name: string
+  columns: TableColumn[]
+  rows: TableRow[]
+  reminders?: ReminderDetail[]
+}
+
+interface ReminderSyncTable {
+  id: string
+  name: string
+  reminders?: Array<{
+    id: string
+    date?: string
+    title: string
+    description?: string
+    rowLabel?: string
+  }>
+}
+
+function asOptionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value : undefined
+}
+
+function getRowLabel(
+  table: TableDetail,
+  rowId: string | undefined,
+): string | undefined {
+  if (!rowId) return undefined
+
+  const rowIndex = table.rows.findIndex((row) => row.id === rowId)
+  if (rowIndex === -1) return undefined
+
+  const firstTextColumn = table.columns.find((column) => column.type === "Text")
+  const row = table.rows[rowIndex]
+  const primaryValue = firstTextColumn ? row[firstTextColumn.name] : undefined
+
+  return primaryValue ? String(primaryValue) : `Row #${rowIndex + 1}`
+}
+
+function buildReminderTables(tables: TableDetail[]): ReminderSyncTable[] {
+  return tables.map((table) => ({
+    id: table.id,
+    name: table.name,
+    reminders: (table.reminders ?? []).map((reminder) => {
+      const rowId = asOptionalString(reminder.rowId)
+
+      return {
+        id: reminder.id,
+        date: asOptionalString(reminder.date),
+        title: asOptionalString(reminder.title) ?? "Reminder",
+        description: asOptionalString(reminder.description),
+        rowLabel: getRowLabel(table, rowId),
+      }
+    }),
+  }))
+}
+
 function formatTimeAgo(iso: string | undefined): string {
   if (!iso) return ""
   const diff = Date.now() - new Date(iso).getTime()
@@ -72,7 +143,6 @@ function formatDateLabel(iso: string | undefined): string {
   })
 }
 
-// ─── Type config ──────────────────────────────────────────────────────────────
 interface TypeConfig {
   label: string
   Icon: LucideIcon
@@ -111,7 +181,6 @@ function getType(t: string): TypeConfig {
   return TYPE_CONFIG[t] ?? TYPE_CONFIG.info
 }
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
 interface StatCardProps {
   label: string
   value: number
@@ -150,7 +219,6 @@ function StatCard({
   )
 }
 
-// ─── Notification card ────────────────────────────────────────────────────────
 interface NotificationCardProps {
   notif: Notification
   onMarkRead: (id: string) => void
@@ -174,21 +242,17 @@ function NotificationCard({
           : "border-border/60 bg-card hover:bg-muted/20"
       }`}
     >
-      {/* Unread left accent stripe */}
       {isUnread && (
         <span className="absolute -left-px top-3 bottom-3 w-0.5 rounded-full bg-primary" />
       )}
 
-      {/* Icon */}
       <div
         className={`shrink-0 mt-0.5 h-8 w-8 rounded-lg flex items-center justify-center ${cfg.bg}`}
       >
         <Icon className={`h-3.5 w-3.5 ${cfg.color}`} />
       </div>
 
-      {/* Body */}
       <div className="flex-1 min-w-0 pr-16">
-        {/* Row 1: title + type badge */}
         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
           <p
             className={`text-sm leading-snug ${isUnread ? "font-semibold text-foreground" : "font-medium text-foreground/75"}`}
@@ -206,14 +270,12 @@ function NotificationCard({
           </Badge>
         </div>
 
-        {/* Row 2: description */}
         {notif.description && (
           <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
             {notif.description}
           </p>
         )}
 
-        {/* Row 3: meta chips + time */}
         <div className="flex items-center gap-1.5 mt-2 flex-wrap">
           {notif.tableName && (
             <span className="text-[10px] font-medium text-muted-foreground bg-muted/80 px-2 py-0.5 rounded border border-border/50">
@@ -231,7 +293,6 @@ function NotificationCard({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {isUnread && (
           <Button
@@ -258,7 +319,6 @@ function NotificationCard({
   )
 }
 
-// ─── Grouped list with date separators ───────────────────────────────────────
 interface GroupedItem {
   dateKey: string
   label: string
@@ -274,37 +334,41 @@ interface GroupedListProps {
 function GroupedList({ items, onMarkRead, onDelete }: GroupedListProps) {
   if (items.length === 0) return <EmptyState />
 
-  // Group by date
   const groups: GroupedItem[] = []
   const seen = new Map<string, number>()
-  for (const n of items) {
-    const dateKey = n.createdAt ? n.createdAt.split("T")[0] : "unknown"
+
+  for (const notification of items) {
+    const dateKey = notification.createdAt
+      ? notification.createdAt.split("T")[0]
+      : "unknown"
+
     if (!seen.has(dateKey)) {
       seen.set(dateKey, groups.length)
       groups.push({
         dateKey,
-        label: formatDateLabel(`${n.createdAt}T00:00:00`),
+        label: formatDateLabel(`${dateKey}T00:00:00`),
         items: [],
       })
     }
-    groups[seen.get(dateKey)!].items.push(n)
+
+    groups[seen.get(dateKey)!].items.push(notification)
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      {groups.map((g) => (
-        <div key={g.dateKey} className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
+      {groups.map((group) => (
+        <div key={group.dateKey} className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
-              {g.label}
+              {group.label}
             </p>
             <Separator className="flex-1" />
           </div>
           <div className="flex flex-col gap-2">
-            {g.items.map((n) => (
+            {group.items.map((notification) => (
               <NotificationCard
-                key={n.id}
-                notif={n}
+                key={notification.id}
+                notif={notification}
                 onMarkRead={onMarkRead}
                 onDelete={onDelete}
               />
@@ -316,7 +380,6 @@ function GroupedList({ items, onMarkRead, onDelete }: GroupedListProps) {
   )
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
 interface EmptyStateProps {
   filtered?: boolean
 }
@@ -343,136 +406,85 @@ function EmptyState({ filtered = false }: EmptyStateProps) {
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
 function NotificationsPage() {
-  const notifications = notificationStore.use.notifications() as Notification[]
-  const tables = tablesStore.use.tables()
   const [search, setSearch] = useState("")
+  const {
+    checkOverdueReminders,
+    clearAll,
+    deleteNotification,
+    markAllRead,
+    markRead,
+    notifications,
+  } = useNotificationStore(
+    useShallow((state) => ({
+      checkOverdueReminders: state.checkOverdueReminders,
+      clearAll: state.clearAll,
+      deleteNotification: state.delete,
+      markAllRead: state.markAllRead,
+      markRead: state.markRead,
+      notifications: state.notifications,
+    })),
+  )
 
-  // Sync notifications from tables on mount
+  const {
+    data: tablesList,
+    isError: isTablesError,
+    isLoading: isLoadingTables,
+  } = useQuery(tablesListQueryOptions({ limit: 100 }))
+  const tables = tablesList?.data ?? []
+
+  const tableDetails = useQueries({
+    queries: tables.map((table) => tableDetailQueryOptions(table.id)),
+    combine: (results) => ({
+      data: results
+        .map((result) => result.data)
+        .filter(Boolean) as TableDetail[],
+      isError: results.some((result) => result.isError),
+      isPending: results.some((result) => result.isPending),
+    }),
+  })
+
+  const reminderTables = useMemo(
+    () => buildReminderTables(tableDetails.data),
+    [tableDetails.data],
+  )
+  const isSyncing = isLoadingTables || tableDetails.isPending
+  const hasSyncError = isTablesError || tableDetails.isError
+
   useEffect(() => {
-    const notifs: Notification[] = []
-    for (const t of tables) {
-      for (const r of t.rows ?? []) {
-        if (r.notification) {
-          notifs.push({
-            id: `${t.id}-${r.id}`,
-            title: r.notification.title || "Reminder",
-            description: r.notification.description,
-            type: r.notification.type || "reminder",
-            read: !!r.notification.read,
-            createdAt: r.notification.createdAt || r.notification.date,
-            tableName: t.name,
-            rowLabel: r.label || r.name,
-            tableId: t.id,
-            rowId: r.id,
-          })
-        }
-      }
-    }
-    notificationStore.set.notifications(notifs)
-  }, [tables])
+    if (isSyncing || hasSyncError) return
+    checkOverdueReminders(reminderTables)
+  }, [checkOverdueReminders, hasSyncError, isSyncing, reminderTables])
 
   const totalCount = notifications.length
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const unreadCount = notifications.filter(
+    (notification) => !notification.read,
+  ).length
   const readCount = totalCount - unreadCount
 
   const unread = useMemo(
-    () => notifications.filter((n) => !n.read),
+    () => notifications.filter((notification) => !notification.read),
     [notifications],
   )
   const read = useMemo(
-    () => notifications.filter((n) => n.read),
+    () => notifications.filter((notification) => notification.read),
     [notifications],
   )
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return notifications
-    const q = search.toLowerCase()
-    return notifications.filter(
-      (n) =>
-        n.title.toLowerCase().includes(q) ||
-        n.description?.toLowerCase().includes(q) ||
-        n.tableName?.toLowerCase().includes(q),
-    )
-  }, [notifications, search])
+  const query = search.trim().toLowerCase()
+  const matchesSearch = (notification: Notification) =>
+    !query ||
+    notification.title.toLowerCase().includes(query) ||
+    notification.description?.toLowerCase().includes(query) ||
+    notification.tableName?.toLowerCase().includes(query) ||
+    notification.rowLabel?.toLowerCase().includes(query)
 
-  const handleMarkRead = (id: string) => {
-    notificationStore.set.notifications(
-      notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    )
-    // Also update the underlying table row
-    const notif = notifications.find((n) => n.id === id)
-    if (notif?.tableId && notif?.rowId) {
-      tablesStore.set.tables(
-        tables.map((t) =>
-          t.id === notif.tableId
-            ? {
-                ...t,
-                rows: t.rows?.map((r) =>
-                  r.id === notif.rowId && r.notification
-                    ? { ...r, notification: { ...r.notification, read: true } }
-                    : r,
-                ),
-              }
-            : t,
-        ),
-      )
-    }
-  }
-
-  const handleMarkAllRead = () => {
-    notificationStore.set.notifications(
-      notifications.map((n) => ({ ...n, read: true })),
-    )
-    tablesStore.set.tables(
-      tables.map((t) => ({
-        ...t,
-        rows: t.rows?.map((r) =>
-          r.notification
-            ? { ...r, notification: { ...r.notification, read: true } }
-            : r,
-        ),
-      })),
-    )
-  }
-
-  const handleDelete = (id: string) => {
-    notificationStore.set.notifications(
-      notifications.filter((n) => n.id !== id),
-    )
-    // Remove from underlying table row
-    const notif = notifications.find((n) => n.id === id)
-    if (notif?.tableId && notif?.rowId) {
-      tablesStore.set.tables(
-        tables.map((t) =>
-          t.id === notif.tableId
-            ? {
-                ...t,
-                rows: t.rows?.map((r) =>
-                  r.id === notif.rowId ? { ...r, notification: null } : r,
-                ),
-              }
-            : t,
-        ),
-      )
-    }
-  }
-
-  const handleClearAll = () => {
-    notificationStore.set.notifications([])
-    tablesStore.set.tables(
-      tables.map((t) => ({
-        ...t,
-        rows: t.rows?.map((r) => ({ ...r, notification: null })),
-      })),
-    )
-  }
+  const filtered = notifications.filter(matchesSearch)
+  const filteredUnread = unread.filter(matchesSearch)
+  const filteredRead = read.filter(matchesSearch)
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* ── Header ───────────────────────────────────────────────────── */}
+    <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
@@ -488,7 +500,7 @@ function NotificationsPage() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5 text-xs"
-                onClick={handleMarkAllRead}
+                onClick={markAllRead}
               >
                 <CheckCheck className="h-3.5 w-3.5" />
                 Mark all read
@@ -499,7 +511,7 @@ function NotificationsPage() {
               variant="outline"
               size="sm"
               className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-              onClick={handleClearAll}
+              onClick={clearAll}
             >
               <Trash2 className="h-3.5 w-3.5" />
               Clear all
@@ -508,7 +520,6 @@ function NotificationsPage() {
         )}
       </div>
 
-      {/* ── Stats row ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <StatCard
           label="Total"
@@ -536,33 +547,71 @@ function NotificationsPage() {
         />
       </div>
 
-      {/* ── Two-column layout ────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5 items-start">
-        {/* Left panel — search + filter info */}
+      {(isSyncing || hasSyncError) && (
+        <div
+          className={`rounded-xl border px-4 py-3 ${
+            hasSyncError
+              ? "border-destructive/30 bg-destructive/5"
+              : "border-border bg-muted/30"
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <div
+              className={`mt-0.5 rounded-md p-1 ${
+                hasSyncError ? "bg-destructive/10" : "bg-background"
+              }`}
+            >
+              <Info
+                className={`h-4 w-4 ${
+                  hasSyncError ? "text-destructive" : "text-muted-foreground"
+                }`}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {hasSyncError ? "Reminder sync failed" : "Syncing reminders"}
+              </p>
+              <p
+                className={`text-xs mt-0.5 ${
+                  hasSyncError ? "text-destructive/80" : "text-muted-foreground"
+                }`}
+              >
+                {hasSyncError
+                  ? "Could not refresh data table reminders right now. Existing notifications are still available."
+                  : "Checking due reminders from your data tables."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
         <div className="flex flex-col gap-4">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               id="notif-search-input"
               placeholder="Search…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => setSearch(event.target.value)}
               className="pl-9 h-9"
             />
           </div>
 
-          {/* By Type breakdown */}
           {totalCount > 0 &&
             (() => {
               const typeEntries = Object.entries(TYPE_CONFIG)
                 .map(([key, cfg]) => ({
                   key,
                   cfg,
-                  count: notifications.filter((n) => n.type === key).length,
+                  count: notifications.filter(
+                    (notification) => notification.type === key,
+                  ).length,
                 }))
-                .filter((e) => e.count > 0)
+                .filter((entry) => entry.count > 0)
+
               if (typeEntries.length === 0) return null
+
               return (
                 <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -570,6 +619,7 @@ function NotificationsPage() {
                   </p>
                   {typeEntries.map(({ key, cfg, count }) => {
                     const Icon = cfg.Icon
+
                     return (
                       <div
                         key={key}
@@ -596,7 +646,6 @@ function NotificationsPage() {
               )
             })()}
 
-          {/* Tips card (only when no notifications) */}
           {totalCount === 0 && (
             <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -621,8 +670,8 @@ function NotificationsPage() {
                   bg: "bg-green-50 dark:bg-green-950/40",
                   text: "Notifications appear here automatically",
                 },
-              ].map(({ icon: Icon, color, bg, text }, i) => (
-                <div key={i} className="flex items-start gap-2.5">
+              ].map(({ icon: Icon, color, bg, text }, index) => (
+                <div key={index} className="flex items-start gap-2.5">
                   <div
                     className={`shrink-0 h-6 w-6 rounded-md flex items-center justify-center ${bg}`}
                   >
@@ -637,7 +686,6 @@ function NotificationsPage() {
           )}
         </div>
 
-        {/* Right panel — notification list */}
         <div className="min-w-0">
           {totalCount === 0 ? (
             <EmptyState />
@@ -687,32 +735,32 @@ function NotificationsPage() {
                 ) : (
                   <GroupedList
                     items={filtered}
-                    onMarkRead={handleMarkRead}
-                    onDelete={handleDelete}
+                    onMarkRead={markRead}
+                    onDelete={deleteNotification}
                   />
                 )}
               </TabsContent>
 
               <TabsContent value="unread" className="mt-0">
-                {unread.length === 0 ? (
+                {filteredUnread.length === 0 ? (
                   <EmptyState filtered={!!search} />
                 ) : (
                   <GroupedList
-                    items={unread}
-                    onMarkRead={handleMarkRead}
-                    onDelete={handleDelete}
+                    items={filteredUnread}
+                    onMarkRead={markRead}
+                    onDelete={deleteNotification}
                   />
                 )}
               </TabsContent>
 
               <TabsContent value="history" className="mt-0">
-                {read.length === 0 ? (
+                {filteredRead.length === 0 ? (
                   <EmptyState filtered={!!search} />
                 ) : (
                   <GroupedList
-                    items={read}
-                    onMarkRead={handleMarkRead}
-                    onDelete={handleDelete}
+                    items={filteredRead}
+                    onMarkRead={markRead}
+                    onDelete={deleteNotification}
                   />
                 )}
               </TabsContent>

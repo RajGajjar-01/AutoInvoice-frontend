@@ -344,7 +344,7 @@ function Dashboard() {
       </div>
 
       {/* ── Body ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         {/* Recent Invoices */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-4">

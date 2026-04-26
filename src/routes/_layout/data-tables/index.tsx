@@ -2,8 +2,6 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import {
   Copy,
-  LayoutGrid,
-  List,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -15,7 +13,6 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { TablesService } from "@/client"
 import { EmptyState } from "@/components/DataTables/EmptyState"
-import { TableCard } from "@/components/DataTables/TableCard"
 import { TemplateSelector } from "@/components/DataTables/TemplateSelector"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -75,7 +72,6 @@ export const Route = createFileRoute("/_layout/data-tables/")({
 
 function DataTablesPage() {
   const navigate = useNavigate()
-  const [view, setView] = useState<"grid" | "list">("list")
   const [search, setSearch] = useState("")
 
   const { data } = useQuery(tablesListQueryOptions({}))
@@ -147,12 +143,6 @@ function DataTablesPage() {
     onSuccess: async (createdTable) => {
       await queryClient.invalidateQueries({ queryKey: ["tables"] })
       toast.success("Table duplicated")
-      if (createdTable?.data?.id) {
-        navigate({
-          to: "/data-tables/$tableId",
-          params: { tableId: createdTable.data.id },
-        })
-      }
     },
     onError: () => {
       toast.error("Failed to duplicate table")
@@ -220,8 +210,6 @@ function DataTablesPage() {
   const handleDuplicate = (id: string) => {
     duplicateTableMutation.mutate(id)
   }
-  const handleOpen = (id: string) =>
-    navigate({ to: "/data-tables/$tableId", params: { tableId: id } })
 
   const deleteNameMatches =
     deleteDialog.confirmInput.trim() === deleteDialog.tableName
@@ -254,28 +242,6 @@ function DataTablesPage() {
             <TabsTrigger value="my-tables">My Tables</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
           </TabsList>
-
-          {/* View toggle */}
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted p-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-7 w-7 transition-colors ${view === "grid" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              onClick={() => setView("grid")}
-              aria-label="Grid view"
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-7 w-7 transition-colors ${view === "list" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              onClick={() => setView("list")}
-              aria-label="List view"
-            >
-              <List className="h-3.5 w-3.5" />
-            </Button>
-          </div>
         </div>
 
         {/* ── My Tables ─────────────────────────────────────── */}
@@ -297,19 +263,6 @@ function DataTablesPage() {
               onCreateBlank={openCreateBlank}
               onSelectTemplate={handleSelectTemplate}
             />
-          ) : view === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tables.map((table) => (
-                <TableCard
-                  key={table.id}
-                  table={table}
-                  onOpen={handleOpen}
-                  onRename={handleRenameRequest}
-                  onDuplicate={handleDuplicate}
-                  onDelete={handleDeleteRequest}
-                />
-              ))}
-            </div>
           ) : (
             <div className="rounded-xl border border-border bg-card overflow-hidden">
               {/* List header */}
@@ -330,8 +283,7 @@ function DataTablesPage() {
               {tables.map((table, idx) => (
                 <div key={table.id}>
                   <div
-                    className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors group"
-                    onClick={() => handleOpen(table.id)}
+                    className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors group"
                   >
                     {/* Name + icon */}
                     <div className="flex items-center gap-3 min-w-0">

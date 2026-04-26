@@ -1,4 +1,4 @@
-import type { TableColumn } from "@/components/DataTables/tableStore"
+import type { TableColumn } from "@/features/data-tables/table-ui-store"
 
 export type DataTableTemplateCategory =
   | "Finance"
