@@ -3,7 +3,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, Bell, Filter, Plus, Trash2 } from "lucide-react"
 import { useDeferredValue, useEffect, useMemo, useRef } from "react"
 import { toast } from "sonner"
-import { useShallow } from "zustand/react/shallow"
 import { TablesService } from "@/client"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
 import { MobileEntryView } from "@/components/DataTables/MobileEntryView"
@@ -276,39 +275,37 @@ function TableViewPage() {
     toggleOptionFilter,
     toggleRow,
     toggleSelectAll,
-  } = useTableUiStore(
-    useShallow((state) => ({
-      activeColumnName: state.activeColumnName,
-      applyFilters: state.applyFilters,
-      cellSelection: state.cellSelection,
-      clearFilters: state.clearFilters,
-      clearSelectedRows: state.clearSelectedRows,
-      filterOpen: state.filterOpen,
-      filters: state.filters,
-      focusedCell: state.focusedCell,
-      formulaBarValue: state.formulaBarValue,
-      openFilterPanel: state.openFilterPanel,
-      pendingFilters: state.pendingFilters,
-      reminderState: state.reminderState,
-      removeSelectedRow: state.removeSelectedRow,
-      reset: state.reset,
-      search: state.search,
-      selectedRows: state.selectedRows,
-      setActiveColumnName: state.setActiveColumnName,
-      setBoolFilter: state.setBoolFilter,
-      setCellDragRef: state.setCellDragRef,
-      setCellSelection: state.setCellSelection,
-      setDateFilter: state.setDateFilter,
-      setFilterOpen: state.setFilterOpen,
-      setFocusedCell: state.setFocusedCell,
-      setFormulaBarValue: state.setFormulaBarValue,
-      setReminderState: state.setReminderState,
-      setSearch: state.setSearch,
-      toggleOptionFilter: state.toggleOptionFilter,
-      toggleRow: state.toggleRow,
-      toggleSelectAll: state.toggleSelectAll,
-    })),
-  )
+  } = useTableUiStore((state) => ({
+    activeColumnName: state.activeColumnName,
+    applyFilters: state.applyFilters,
+    cellSelection: state.cellSelection,
+    clearFilters: state.clearFilters,
+    clearSelectedRows: state.clearSelectedRows,
+    filterOpen: state.filterOpen,
+    filters: state.filters,
+    focusedCell: state.focusedCell,
+    formulaBarValue: state.formulaBarValue,
+    openFilterPanel: state.openFilterPanel,
+    pendingFilters: state.pendingFilters,
+    reminderState: state.reminderState,
+    removeSelectedRow: state.removeSelectedRow,
+    reset: state.reset,
+    search: state.search,
+    selectedRows: state.selectedRows,
+    setActiveColumnName: state.setActiveColumnName,
+    setBoolFilter: state.setBoolFilter,
+    setCellDragRef: state.setCellDragRef,
+    setCellSelection: state.setCellSelection,
+    setDateFilter: state.setDateFilter,
+    setFilterOpen: state.setFilterOpen,
+    setFocusedCell: state.setFocusedCell,
+    setFormulaBarValue: state.setFormulaBarValue,
+    setReminderState: state.setReminderState,
+    setSearch: state.setSearch,
+    toggleOptionFilter: state.toggleOptionFilter,
+    toggleRow: state.toggleRow,
+    toggleSelectAll: state.toggleSelectAll,
+  }))
   const deferredSearch = useDeferredValue(search)
   const tableContainerRef = useRef<HTMLDivElement>(null)
 

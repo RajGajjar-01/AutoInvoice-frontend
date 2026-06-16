@@ -14,7 +14,6 @@ import {
   X,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { useShallow } from "zustand/react/shallow"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -415,16 +414,14 @@ function NotificationsPage() {
     markAllRead,
     markRead,
     notifications,
-  } = useNotificationStore(
-    useShallow((state) => ({
-      checkOverdueReminders: state.checkOverdueReminders,
-      clearAll: state.clearAll,
-      deleteNotification: state.delete,
-      markAllRead: state.markAllRead,
-      markRead: state.markRead,
-      notifications: state.notifications,
-    })),
-  )
+  } = useNotificationStore((state) => ({
+    checkOverdueReminders: state.checkOverdueReminders,
+    clearAll: state.clearAll,
+    deleteNotification: state.delete,
+    markAllRead: state.markAllRead,
+    markRead: state.markRead,
+    notifications: state.notifications,
+  }))
 
   const {
     data: tablesList,
