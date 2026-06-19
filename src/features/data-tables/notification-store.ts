@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { randomUUID } from "@/lib/uuid"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       add: (data) => {
         const n: Notification = {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           title: data.title,
           description: data.description ?? "",
           type: data.type ?? "info",
@@ -147,7 +148,7 @@ export const useNotificationStore = create<NotificationState>()(
 
             knownReminderIds.add(reminder.id)
             newNotifications.push({
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               reminderId: reminder.id,
               title: reminder.title,
               description: reminder.description

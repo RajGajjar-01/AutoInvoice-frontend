@@ -13,6 +13,7 @@ import {
   User,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { randomUUID } from "@/lib/uuid"
 import { toast } from "sonner"
 import { TablesService } from "@/client"
 import { ColumnEditorPanel } from "@/components/DataTables/CreateTablePage/ColumnEditorPanel"
@@ -70,7 +71,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
       type: "Text",
       mandatory: false,
       options: [],
-      _id: crypto.randomUUID(),
+      _id: randomUUID(),
     },
   ])
   // Maps quick-add label → column _id so we can detect when it's deleted
@@ -89,7 +90,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
     const tpl = getDataTableTemplateById(templateId)
     if (!tpl) return
     setTableName(tpl.name)
-    setColumns(tpl.columns.map((col) => ({ ...col, _id: crypto.randomUUID() })))
+    setColumns(tpl.columns.map((col) => ({ ...col, _id: randomUUID() })))
   }, [templateId])
 
   const handleAddColumn = () => {
@@ -100,7 +101,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
         type: "Text",
         mandatory: false,
         options: [],
-        _id: crypto.randomUUID(),
+        _id: randomUUID(),
       },
     ])
   }
@@ -108,7 +109,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
   // ── Quick Add handler ─────────────────────────────────────────────────────
   const handleQuickAdd = (field: QuickAddField) => {
     if (addedQuickFields.has(field.label)) return
-    const newId = crypto.randomUUID()
+    const newId = randomUUID()
     setColumns((prev) => [
       ...prev,
       {

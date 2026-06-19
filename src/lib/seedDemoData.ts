@@ -1,11 +1,7 @@
-/**
- * seedDemoData.js
- * Writes rich demo data to all AutoInvoice localStorage keys.
- * Call seedDemoData() to load, clearDemoData() to wipe.
- */
+import { randomUUID } from "./uuid"
 
 function uuid() {
-  return crypto.randomUUID()
+  return randomUUID()
 }
 function daysAgo(n) {
   const d = new Date()

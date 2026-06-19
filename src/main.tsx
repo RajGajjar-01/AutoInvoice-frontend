@@ -12,10 +12,10 @@ import { routeTree } from "./routeTree.gen"
 
 const isProduction = import.meta.env.PROD
 
-// In production, VITE_API_URL can be empty for relative URLs (nginx proxy)
-// or a full URL for direct API access
-OpenAPI.BASE =
-  import.meta.env.VITE_API_URL || (isProduction ? "" : "http://localhost:8000")
+OpenAPI.BASE = import.meta.env.VITE_API_URL || ""
+if (!isProduction && !import.meta.env.VITE_API_URL) {
+  OpenAPI.BASE = "http://localhost:8000"
+}
 OpenAPI.WITH_CREDENTIALS = true
 
 const getCookie = (name: string): string | undefined => {

@@ -34,6 +34,7 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import useCustomToast from "@/hooks/useCustomToast"
 import useLocalStorage from "@/hooks/useLocalStorage"
+import { randomUUID } from "@/lib/uuid"
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Item name is required" }).max(255),
@@ -142,7 +143,7 @@ const AddItem = () => {
 
   const onSubmit = (data: FormValues) => {
     const newItem: Item = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       name: data.name,
       sku: data.sku || generateSKU(),
       category: data.category || "",

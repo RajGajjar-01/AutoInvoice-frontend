@@ -13,12 +13,13 @@ import {
   Trash2,
   X,
 } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useShallow } from "zustand/react/shallow"
 import {
   type Notification,
   useNotificationStore,
@@ -414,31 +415,45 @@ function NotificationsPage() {
     markAllRead,
     markRead,
     notifications,
-  } = useNotificationStore((state) => ({
-    checkOverdueReminders: state.checkOverdueReminders,
-    clearAll: state.clearAll,
-    deleteNotification: state.delete,
-    markAllRead: state.markAllRead,
-    markRead: state.markRead,
-    notifications: state.notifications,
-  }))
+  } = useNotificationStore(
+    useShallow((state) => ({
+      checkOverdueReminders: state.checkOverdueReminders,
+      clearAll: state.clearAll,
+      deleteNotification: state.delete,
+      markAllRead: state.markAllRead,
+      markRead: state.markRead,
+      notifications: state.notifications,
+    })),
+  )
 
   const {
     data: tablesList,
     isError: isTablesError,
     isLoading: isLoadingTables,
   } = useQuery(tablesListQueryOptions({ limit: 100 }))
-  const tables = tablesList?.data ?? []
+
+  const emptyTables = useMemo<any[]>(() => [], [])
+  const tables = tablesList?.data ?? emptyTables
+
+  const queries = useMemo(
+    () => tables.map((table) => tableDetailQueryOptions(table.id)),
+    [tables],
+  )
+
+  const combineFn = useCallback(
+    (results: any) => ({
+      data: results
+        .map((result: any) => result.data)
+        .filter(Boolean) as TableDetail[],
+      isError: results.some((result: any) => result.isError),
+      isPending: results.some((result: any) => result.isPending),
+    }),
+    [],
+  )
 
   const tableDetails = useQueries({
-    queries: tables.map((table) => tableDetailQueryOptions(table.id)),
-    combine: (results) => ({
-      data: results
-        .map((result) => result.data)
-        .filter(Boolean) as TableDetail[],
-      isError: results.some((result) => result.isError),
-      isPending: results.some((result) => result.isPending),
-    }),
+    queries,
+    combine: combineFn,
   })
 
   const reminderTables = useMemo(

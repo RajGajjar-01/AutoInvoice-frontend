@@ -1,5 +1,6 @@
 import { Bell, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
+import { randomUUID } from "@/lib/uuid"
 import { TableCell } from "@/components/DataTables/TableCell"
 import { Button } from "@/components/ui/button"
 import {
@@ -53,7 +54,7 @@ export function MobileEntryView({
   const [adding, setAdding] = useState(false)
 
   const handleAdd = () => {
-    const rowToSave = { ...newItem, id: crypto.randomUUID() }
+    const rowToSave = { ...newItem, id: randomUUID() }
     onAddRowWithData(rowToSave as Row)
     setNewItem({})
     setAdding(false)
