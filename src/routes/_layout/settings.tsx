@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router"
 import { FlaskConical, RotateCcw, Trash2 } from "lucide-react"
 import ChangePassword from "@/components/UserSettings/ChangePassword"
 import DeleteAccount from "@/components/UserSettings/DeleteAccount"
@@ -25,6 +24,7 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { clearDemoData, seedDemoData } from "@/lib/seedDemoData"
 
 // ─── Demo Data Tab ────────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ function DemoDataTab() {
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
-import type { ComponentType } from "lucide-react"
+import type { ComponentType } from "react"
 
 interface TabConfig {
   value: string
@@ -175,14 +175,8 @@ const tabsConfig: TabConfig[] = [
   { value: "demo-data", title: "Demo Data", component: DemoDataTab },
 ]
 
-export const Route = createFileRoute("/_layout/settings")({
-  component: UserSettings,
-  head: () => ({
-    meta: [{ title: "Settings" }],
-  }),
-})
-
 function UserSettings() {
+  useDocumentTitle("Settings")
   const { user: currentUser } = useAuth()
   const finalTabs = currentUser?.is_superuser
     ? tabsConfig.slice(0, 3)
@@ -216,3 +210,5 @@ function UserSettings() {
     </div>
   )
 }
+
+export default UserSettings

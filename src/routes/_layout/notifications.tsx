@@ -1,5 +1,4 @@
 import { useQueries, useQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   Bell,
@@ -14,12 +13,12 @@ import {
   X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useShallow } from "zustand/react/shallow"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useShallow } from "zustand/react/shallow"
 import {
   type Notification,
   useNotificationStore,
@@ -28,16 +27,12 @@ import {
   tableDetailQueryOptions,
   tablesListQueryOptions,
 } from "@/features/data-tables/queries"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { queryClient } from "@/queryClient"
 
-export const Route = createFileRoute("/_layout/notifications")({
-  component: NotificationsPage,
-  loader: () =>
-    queryClient.ensureQueryData(tablesListQueryOptions({ limit: 100 })),
-  head: () => ({
-    meta: [{ title: "Notifications" }],
-  }),
-})
+export async function loader() {
+  return queryClient.ensureQueryData(tablesListQueryOptions({ limit: 100 }))
+}
 
 interface TableColumn {
   name: string
@@ -407,6 +402,7 @@ function EmptyState({ filtered = false }: EmptyStateProps) {
 }
 
 function NotificationsPage() {
+  useDocumentTitle("Notifications")
   const [search, setSearch] = useState("")
   const {
     checkOverdueReminders,

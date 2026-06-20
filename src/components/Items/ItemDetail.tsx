@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router"
 import {
   ArrowLeft,
   BadgeIndianRupee,
@@ -11,6 +10,7 @@ import {
   ShoppingCart,
   Tag,
 } from "lucide-react"
+import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 import { ItemQuickActions } from "./ItemQuickActions"
 import { ItemStockHistory } from "./ItemStockHistory"
 
-interface Item {
+export interface Item {
   id: string
   name: string
   sku?: string

@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router"
 import { Eye, MoreHorizontal } from "lucide-react"
+import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -35,11 +35,7 @@ export function ItemActionsMenu({ item }: ItemActionsMenuProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem asChild>
-          <Link
-            to="/items/$itemId"
-            params={{ itemId: item.id }}
-            className="flex items-center"
-          >
+          <Link to={`/items/${item.id}`} className="flex items-center">
             <Eye className="mr-2 h-4 w-4" />
             View Details
           </Link>

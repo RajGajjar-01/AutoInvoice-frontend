@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
@@ -19,6 +18,8 @@ import {
   Trash2,
 } from "lucide-react"
 import { useState } from "react"
+import { Link } from "react-router"
+import type { InvoiceStatus } from "@/client/types.gen"
 import { InvoicesService } from "@/client/sdk.gen"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -59,14 +60,8 @@ import {
   invoicesQueryKeys,
 } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { queryClient } from "@/queryClient"
-
-export const Route = createFileRoute("/_layout/invoices")({
-  component: InvoicesPage,
-  head: () => ({
-    meta: [{ title: "Invoices" }],
-  }),
-})
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -204,8 +199,9 @@ interface Invoice {
 }
 
 function InvoicesPage() {
+  useDocumentTitle("Invoices")
   const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
-  const invoices: Invoice[] = invoicesRes?.data ?? []
+  const invoices = (invoicesRes?.data ?? []) as Invoice[]
   const { showSuccessToast } = useCustomToast()
   const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null)
 
@@ -215,7 +211,7 @@ function InvoicesPage() {
       patch,
     }: {
       id: string
-      patch: { status: string }
+      patch: { status: InvoiceStatus }
     }) => {
       return InvoicesService.updateInvoice({
         id,
@@ -393,8 +389,7 @@ function InvoicesPage() {
                       >
                         <TableCell className="font-mono text-sm font-medium">
                           <Link
-                            to="/invoice-history/$invoiceId"
-                            params={{ invoiceId: inv.id }}
+                            to={`/invoice-history/${inv.id}`}
                             className="hover:text-primary transition-colors"
                           >
                             {inv.invoiceNumber}
@@ -405,8 +400,7 @@ function InvoicesPage() {
                         </TableCell>
                         <TableCell className="text-sm">
                           <Link
-                            to="/invoice-history/$invoiceId"
-                            params={{ invoiceId: inv.id }}
+                            to={`/invoice-history/${inv.id}`}
                             className="block w-full hover:text-primary transition-colors"
                           >
                             {inv.customer?.name || "—"}
@@ -414,8 +408,7 @@ function InvoicesPage() {
                         </TableCell>
                         <TableCell className="text-right font-medium text-sm">
                           <Link
-                            to="/invoice-history/$invoiceId"
-                            params={{ invoiceId: inv.id }}
+                            to={`/invoice-history/${inv.id}`}
                             className="block w-full hover:text-primary transition-colors"
                           >
                             {fmt(inv.grandTotal, inv.currency)}
@@ -598,3 +591,5 @@ function InvoicesPage() {
     </div>
   )
 }
+
+export default InvoicesPage

@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
 import {
   Calendar,
   Check,
@@ -13,7 +12,7 @@ import {
   User,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { randomUUID } from "@/lib/uuid"
+import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { TablesService } from "@/client"
 import { ColumnEditorPanel } from "@/components/DataTables/CreateTablePage/ColumnEditorPanel"
@@ -23,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { getDataTableTemplateById } from "@/features/data-tables/templates"
+import { randomUUID } from "@/lib/uuid"
 
 interface Column {
   name: string
@@ -90,7 +90,15 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
     const tpl = getDataTableTemplateById(templateId)
     if (!tpl) return
     setTableName(tpl.name)
-    setColumns(tpl.columns.map((col) => ({ ...col, _id: randomUUID() })))
+    setColumns(
+      tpl.columns.map((col) => ({
+        name: col.name,
+        type: col.type,
+        mandatory: col.mandatory ?? false,
+        options: col.options ?? [],
+        _id: randomUUID(),
+      })),
+    )
   }, [templateId])
 
   const handleAddColumn = () => {
@@ -181,10 +189,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
     onSuccess: async (createdTable) => {
       await queryClient.invalidateQueries({ queryKey: ["tables"] })
       toast.success(`Table "${createdTable.name}" created successfully!`)
-      navigate({
-        to: "/data-tables/$tableId",
-        params: { tableId: createdTable.id },
-      })
+      navigate(`/data-tables/${createdTable.id}`)
     },
     onError: () => {
       toast.error("Failed to create table")
@@ -203,7 +208,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
     })
   }
 
-  const handleCancel = () => navigate({ to: "/data-tables" })
+  const handleCancel = () => navigate("/data-tables")
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">

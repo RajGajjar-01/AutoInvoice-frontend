@@ -1,6 +1,5 @@
 import { Bell, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { randomUUID } from "@/lib/uuid"
 import { TableCell } from "@/components/DataTables/TableCell"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { randomUUID } from "@/lib/uuid"
 
 interface Column {
   name: string
@@ -40,8 +40,8 @@ interface MobileEntryViewProps {
 }
 
 export function MobileEntryView({
-  tableId,
-  table,
+  tableId: _tableId,
+  table: _table,
   rows,
   cols,
   onDeleteRow,

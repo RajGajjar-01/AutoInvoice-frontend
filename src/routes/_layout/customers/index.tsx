@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import { Building2, ContactRound, Search, Users } from "lucide-react"
 import { useDeferredValue, useMemo, useState } from "react"
@@ -16,13 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { customersListQueryOptions } from "@/features/customers/queries"
-
-export const Route = createFileRoute("/_layout/customers/")({
-  component: CustomersPage,
-  head: () => ({
-    meta: [{ title: "Customers" }],
-  }),
-})
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function CustomersEmptyState() {
   return (
@@ -73,7 +66,7 @@ function StatsCard({
 
 interface Customer {
   id: string
-  name?: string
+  name: string
   email?: string
   phone?: string
   whatsapp?: string
@@ -82,11 +75,15 @@ interface Customer {
   billingAddress?: string
   partyType?: "customer" | "supplier" | "both"
   tags?: string[] | string
+  owner_id?: string
+  created_at?: string
+  updated_at?: string
 }
 
 function CustomersPage() {
+  useDocumentTitle("Customers")
   const { data, isLoading } = useQuery(customersListQueryOptions())
-  const customers: Customer[] = data?.data ?? []
+  const customers: Customer[] = (data?.data?.filter((c): c is NonNullable<typeof c> => c != null) ?? []) as Customer[]
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const deferredSearch = useDeferredValue(search)
@@ -221,10 +218,12 @@ function CustomersPage() {
               </p>
             </div>
           ) : (
-            <DataTable columns={columns} data={filtered} />
+            <DataTable columns={columns} data={filtered as any} />
           )}
         </>
       )}
     </div>
   )
 }
+
+export default CustomersPage

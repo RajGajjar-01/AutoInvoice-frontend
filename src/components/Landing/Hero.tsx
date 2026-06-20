@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router"
 import gsap from "gsap"
 import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
+import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import { DashboardPreview } from "./DashboardPreview"
 

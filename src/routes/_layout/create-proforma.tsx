@@ -1,22 +1,13 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
-
-export const Route = createFileRoute("/_layout/create-proforma")({
-  component: CreateProformaPage,
-  head: () => ({
-    meta: [{ title: "Create Proforma Invoice" }],
-  }),
-})
+import { useNavigate } from "react-router"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function CreateProformaPage() {
+  useDocumentTitle("Create Proforma Invoice")
   const navigate = useNavigate()
 
   useEffect(() => {
-    navigate({
-      to: "/create-invoice",
-      search: { documentType: "proforma" },
-      replace: true,
-    })
+    navigate(`/create-invoice?documentType=proforma`, { replace: true })
   }, [navigate])
 
   return (

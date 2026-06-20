@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import {
   Copy,
   MoreHorizontal,
@@ -10,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { useState } from "react"
+import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { TablesService } from "@/client"
 import { EmptyState } from "@/components/DataTables/EmptyState"
@@ -36,6 +36,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { tablesListQueryOptions } from "@/features/data-tables/queries"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { queryClient } from "@/queryClient"
 
 interface TableData {
@@ -60,22 +61,17 @@ interface RenameDialogState {
   renameValue: string
 }
 
-export const Route = createFileRoute("/_layout/data-tables/")({
-  component: DataTablesPage,
-  loader: () => {
-    queryClient.ensureQueryData(tablesListQueryOptions({}))
-  },
-  head: () => ({
-    meta: [{ title: "Data Tables" }],
-  }),
-})
+export function loader() {
+  queryClient.ensureQueryData(tablesListQueryOptions({}))
+}
 
 function DataTablesPage() {
+  useDocumentTitle("Data Tables")
   const navigate = useNavigate()
   const [search, setSearch] = useState("")
 
   const { data } = useQuery(tablesListQueryOptions({}))
-  const allTables: TableData[] = data?.data ?? []
+  const allTables = (data?.data ?? []) as unknown as TableData[]
   const q = search.trim().toLowerCase()
   const tables = q
     ? allTables.filter(
@@ -103,7 +99,7 @@ function DataTablesPage() {
 
   const deleteTableMutation = useMutation({
     mutationFn: async (tableId: string) => {
-      return TablesService.deleteTable({ path: { tableId } })
+      return TablesService.deleteTable({ tableId })
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["tables"] })
@@ -123,8 +119,8 @@ function DataTablesPage() {
       name: string
     }) => {
       return TablesService.updateTable({
-        path: { tableId },
-        body: { name },
+        tableId,
+        requestBody: { name },
       })
     },
     onSuccess: async () => {
@@ -138,9 +134,9 @@ function DataTablesPage() {
 
   const duplicateTableMutation = useMutation({
     mutationFn: async (tableId: string) => {
-      return TablesService.duplicateTable({ path: { tableId } })
+      return TablesService.duplicateTable({ tableId })
     },
-    onSuccess: async (createdTable) => {
+    onSuccess: async (_createdTable) => {
       await queryClient.invalidateQueries({ queryKey: ["tables"] })
       toast.success("Table duplicated")
     },
@@ -150,10 +146,10 @@ function DataTablesPage() {
   })
 
   // ── Handlers ────────────────────────────────────────────────────────────
-  const openCreateBlank = () => navigate({ to: "/data-tables/new" })
+  const openCreateBlank = () => navigate("/data-tables/new")
 
   const handleSelectTemplate = (template: { id: string }) =>
-    navigate({ to: "/data-tables/new", search: { templateId: template.id } })
+    navigate(`/data-tables/new?templateId=${template.id}`)
 
   const handleDeleteRequest = (id: string) => {
     const t = allTables.find((x) => x.id === id)
@@ -260,8 +256,7 @@ function DataTablesPage() {
 
           {allTables.length === 0 ? (
             <EmptyState
-              onCreateBlank={openCreateBlank}
-              onSelectTemplate={handleSelectTemplate}
+              onCreateClick={openCreateBlank}
             />
           ) : (
             <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -282,9 +277,7 @@ function DataTablesPage() {
               {/* List rows */}
               {tables.map((table, idx) => (
                 <div key={table.id}>
-                  <div
-                    className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors group"
-                  >
+                  <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors group">
                     {/* Name + icon */}
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="shrink-0 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">

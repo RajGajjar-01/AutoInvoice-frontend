@@ -3,12 +3,12 @@ import { randomUUID } from "./uuid"
 function uuid() {
   return randomUUID()
 }
-function daysAgo(n) {
+function daysAgo(n: number) {
   const d = new Date()
   d.setDate(d.getDate() - n)
   return d.toISOString().slice(0, 10)
 }
-function isoAgo(n) {
+function isoAgo(n: number) {
   const d = new Date()
   d.setDate(d.getDate() - n)
   return d.toISOString()
@@ -831,7 +831,7 @@ const items = [
 ]
 
 // ─── Invoice builder ──────────────────────────────────────────────────────────
-function snap(c) {
+function snap(c: { name: string; billingAddress: string; gstin: string; phone: string; email: string }) {
   return {
     name: c.name,
     address: c.billingAddress,
@@ -849,10 +849,19 @@ function makeInv({
   status,
   notes = "",
   paymentTerms = "Net 30",
+}: {
+  num: string
+  issued: number
+  due: number
+  customer: { name: string; address: string; gst: string; phone: string; email: string }
+  lines: { itemId: string; name: string; quantity: number; price: number; tax: number }[]
+  status: string
+  notes?: string
+  paymentTerms?: string
 }) {
-  const subtotal = lines.reduce((s, it) => s + it.quantity * it.price, 0)
+  const subtotal = lines.reduce((s: number, it: { quantity: number; price: number }) => s + it.quantity * it.price, 0)
   const totalTax = lines.reduce(
-    (s, it) => s + it.quantity * it.price * (it.tax / 100),
+    (s: number, it: { quantity: number; price: number; tax: number }) => s + it.quantity * it.price * (it.tax / 100),
     0,
   )
   return {
@@ -874,7 +883,7 @@ function makeInv({
 }
 
 // ─── Invoices (25 invoices) ───────────────────────────────────────────────────
-const gl = (id, name, qty, price, tax) => ({
+const gl = (id: string, name: string, qty: number, price: number, tax: number) => ({
   itemId: id,
   name,
   quantity: qty,

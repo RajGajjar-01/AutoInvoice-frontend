@@ -1,12 +1,13 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Suspense, useMemo } from "react"
-import { AdminService, UsersService } from "@/client"
+import { redirect } from "react-router"
+import { AdminService, UsersService, type UserPublic } from "@/client"
 import AddUser from "@/components/Admin/AddUser"
 import { columns } from "@/components/Admin/columns"
 import { DataTable } from "@/components/Common/DataTable"
 import PendingUsers from "@/components/Pending/PendingUsers"
 import useAuth from "@/hooks/useAuth"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function getUsersQueryOptions() {
   return {
@@ -15,32 +16,25 @@ function getUsersQueryOptions() {
   }
 }
 
-export const Route = createFileRoute("/_layout/admin")({
-  component: Admin,
-  beforeLoad: async () => {
-    const user = await UsersService.readUserMe()
-    if (!user.is_superuser) {
-      throw redirect({
-        to: "/login",
-      })
-    }
-  },
-  head: () => ({
-    meta: [
-      {
-        title: "Admin",
-      },
-    ],
-  }),
-})
+export async function loader() {
+  const user = await UsersService.readUserMe()
+  if (!user.is_superuser) {
+    throw redirect("/login")
+  }
+  return null
+}
 
 function UsersTableContent() {
   const { user: currentUser } = useAuth()
   const { data: users } = useSuspenseQuery(getUsersQueryOptions())
   const tableData = useMemo(
     () =>
-      users.data.map((user) => ({
-        ...user,
+      (users.data as UserPublic[]).map((user) => ({
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name ?? undefined,
+        is_superuser: user.is_superuser ?? false,
+        is_active: user.is_active ?? true,
         isCurrentUser: currentUser?.id === user.id,
       })),
     [currentUser?.id, users.data],
@@ -57,6 +51,7 @@ function UsersTable() {
 }
 
 function Admin() {
+  useDocumentTitle("Admin")
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -72,3 +67,5 @@ function Admin() {
     </div>
   )
 }
+
+export default Admin

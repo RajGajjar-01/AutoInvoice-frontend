@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
 import html2pdf from "html2pdf.js"
 import {
   ArrowLeft,
@@ -17,6 +16,7 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
+import { Link, useSearchParams } from "react-router"
 import { z } from "zod"
 import { OpenAPI } from "@/client"
 import { CustomersService, InvoicesService } from "@/client/sdk.gen"
@@ -54,21 +54,10 @@ import {
 import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
 import { invoicesQueryKeys } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import useLocalStorage from "@/hooks/useLocalStorage"
 import { api } from "@/lib/api"
 import { queryClient } from "@/queryClient"
-
-export const Route = createFileRoute("/_layout/create-invoice")({
-  component: CreateInvoicePage,
-  validateSearch: (search: Record<string, unknown>) => ({
-    customerId: search.customerId ? String(search.customerId) : undefined,
-    itemId: search.itemId ? String(search.itemId) : undefined,
-    documentType: (search.documentType as string) || "invoice",
-  }),
-  head: () => ({
-    meta: [{ title: "Create Invoice" }],
-  }),
-})
 
 const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
 
@@ -199,6 +188,7 @@ const emptyItem: InvoiceItem = {
 }
 
 function CreateInvoicePage() {
+  useDocumentTitle("Create Invoice")
   const [inventoryItems, setInventoryItems] = useLocalStorage<InventoryItem[]>(
     "items",
     [],
@@ -209,11 +199,10 @@ function CreateInvoicePage() {
   )
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const savedRef = useRef<boolean>(false)
-  const {
-    customerId: preselectedCustomerId,
-    itemId: preselectedItemId,
-    documentType,
-  } = Route.useSearch()
+  const [searchParams] = useSearchParams()
+  const preselectedCustomerId = searchParams.get("customerId") ?? undefined
+  const preselectedItemId = searchParams.get("itemId") ?? undefined
+  const documentType = searchParams.get("documentType") || "invoice"
 
   const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
 
@@ -229,7 +218,7 @@ function CreateInvoicePage() {
           : "clean-teal"
 
   const { data: customersRes } = useQuery(customersListQueryOptions())
-  const customers: Customer[] = customersRes?.data ?? []
+  const customers: Customer[] = (customersRes?.data ?? []).filter(Boolean) as unknown as Customer[]
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
   const [invoiceNumber] = useState<string>(generateInvoiceNumber)
@@ -238,7 +227,7 @@ function CreateInvoicePage() {
   const [previewOpen, setPreviewOpen] = useState<boolean>(false)
 
   const form = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceFormSchema),
+    resolver: zodResolver(invoiceFormSchema) as any,
     defaultValues: {
       customerName: "",
       customerPhone: "",
@@ -252,10 +241,10 @@ function CreateInvoicePage() {
       placeOfSupply: "",
       reverseCharge: false,
       discountType: "percent",
-      discountValue: "",
-      shippingCharge: "",
+      discountValue: undefined,
+      shippingCharge: undefined,
       extraChargeLabel: "Handling Charges",
-      extraChargeAmount: "",
+      extraChargeAmount: undefined,
       roundOff: false,
       bankName: "",
       accountName: "",
@@ -277,7 +266,7 @@ function CreateInvoicePage() {
   const currency = form.watch("currency")
 
   const createCustomerMutation = useMutation({
-    mutationFn: async (payload: Record<string, unknown>) => {
+    mutationFn: async (payload: any) => {
       return CustomersService.createCustomer({
         requestBody: payload,
       })
@@ -288,7 +277,7 @@ function CreateInvoicePage() {
   })
 
   const createInvoiceMutation = useMutation({
-    mutationFn: async (payload: Record<string, unknown>) => {
+    mutationFn: async (payload: any) => {
       return InvoicesService.createInvoice({
         requestBody: payload,
       })
@@ -524,7 +513,6 @@ function CreateInvoicePage() {
       showErrorToast("Failed to save invoice")
     }
 
-    let _stockDeducted = false
     setInventoryItems((prev) => {
       const newInventory = [...prev]
       items.forEach((invLine) => {
@@ -548,7 +536,6 @@ function CreateInvoicePage() {
             },
           ],
         }
-        _stockDeducted = true
       })
       return newInventory
     })
@@ -631,7 +618,7 @@ function CreateInvoicePage() {
       red?: boolean
     }
 
-    const summaryEntries: (SummaryEntry | null)[] = [
+    const summaryEntries: SummaryEntry[] = [
       { label: "Subtotal", value: cs + subtotal.toFixed(2) },
       itemsDiscount > 0
         ? {
@@ -657,7 +644,7 @@ function CreateInvoicePage() {
             value: cs + Number(extraChargeAmount).toFixed(2),
           }
         : null,
-    ].filter(Boolean) as SummaryEntry[]
+    ].filter((e): e is SummaryEntry => e !== null)
 
     const bankHtml =
       activeBankDetails &&
@@ -1251,7 +1238,7 @@ function CreateInvoicePage() {
           },
         }
 
-        const pdfBlob = await html2pdf().set(opt).from(html).output("blob")
+        const pdfBlob = await html2pdf().set(opt as any).from(html).output("blob")
         const file = new File([pdfBlob], filename, { type: "application/pdf" })
 
         try {
@@ -1329,7 +1316,7 @@ function CreateInvoicePage() {
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(onSubmit as any)}
           className="grid grid-cols-1 lg:grid-cols-3 gap-4"
         >
           <div className="lg:col-span-2 space-y-6">
@@ -1580,9 +1567,9 @@ function CreateInvoicePage() {
               </CardHeader>
               <CardContent>
                 <ModernExcelTable
-                  items={items}
-                  inventoryItems={inventoryItems}
-                  updateItem={updateItem}
+                  items={items as any}
+                  inventoryItems={inventoryItems as any}
+                  updateItem={updateItem as any}
                   handleItemSelect={handleItemSelect}
                   addItem={addItem}
                   removeItem={removeItem}
@@ -2033,3 +2020,5 @@ function CreateInvoicePage() {
     </div>
   )
 }
+
+export default CreateInvoicePage

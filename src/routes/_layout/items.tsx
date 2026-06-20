@@ -1,8 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router"
-
-export const Route = createFileRoute("/_layout/items")({
-  component: ItemsLayout,
-})
+import { Outlet } from "react-router"
 
 function ItemsLayout() {
   return <Outlet />

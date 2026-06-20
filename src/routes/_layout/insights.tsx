@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
@@ -15,6 +14,7 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useMemo } from "react"
+import { Link } from "react-router"
 import {
   Area,
   AreaChart,
@@ -39,13 +39,7 @@ import {
   invoicesListQueryOptions,
   invoicesStatsQueryOptions,
 } from "@/features/invoices/queries"
-
-export const Route = createFileRoute("/_layout/insights")({
-  component: InsightsPage,
-  head: () => ({
-    meta: [{ title: "Insights" }],
-  }),
-})
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -284,15 +278,15 @@ interface TopCustomer {
 }
 
 function InsightsPage() {
+  useDocumentTitle("Insights")
   const { resolvedTheme } = useTheme()
 
   // Fetch data from API using React Query
   const { data: invoicesResponse } = useQuery(invoicesListQueryOptions())
-  const { data: statsData } = useQuery(invoicesStatsQueryOptions())
-  const { data: customersResponse } = useQuery(customersListQueryOptions())
+  useQuery(invoicesStatsQueryOptions())
+  useQuery(customersListQueryOptions())
 
-  const invoices: Invoice[] = invoicesResponse?.data ?? []
-  const _customers = customersResponse?.data ?? []
+  const invoices: Invoice[] = (invoicesResponse?.data ?? []).filter(Boolean) as unknown as Invoice[]
 
   // SVG fill attributes don't resolve CSS custom properties
   const tickColor = resolvedTheme === "dark" ? "#94a3b8" : "#64748b"
@@ -311,10 +305,10 @@ function InsightsPage() {
     )
 
     const thisMonthInv = invoices.filter(
-      (i) => new Date(i.createdAt || i.invoiceDate) >= thirtyDaysAgo,
+      (i) => new Date(i.createdAt || i.invoiceDate || "") >= thirtyDaysAgo,
     )
     const prevMonthInv = invoices.filter((i) => {
-      const d = new Date(i.createdAt || i.invoiceDate)
+      const d = new Date(i.createdAt || i.invoiceDate || "")
       return d >= sixtyDaysAgo && d < thirtyDaysAgo
     })
     const thisRevenue = thisMonthInv.reduce(
@@ -363,7 +357,7 @@ function InsightsPage() {
   const monthlyChartData: MonthlyChartData[] = useMemo(() => {
     return months.map(({ label, start, end }) => {
       const bucket = invoices.filter((i) => {
-        const d = new Date(i.createdAt || i.invoiceDate)
+        const d = new Date(i.createdAt || i.invoiceDate || "")
         return d >= start && d <= end
       })
       return {

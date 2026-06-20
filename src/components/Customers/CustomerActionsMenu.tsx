@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/react-router"
 import { EllipsisVertical, ExternalLink } from "lucide-react"
 import { useState } from "react"
+import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -19,6 +19,9 @@ interface Customer {
   phone?: string
   email?: string
   gstin?: string
+  owner_id: string
+  created_at: string
+  updated_at: string
 }
 
 interface CustomerActionsMenuProps {
@@ -36,11 +39,7 @@ export const CustomerActionsMenu = ({ customer }: CustomerActionsMenuProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <Link
-          to="/customers/$customerId"
-          params={{ customerId: customer.id }}
-          onClick={() => setOpen(false)}
-        >
+        <Link to={`/customers/${customer.id}`} onClick={() => setOpen(false)}>
           <DropdownMenuItem>
             <ExternalLink className="mr-2 h-4 w-4" />
             View Profile

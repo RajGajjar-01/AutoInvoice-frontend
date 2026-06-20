@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router"
 import {
   ArrowRight,
   CheckCircle2,
@@ -8,6 +7,7 @@ import {
   FilePlus,
   FileText,
 } from "lucide-react"
+import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,7 +47,7 @@ function EmptyTimeline() {
       <p className="text-xs text-muted-foreground max-w-xs mb-4">
         Invoices created for this party will appear here.
       </p>
-      <Link to="/create-invoice" search={{ documentType: "invoice" }}>
+      <Link to="/create-invoice?documentType=invoice">
         <Button variant="outline" size="sm">
           <FilePlus className="mr-2 h-3.5 w-3.5" />
           Create Invoice
@@ -149,8 +149,7 @@ function TimelineRow({ invoice }: TimelineRowProps) {
           )}
         </div>
         <Link
-          to="/invoice-history/$invoiceId"
-          params={{ invoiceId: invoice.id }}
+          to={`/invoice-history/${invoice.id}`}
           className="opacity-0 group-hover:opacity-100 transition-opacity"
           title="View invoice"
         >

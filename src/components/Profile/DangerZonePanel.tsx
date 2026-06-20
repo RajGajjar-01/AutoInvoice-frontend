@@ -100,7 +100,7 @@ export function DangerZonePanel() {
 
         <AlertDialog
           open={deleteOpen}
-          onOpenChange={(o) => {
+           onOpenChange={(o: boolean) => {
             setDeleteOpen(o)
             if (!o) setDeleteInput("")
           }}
@@ -130,7 +130,7 @@ export function DangerZonePanel() {
             <Input
               placeholder={user?.email}
               value={deleteInput}
-              onChange={(e) => setDeleteInput(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeleteInput(e.target.value)}
             />
 
             <AlertDialogFooter>

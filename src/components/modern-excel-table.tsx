@@ -10,6 +10,26 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
+interface TableItem {
+  itemId: string
+  name: string
+  description: string
+  hsnCode: string
+  quantity: number
+  price: number
+  tax: number
+  discount: number
+  discountType: "flat" | "percent"
+  unit: string
+}
+
+interface InventoryItem {
+  id: string
+  name: string
+  stock: number
+  unit: string
+}
+
 export function ModernExcelTable({
   items,
   inventoryItems,
@@ -18,11 +38,20 @@ export function ModernExcelTable({
   addItem,
   removeItem,
   currencySymbol,
+}: {
+  items: TableItem[]
+  inventoryItems: InventoryItem[]
+  updateItem: (index: number, field: string, value: string | number) => void
+  handleItemSelect: (index: number, itemId: string) => void
+  addItem: () => void
+  removeItem: (index: number) => void
+  currencySymbol: string
 }) {
-  const tableRef = useRef(null)
+  const tableRef = useRef<HTMLTableElement>(null)
 
   // Handle keyboard navigation between cells
-  const handleKeyDown = (e, index, field) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number, field: string) => {
+    const target = e.currentTarget
     const fields = [
       "itemId",
       "name",
@@ -40,10 +69,10 @@ export function ModernExcelTable({
       const nextRow = tableRef.current?.querySelector(
         `tr[data-index="${index + 1}"]`,
       )
-      const nextInput = nextRow?.querySelector(`[data-field="${field}"]`)
+      const nextInput = nextRow?.querySelector<HTMLInputElement>(`[data-field="${field}"]`)
       if (nextInput) {
         nextInput.focus()
-        nextInput.select?.()
+        nextInput.select()
       } else if (e.key === "Enter" && index === items.length - 1) {
         addItem()
       }
@@ -52,34 +81,34 @@ export function ModernExcelTable({
       const prevRow = tableRef.current?.querySelector(
         `tr[data-index="${index - 1}"]`,
       )
-      const prevInput = prevRow?.querySelector(`[data-field="${field}"]`)
+      const prevInput = prevRow?.querySelector<HTMLInputElement>(`[data-field="${field}"]`)
       if (prevInput) {
         prevInput.focus()
-        prevInput.select?.()
+        prevInput.select()
       }
     } else if (
       e.key === "ArrowRight" &&
-      e.target.selectionEnd === e.target.value.length
+      target.selectionEnd === target.value.length
     ) {
       const nextField = fields[fieldIndex + 1]
       if (nextField) {
-        const input = e.target
+        const input = target
           .closest("tr")
-          .querySelector(`[data-field="${nextField}"]`)
+          ?.querySelector<HTMLInputElement>(`[data-field="${nextField}"]`)
         if (input) {
           input.focus()
-          input.select?.()
+          input.select()
         }
       }
-    } else if (e.key === "ArrowLeft" && e.target.selectionStart === 0) {
+    } else if (e.key === "ArrowLeft" && target.selectionStart === 0) {
       const prevField = fields[fieldIndex - 1]
       if (prevField) {
-        const input = e.target
+        const input = target
           .closest("tr")
-          .querySelector(`[data-field="${prevField}"]`)
+          ?.querySelector<HTMLInputElement>(`[data-field="${prevField}"]`)
         if (input) {
           input.focus()
-          input.select?.()
+          input.select()
         }
       }
     }
@@ -117,7 +146,7 @@ export function ModernExcelTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30">
-            {items.map((item, index) => {
+            {items.map((item: TableItem, index: number) => {
               const lineBase = item.quantity * item.price
               const lineDisc =
                 item.discountType === "flat"
@@ -154,7 +183,6 @@ export function ModernExcelTable({
                         }}
                       >
                         <SelectTrigger
-                          hideChevron
                           className="h-9 w-8 p-0 border-0 bg-transparent hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 transition-colors shrink-0 rounded-none flex items-center justify-center"
                         >
                           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/50 group-hover/itembox:text-primary transition-colors" />
@@ -165,7 +193,7 @@ export function ModernExcelTable({
                               No items in inventory
                             </div>
                           ) : (
-                            inventoryItems.map((inv) => (
+                            inventoryItems.map((inv: InventoryItem) => (
                               <SelectItem
                                 key={inv.id}
                                 value={inv.id}

@@ -1,22 +1,13 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
-
-export const Route = createFileRoute("/_layout/create-challan")({
-  component: CreateChallanPage,
-  head: () => ({
-    meta: [{ title: "Create Delivery Challan" }],
-  }),
-})
+import { useNavigate } from "react-router"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function CreateChallanPage() {
+  useDocumentTitle("Create Delivery Challan")
   const navigate = useNavigate()
 
   useEffect(() => {
-    navigate({
-      to: "/create-invoice",
-      search: { documentType: "challan" },
-      replace: true,
-    })
+    navigate(`/create-invoice?documentType=challan`, { replace: true })
   }, [navigate])
 
   return (

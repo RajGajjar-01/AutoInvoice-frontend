@@ -144,7 +144,7 @@ const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
       unit: data.unit,
       salePrice: Number(data.salePrice) || 0,
       purchasePrice:
-        data.purchasePrice !== "" && data.purchasePrice != null
+        data.purchasePrice != null
           ? Number(data.purchasePrice)
           : null,
       taxRate: Number(data.taxRate) || 0,

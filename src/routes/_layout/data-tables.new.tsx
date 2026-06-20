@@ -1,16 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { useSearchParams } from "react-router"
 import { CreateTablePage } from "@/components/DataTables/CreateTablePage"
-
-export const Route = createFileRoute("/_layout/data-tables/new")({
-  validateSearch: (s: Record<string, unknown>) =>
-    s.templateId ? { templateId: s.templateId as string } : {},
-  component: RouteComponent,
-  head: () => ({
-    meta: [{ title: "Create Table" }],
-  }),
-})
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function RouteComponent() {
-  const { templateId } = Route.useSearch()
+  useDocumentTitle("Create Table")
+  const [searchParams] = useSearchParams()
+  const templateId = searchParams.get("templateId") ?? undefined
   return <CreateTablePage templateId={templateId} />
 }
+
+export default RouteComponent

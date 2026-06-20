@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router"
+import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -101,8 +101,7 @@ export function PlanDetailsCard() {
         <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground flex flex-col gap-1">
           <p>Not set — billing address is pulled from your Business Details.</p>
           <Link
-            to="/profile"
-            search={{ tab: "business" }}
+            to="/profile?tab=business"
             className="text-primary underline-offset-4 hover:underline text-xs"
           >
             Edit in Business Details →

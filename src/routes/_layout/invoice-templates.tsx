@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
+import React from "react"
 import {
   ArrowLeft,
   Briefcase,
@@ -18,6 +18,7 @@ import {
   Wrench,
 } from "lucide-react"
 import { useRef, useState } from "react"
+import { Link } from "react-router"
 import { ExcelImportDialog } from "@/components/InvoiceTemplates/ExcelImportDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -45,13 +46,7 @@ import {
   invoiceTemplatesListQueryOptions,
 } from "@/features/invoice-templates/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-
-export const Route = createFileRoute("/_layout/invoice-templates")({
-  component: InvoiceTemplatesPage,
-  head: () => ({
-    meta: [{ title: "Invoice Templates" }],
-  }),
-})
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 // ─── Template definitions ────────────────────────────────────────────
 
@@ -62,7 +57,7 @@ interface BuiltInTemplate {
   icon: LucideIcon
   cardColor: string
   features: string[]
-  preview: () => JSX.Element
+  preview: () => React.ReactNode
 }
 
 const builtInTemplates: BuiltInTemplate[] = [
@@ -118,7 +113,7 @@ const builtInTemplates: BuiltInTemplate[] = [
 // ─── Individual themed previews ───────────────────────────────────────────────
 
 // Template 1 — Clean Teal
-function CleanTealPreview(): JSX.Element {
+function CleanTealPreview(): React.ReactNode {
   return (
     <div
       style={{
@@ -365,7 +360,7 @@ function CleanTealPreview(): JSX.Element {
 }
 
 // Template 2 — Geometric
-function GeometricPreview(): JSX.Element {
+function GeometricPreview(): React.ReactNode {
   return (
     <div
       style={{
@@ -665,7 +660,7 @@ function GeometricPreview(): JSX.Element {
 }
 
 // Template 3 — Circle Studio
-function CircleStudioPreview(): JSX.Element {
+function CircleStudioPreview(): React.ReactNode {
   return (
     <div
       style={{
@@ -918,7 +913,7 @@ function CircleStudioPreview(): JSX.Element {
 }
 
 // Template 4 — Aizen Bold
-function AizenBoldPreview(): JSX.Element {
+function AizenBoldPreview(): React.ReactNode {
   return (
     <div
       style={{
@@ -1172,7 +1167,7 @@ function AizenBoldPreview(): JSX.Element {
 }
 
 // Template 5 — Simple Boxed (Navy Corporate)
-function SimpleBoxedPreview(): JSX.Element {
+function SimpleBoxedPreview(): React.ReactNode {
   return (
     <div
       style={{
@@ -1548,6 +1543,7 @@ interface ImportedTemplate {
 }
 
 function InvoiceTemplatesPage() {
+  useDocumentTitle("Invoice Templates")
   const [previewTemplate, setPreviewTemplate] =
     useState<BuiltInTemplate | null>(null)
   const { showSuccessToast, showErrorToast } = useCustomToast()
@@ -1563,7 +1559,7 @@ function InvoiceTemplatesPage() {
   const activateTemplateMutation = useActivateInvoiceTemplate()
   const deleteTemplateMutation = useDeleteInvoiceTemplate()
 
-  const serverTemplates: ServerTemplate[] = templatesList?.data ?? []
+  const serverTemplates = (templatesList?.data ?? []) as ServerTemplate[]
   const serverCustomTemplate =
     serverTemplates.find((t) => t.kind === "custom") ?? null
   const serverImportedTemplate =
@@ -2176,3 +2172,5 @@ function InvoiceTemplatesPage() {
     </div>
   )
 }
+
+export default InvoiceTemplatesPage

@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router"
 import { FilePlus } from "lucide-react"
+import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -27,7 +27,7 @@ export function ItemQuickActions({ item, onDeleted }: ItemQuickActionsProps) {
       </CardHeader>
       <Separator />
       <CardContent className="flex flex-col gap-2 pt-4">
-        <Link to="/create-invoice" search={{ itemId: item.id }}>
+        <Link to={`/create-invoice?itemId=${item.id}`}>
           <Button className="w-full justify-start gap-2">
             <FilePlus className="h-4 w-4" />
             Create Invoice

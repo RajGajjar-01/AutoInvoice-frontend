@@ -1,16 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { AlertTriangle, ArrowLeft } from "lucide-react"
+import { Link, useNavigate, useParams } from "react-router"
 import { CustomerDetail } from "@/components/Customers/CustomerDetail"
 import { Button } from "@/components/ui/button"
 import { customerDetailQueryOptions } from "@/features/customers/queries"
-
-export const Route = createFileRoute("/_layout/customers/$customerId")({
-  component: CustomerDetailPage,
-  head: () => ({
-    meta: [{ title: "Party Profile" }],
-  }),
-})
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function NotFound() {
   return (
@@ -34,7 +28,8 @@ function NotFound() {
 }
 
 function CustomerDetailPage() {
-  const { customerId } = Route.useParams()
+  useDocumentTitle("Party Profile")
+  const { customerId } = useParams<{ customerId: string }>()
   const navigate = useNavigate()
 
   const { data: customer, isLoading } = useQuery(
@@ -46,10 +41,12 @@ function CustomerDetailPage() {
   }
 
   const handleDeleted = () => {
-    navigate({ to: "/customers" })
+    navigate("/customers")
   }
 
   if (!customer) return null
 
   return <CustomerDetail customer={customer} onDeleted={handleDeleted} />
 }
+
+export default CustomerDetailPage

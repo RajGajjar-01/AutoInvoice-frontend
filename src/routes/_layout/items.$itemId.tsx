@@ -1,35 +1,21 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Suspense } from "react"
-import { ItemDetail } from "@/components/Items/ItemDetail"
+import { useNavigate, useParams, type LoaderFunctionArgs } from "react-router"
+import { ItemDetail, type Item as ItemDetailItem } from "@/components/Items/ItemDetail"
 import PendingItemDetail from "@/components/Pending/PendingItemDetail"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import useLocalStorage from "@/hooks/useLocalStorage"
 
-export const Route = createFileRoute("/_layout/items/$itemId")({
-  component: ItemDetailPage,
-  loader: ({ params }) => {
-    // We handle the actual data fetch inside the component to use our hook,
-    // but we can throw notFound if we want to do strict routing here.
-    // For localStorage, it's easier to handle inside the component.
-    return { itemId: params.itemId }
-  },
-  head: () => ({
-    meta: [{ title: "Item Details" }],
-  }),
-})
-
-interface Item {
-  id: string
-  name?: string
-  sku?: string
-  category?: string
-  stock?: number
-  lowStockThreshold?: number
+export function loader({ params }: LoaderFunctionArgs) {
+  // We handle the actual data fetch inside the component to use our hook,
+  // but we can throw notFound if we want to do strict routing here.
+  // For localStorage, it's easier to handle inside the component.
+  return { itemId: params.itemId }
 }
 
 function ItemDetailContent() {
-  const { itemId } = Route.useParams()
+  const { itemId } = useParams<{ itemId: string }>()
   const navigate = useNavigate()
-  const [items] = useLocalStorage<Item[]>("items", [])
+  const [items] = useLocalStorage<ItemDetailItem[]>("items", [])
 
   const item = items.find((i) => i.id === itemId)
 
@@ -41,7 +27,7 @@ function ItemDetailContent() {
           The item you're looking for doesn't exist or was deleted.
         </p>
         <button
-          onClick={() => navigate({ to: "/items" })}
+          onClick={() => navigate("/items")}
           className="text-primary hover:underline"
         >
           Return to items
@@ -50,13 +36,16 @@ function ItemDetailContent() {
     )
   }
 
-  return <ItemDetail item={item} onDeleted={() => navigate({ to: "/items" })} />
+  return <ItemDetail item={item} onDeleted={() => navigate("/items")} />
 }
 
 function ItemDetailPage() {
+  useDocumentTitle("Item Details")
   return (
     <Suspense fallback={<PendingItemDetail />}>
       <ItemDetailContent />
     </Suspense>
   )
 }
+
+export default ItemDetailPage

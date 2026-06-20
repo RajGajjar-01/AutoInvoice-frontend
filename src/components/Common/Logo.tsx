@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router"
+import { Link } from "react-router"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 

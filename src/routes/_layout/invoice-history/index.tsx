@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
@@ -16,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { useMemo, useState } from "react"
+import { Link } from "react-router"
 import { InvoicesService } from "@/client/sdk.gen"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -57,14 +57,8 @@ import {
   invoicesQueryKeys,
 } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { queryClient } from "@/queryClient"
-
-export const Route = createFileRoute("/_layout/invoice-history/")({
-  component: InvoiceHistoryPage,
-  head: () => ({
-    meta: [{ title: "Invoice History" }],
-  }),
-})
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -194,8 +188,9 @@ interface Invoice {
 }
 
 function InvoiceHistoryPage() {
+  useDocumentTitle("Invoice History")
   const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
-  const invoices: Invoice[] = invoicesRes?.data ?? []
+  const invoices = (invoicesRes?.data ?? []) as Invoice[]
   const { showSuccessToast } = useCustomToast()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
@@ -211,8 +206,8 @@ function InvoiceHistoryPage() {
       patch: Partial<Invoice>
     }) => {
       return InvoicesService.updateInvoice({
-        path: { id },
-        body: patch,
+        id,
+        requestBody: patch,
       })
     },
     onSuccess: async () => {
@@ -222,7 +217,7 @@ function InvoiceHistoryPage() {
 
   const deleteInvoiceMutation = useMutation({
     mutationFn: async (id: string) => {
-      return InvoicesService.deleteInvoice({ path: { id } })
+      return InvoicesService.deleteInvoice({ id })
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
@@ -422,8 +417,7 @@ function InvoiceHistoryPage() {
                     >
                       <TableCell className="font-mono text-sm font-medium">
                         <Link
-                          to="/invoice-history/$invoiceId"
-                          params={{ invoiceId: inv.id }}
+                          to={`/invoice-history/${inv.id}`}
                           className="hover:text-primary transition-colors"
                         >
                           {inv.invoiceNumber}
@@ -431,8 +425,7 @@ function InvoiceHistoryPage() {
                       </TableCell>
                       <TableCell className="text-sm">
                         <Link
-                          to="/invoice-history/$invoiceId"
-                          params={{ invoiceId: inv.id }}
+                          to={`/invoice-history/${inv.id}`}
                           className="block hover:text-primary transition-colors"
                         >
                           <span className="font-medium">
@@ -494,10 +487,7 @@ function InvoiceHistoryPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link
-                                to="/invoice-history/$invoiceId"
-                                params={{ invoiceId: inv.id }}
-                              >
+                              <Link to={`/invoice-history/${inv.id}`}>
                                 <FileText className="mr-2 h-4 w-4" />
                                 View Details
                               </Link>
@@ -576,3 +566,5 @@ function InvoiceHistoryPage() {
     </div>
   )
 }
+
+export default InvoiceHistoryPage

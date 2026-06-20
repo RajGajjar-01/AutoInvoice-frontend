@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertCircle,
@@ -23,14 +22,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import useLocalStorage from "@/hooks/useLocalStorage"
-
-export const Route = createFileRoute("/_layout/profile")({
-  component: AccountPage,
-  head: () => ({
-    meta: [{ title: "My Account" }],
-  }),
-})
 
 interface CompanyDetails {
   name: string
@@ -253,6 +246,7 @@ function LogoUpload({ logo, onLogoChange }: LogoUploadProps) {
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
 function AccountPage() {
+  useDocumentTitle("My Account")
   const [company, setCompany] = useLocalStorage<CompanyDetails>(
     "company-details",
     defaultCompany,
@@ -804,3 +798,5 @@ function AccountPage() {
     </div>
   )
 }
+
+export default AccountPage

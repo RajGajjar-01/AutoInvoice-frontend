@@ -4,7 +4,7 @@ import { ApiError } from "@/client"
 function extractErrorMessage(err: unknown): string {
   // Handle ApiError from the SDK client (most API errors)
   if (err instanceof ApiError) {
-    const errDetail = err.body?.detail
+    const errDetail = (err.body as { detail?: unknown })?.detail
     if (Array.isArray(errDetail) && errDetail.length > 0) {
       return errDetail[0].msg
     }

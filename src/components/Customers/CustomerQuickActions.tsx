@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router"
 import { Download, FilePlus, MessageCircle, Zap } from "lucide-react"
+import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -59,7 +59,7 @@ export function CustomerQuickActions({ customer }: CustomerQuickActionsProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        <Link to="/create-invoice" search={{ customerId: customer.id }}>
+        <Link to={`/create-invoice?customerId=${customer.id}`}>
           <Button className="w-full justify-start gap-2">
             <FilePlus className="h-4 w-4" />
             Create Invoice

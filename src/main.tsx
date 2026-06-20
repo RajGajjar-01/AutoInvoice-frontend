@@ -1,14 +1,14 @@
 import { QueryClientProvider } from "@tanstack/react-query"
-import { createRouter, RouterProvider } from "@tanstack/react-router"
 import axios from "axios"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
+import { RouterProvider } from "react-router"
 import { OpenAPI } from "./client"
 import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
 import { queryClient } from "./queryClient"
-import { routeTree } from "./routeTree.gen"
+import { router } from "./router"
 
 const isProduction = import.meta.env.PROD
 
@@ -36,15 +36,6 @@ axios.interceptors.request.use((config) => {
   }
   return config
 })
-
-const router = createRouter({ routeTree })
-
-// Register router for type safety
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router
-  }
-}
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -1,5 +1,8 @@
 export function randomUUID(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     return crypto.randomUUID()
   }
   // Math.random fallback for insecure contexts (HTTP)

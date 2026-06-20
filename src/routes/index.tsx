@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { Link } from "react-router"
 import { Appearance } from "@/components/Common/Appearance"
 import { Footer } from "@/components/Common/Footer"
 import { Logo } from "@/components/Common/Logo"
@@ -8,19 +8,10 @@ import { Features } from "@/components/Landing/Features"
 import { Hero } from "@/components/Landing/Hero"
 import { Button } from "@/components/ui/button"
 import useAuth from "@/hooks/useAuth"
-
-export const Route = createFileRoute("/")({
-  component: LandingPage,
-  head: () => ({
-    meta: [
-      {
-        title: "AutoInvoice - Professional Invoicing Made Simple",
-      },
-    ],
-  }),
-})
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function LandingPage() {
+  useDocumentTitle("AutoInvoice - Professional Invoicing Made Simple")
   const { user, isLoading } = useAuth()
 
   return (
@@ -59,3 +50,5 @@ function LandingPage() {
     </div>
   )
 }
+
+export default LandingPage

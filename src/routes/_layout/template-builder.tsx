@@ -15,7 +15,6 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   AlignCenter,
   AlignJustify,
@@ -41,7 +40,8 @@ import {
   User,
   X,
 } from "lucide-react"
-import { useCallback, useState } from "react"
+import React, { useCallback, useState } from "react"
+import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
@@ -61,13 +61,7 @@ import {
 } from "@/features/invoice-templates/mutations"
 import { invoiceTemplatesListQueryOptions } from "@/features/invoice-templates/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-
-export const Route = createFileRoute("/_layout/template-builder")({
-  component: TemplateBuilderPage,
-  head: () => ({
-    meta: [{ title: "Template Builder" }],
-  }),
-})
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 // ─── Block definitions ─────────────────────────────────────────────────────────
 
@@ -941,6 +935,7 @@ function GlobalStylePanel({ globalStyle, onChange }: GlobalStylePanelProps) {
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 function TemplateBuilderPage() {
+  useDocumentTitle("Template Builder")
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const { data: templatesList } = useQuery(invoiceTemplatesListQueryOptions())
   const createTemplateMutation = useCreateInvoiceTemplate()
@@ -951,9 +946,10 @@ function TemplateBuilderPage() {
   const serverCustomTemplate =
     serverTemplates.find((t) => t.kind === "custom") ?? null
   const savedTemplate = serverCustomTemplate?.custom_data ?? null
+  const savedData = savedTemplate as { blocks?: Block[]; globalStyle?: GlobalStyle; savedAt?: string } | null
 
   const [blocks, setBlocks] = useState<Block[]>(() =>
-    savedTemplate?.blocks?.length ? savedTemplate.blocks : DEFAULT_BLOCKS,
+    (savedData?.blocks?.length ? savedData.blocks : DEFAULT_BLOCKS) as Block[],
   )
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dragActiveId, setDragActiveId] = useState<string | null>(null)
@@ -963,7 +959,7 @@ function TemplateBuilderPage() {
 
   const [globalStyle, setGlobalStyle] = useState<GlobalStyle>(
     () =>
-      savedTemplate?.globalStyle || {
+      savedData?.globalStyle || {
         accentColor: "#16a34a",
         textColor: "#111827",
         fontFamily: "system-ui, sans-serif",
@@ -1380,3 +1376,5 @@ function TemplateBuilderPage() {
     </div>
   )
 }
+
+export default TemplateBuilderPage

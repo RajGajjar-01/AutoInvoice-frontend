@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
@@ -20,6 +19,7 @@ import {
   User,
 } from "lucide-react"
 import { useState } from "react"
+import { Link, useNavigate, useParams } from "react-router"
 import { InvoicesService } from "@/client/sdk.gen"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,14 +48,8 @@ import {
   invoicesQueryKeys,
 } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { queryClient } from "@/queryClient"
-
-export const Route = createFileRoute("/_layout/invoice-history/$invoiceId")({
-  component: InvoiceDetailPage,
-  head: () => ({
-    meta: [{ title: "Invoice Detail" }],
-  }),
-})
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -137,40 +131,9 @@ function NotFound() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-interface InvoiceItem {
-  name?: string
-  description?: string
-  quantity: number
-  price: number
-  tax: number
-}
-
-interface InvoiceCustomer {
-  name?: string
-  email?: string
-  phone?: string
-  address?: string
-  gst?: string
-}
-
-interface Invoice {
-  id: string
-  invoiceNumber: string
-  invoiceDate?: string
-  dueDate?: string
-  currency?: string
-  status: "paid" | "unpaid" | "overdue"
-  subtotal?: number
-  totalTax?: number
-  grandTotal?: number
-  notes?: string
-  paymentTerms?: string
-  customer?: InvoiceCustomer
-  items?: InvoiceItem[]
-}
-
 function InvoiceDetailPage() {
-  const { invoiceId } = Route.useParams()
+  useDocumentTitle("Invoice Detail")
+  const { invoiceId } = useParams<{ invoiceId: string }>()
   const { showSuccessToast } = useCustomToast()
   const navigate = useNavigate()
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -185,11 +148,11 @@ function InvoiceDetailPage() {
       patch,
     }: {
       id: string
-      patch: Partial<Invoice>
+      patch: Record<string, unknown>
     }) => {
       return InvoicesService.updateInvoice({
-        path: { id },
-        body: patch,
+        id,
+        requestBody: patch as Parameters<typeof InvoicesService.updateInvoice>[0]["requestBody"],
       })
     },
     onSuccess: async () => {
@@ -199,12 +162,12 @@ function InvoiceDetailPage() {
 
   const deleteInvoiceMutation = useMutation({
     mutationFn: async (id: string) => {
-      return InvoicesService.deleteInvoice({ path: { id } })
+      return InvoicesService.deleteInvoice({ id })
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
       showSuccessToast("Invoice deleted")
-      navigate({ to: "/invoice-history" })
+      navigate("/invoice-history")
     },
   })
 
@@ -212,7 +175,7 @@ function InvoiceDetailPage() {
   if (!invoice) return null
 
   const cs = getCurrencySymbol(invoice.currency)
-  const StatusIcon = statusIcon[invoice.status] ?? CircleDashed
+  const StatusIcon = statusIcon[invoice.status ?? "unpaid"] ?? CircleDashed
   const validItems = (invoice.items || []).filter((it) => it.name)
 
   const handleToggleStatus = () => {
@@ -258,7 +221,7 @@ function InvoiceDetailPage() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <Badge
-            variant={statusVariant[invoice.status] ?? "outline"}
+            variant={statusVariant[invoice.status ?? "unpaid"] ?? "outline"}
             className="capitalize cursor-pointer gap-1 py-1 px-3 text-sm"
             onClick={handleToggleStatus}
           >
@@ -354,7 +317,7 @@ function InvoiceDetailPage() {
                     <TableBody>
                       {validItems.map((it, i) => {
                         const lineTotal =
-                          it.quantity * it.price * (1 + it.tax / 100)
+                          (it.quantity ?? 0) * (it.price ?? 0) * (1 + (it.tax ?? 0) / 100)
                         return (
                           <TableRow key={i}>
                             <TableCell>
@@ -459,27 +422,27 @@ function InvoiceDetailPage() {
               <InfoRow
                 icon={User}
                 label="Name"
-                value={invoice.customer?.name}
+                value={invoice.customer?.name ?? undefined}
               />
               <InfoRow
                 icon={Mail}
                 label="Email"
-                value={invoice.customer?.email}
+                value={invoice.customer?.email ?? undefined}
               />
               <InfoRow
                 icon={Phone}
                 label="Phone"
-                value={invoice.customer?.phone}
+                value={invoice.customer?.phone ?? undefined}
               />
               <InfoRow
                 icon={MapPin}
                 label="Address"
-                value={invoice.customer?.address}
+                value={invoice.customer?.address ?? undefined}
               />
               <InfoRow
                 icon={Receipt}
                 label="GST / Tax ID"
-                value={invoice.customer?.gst}
+                value={invoice.customer?.gst ?? undefined}
               />
             </CardContent>
           </Card>
@@ -512,7 +475,7 @@ function InvoiceDetailPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
                 <Badge
-                  variant={statusVariant[invoice.status] ?? "outline"}
+                  variant={statusVariant[invoice.status ?? "unpaid"] ?? "outline"}
                   className="capitalize cursor-pointer gap-1"
                   onClick={handleToggleStatus}
                 >
@@ -556,3 +519,5 @@ function InvoiceDetailPage() {
     </div>
   )
 }
+
+export default InvoiceDetailPage

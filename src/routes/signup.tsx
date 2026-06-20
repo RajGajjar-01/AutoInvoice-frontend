@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { createFileRoute, Link as RouterLink } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
+import { Link as RouterLink } from "react-router"
 import { z } from "zod"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import {
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth from "@/hooks/useAuth"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 const formSchema = z
   .object({
@@ -35,18 +36,8 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>
 
-export const Route = createFileRoute("/signup")({
-  component: SignUp,
-  head: () => ({
-    meta: [
-      {
-        title: "Sign Up",
-      },
-    ],
-  }),
-})
-
 function SignUp() {
+  useDocumentTitle("Sign Up")
   const { signUpMutation } = useAuth()
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

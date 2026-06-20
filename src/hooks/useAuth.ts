@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
+import { useNavigate } from "react-router"
 import { AuthService } from "@/client/sdk.gen"
 import useCustomToast from "./useCustomToast"
 
@@ -59,7 +59,7 @@ const useAuth = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["currentUser"] })
       await queryClient.refetchQueries({ queryKey: ["currentUser"] })
-      navigate({ to: "/dashboard" })
+      navigate("/dashboard")
     },
     onError: (error) => {
       const message =
@@ -84,7 +84,7 @@ const useAuth = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["currentUser"] })
       await queryClient.refetchQueries({ queryKey: ["currentUser"] })
-      navigate({ to: "/dashboard" })
+      navigate("/dashboard")
     },
     onError: (error) => {
       const message =
@@ -98,12 +98,12 @@ const useAuth = () => {
 
   const logout = async () => {
     try {
-      await AuthService.logout({})
+      await AuthService.logout()
     } catch (e) {
       console.error("Logout error:", e)
     }
     queryClient.clear()
-    navigate({ to: "/login" })
+    navigate("/login")
   }
 
   return {

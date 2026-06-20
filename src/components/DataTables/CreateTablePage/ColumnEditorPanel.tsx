@@ -1,6 +1,7 @@
 import {
   closestCenter,
   DndContext,
+  type DragEndEvent,
   PointerSensor,
   useSensor,
   useSensors,
@@ -298,13 +299,7 @@ export function ColumnEditorPanel({
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
   )
 
-  const handleDragEnd = ({
-    active,
-    over,
-  }: {
-    active: { id: string }
-    over: { id: string } | null
-  }) => {
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return
     const oldIndex = columns.findIndex((c) => c._id === active.id)
     const newIndex = columns.findIndex((c) => c._id === over.id)

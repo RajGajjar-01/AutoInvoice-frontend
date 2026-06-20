@@ -1,12 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
+import { useForm } from "react-hook-form"
 import {
-  createFileRoute,
   Link as RouterLink,
   redirect,
   useNavigate,
-} from "@tanstack/react-router"
-import { useForm } from "react-hook-form"
+  useSearchParams,
+} from "react-router"
 import { z } from "zod"
 import { AuthService } from "@/client/sdk.gen"
 import { AuthLayout } from "@/components/Common/AuthLayout"
@@ -22,11 +22,20 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 
 import useCustomToast from "@/hooks/useCustomToast"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { handleError } from "@/utils"
 
-const searchSchema = z.object({
-  token: z.string().optional(),
-})
+export async function loader({ request }: { request: Request }) {
+  const url = new URL(request.url)
+  const hasToken =
+    url.searchParams.get("token") ||
+    (typeof window !== "undefined" &&
+      window.location.hash.includes("access_token"))
+  if (!hasToken) {
+    throw redirect("/login")
+  }
+  return null
+}
 
 const formSchema = z
   .object({
@@ -45,27 +54,10 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>
 
-export const Route = createFileRoute("/reset-password")({
-  component: ResetPassword,
-  validateSearch: searchSchema,
-  beforeLoad: async ({ search }) => {
-    const hash = typeof window !== "undefined" ? window.location.hash : ""
-    const hasToken = search.token || hash.includes("access_token")
-    if (!hasToken) {
-      throw redirect({ to: "/login" })
-    }
-  },
-  head: () => ({
-    meta: [
-      {
-        title: "Reset Password",
-      },
-    ],
-  }),
-})
-
 function ResetPassword() {
-  const { token } = Route.useSearch()
+  useDocumentTitle("Reset Password")
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get("token") ?? undefined
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const navigate = useNavigate()
 
@@ -99,7 +91,7 @@ function ResetPassword() {
     onSuccess: () => {
       showSuccessToast("Password updated successfully")
       form.reset()
-      navigate({ to: "/login" })
+      navigate("/login")
     },
     onError: (error) => handleError.call(showErrorToast, error),
   })
@@ -176,3 +168,5 @@ function ResetPassword() {
     </AuthLayout>
   )
 }
+
+export default ResetPassword

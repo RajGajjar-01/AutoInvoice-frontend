@@ -253,7 +253,6 @@ export function CreateTableModal({
                         onMoveDown={handleMoveDown}
                         canMoveUp={i > 0}
                         canMoveDown={i < columns.length - 1}
-                        total={columns.length}
                       />
                     ))}
                   </div>

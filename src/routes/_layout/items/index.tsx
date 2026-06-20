@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import { AlertTriangle, Filter, Package, Search, XCircle } from "lucide-react"
 import { useState } from "react"
@@ -14,14 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import useLocalStorage from "@/hooks/useLocalStorage"
-
-export const Route = createFileRoute("/_layout/items/")({
-  component: ItemsPage,
-  head: () => ({
-    meta: [{ title: "Items" }],
-  }),
-})
 
 interface StatsCardProps {
   icon: LucideIcon
@@ -73,9 +66,13 @@ function EmptyState() {
 
 interface Item {
   id: string
-  name?: string
+  name: string
   sku?: string
   category?: string
+  unit?: string
+  salePrice?: number
+  purchasePrice?: number | null
+  taxRate?: number
   hsnCode?: string
   description?: string
   stock?: number
@@ -90,6 +87,7 @@ const STOCK_FILTERS = [
 ]
 
 function ItemsPage() {
+  useDocumentTitle("Items")
   const [items] = useLocalStorage<Item[]>("items", [])
   const [search, setSearch] = useState("")
   const [stockFilter, setStockFilter] = useState<string>("all")
@@ -252,8 +250,10 @@ function ItemsPage() {
           </p>
         </div>
       ) : (
-        <DataTable columns={columns} data={filtered} />
+        <DataTable columns={columns} data={filtered as any} />
       )}
     </div>
   )
 }
+
+export default ItemsPage

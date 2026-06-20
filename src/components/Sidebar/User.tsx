@@ -1,5 +1,5 @@
-import { Link as RouterLink } from "@tanstack/react-router"
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
+import { Link as RouterLink } from "react-router"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -15,18 +15,15 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import type { UserPublic } from "@/client"
 import useAuth from "@/hooks/useAuth"
 import { getInitials } from "@/utils"
 
 interface UserProps {
-  user?: {
-    full_name?: string
-    email?: string
-    is_superuser?: boolean
-  } | null
+  user?: UserPublic | null
 }
 
-function UserInfo({ fullName, email }: { fullName?: string; email?: string }) {
+function UserInfo({ fullName, email }: { fullName?: string | null; email?: string | null }) {
   return (
     <div className="flex items-center gap-2.5 w-full min-w-0">
       <Avatar className="size-8">

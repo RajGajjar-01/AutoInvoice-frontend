@@ -5,7 +5,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { CustomersService } from "@/client/sdk.gen"
-import type { CustomerPublic } from "@/client/types.gen"
+import type { CustomerCreate, CustomerPublic } from "@/client/types.gen"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -43,9 +43,7 @@ const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Party name is required" }).max(255),
-  partyType: z.enum(["customer", "supplier", "both"], {
-    required_error: "Please select a party type",
-  }),
+  partyType: z.enum(["customer", "supplier", "both"] as const),
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
   email: z
@@ -102,7 +100,7 @@ const EditCustomer = ({
   const { showSuccessToast } = useCustomToast()
 
   const updateCustomerMutation = useMutation({
-    mutationFn: async (payload: Record<string, unknown>) => {
+    mutationFn: async (payload: CustomerCreate) => {
       return CustomersService.updateCustomer({
         id: customer.id,
         requestBody: payload,
@@ -126,16 +124,16 @@ const EditCustomer = ({
     criteriaMode: "all",
     defaultValues: {
       name: customer?.name ?? "",
-      partyType: customer?.partyType ?? "customer",
+      partyType: (customer?.party_type ?? "customer") as FormValues["partyType"],
       phone: customer?.phone ?? "",
       whatsapp: customer?.whatsapp ?? "",
       email: customer?.email ?? "",
       gstin: customer?.gstin ?? "",
-      billingAddress: customer?.billingAddress ?? customer?.address ?? "",
-      shippingAddress: customer?.shippingAddress ?? "",
-      openingBalance: customer?.openingBalance ?? undefined,
-      creditLimit: customer?.creditLimit ?? undefined,
-      paymentTerms: customer?.paymentTerms ?? "",
+      billingAddress: customer?.billing_address ?? customer?.address ?? "",
+      shippingAddress: customer?.shipping_address ?? "",
+      openingBalance: customer?.opening_balance ?? undefined,
+      creditLimit: customer?.credit_limit ?? undefined,
+      paymentTerms: customer?.payment_terms ?? "",
       tags: tagsStr,
       notes: customer?.notes ?? "",
     },

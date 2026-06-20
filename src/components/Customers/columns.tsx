@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router"
+import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { CustomerActionsMenu } from "./CustomerActionsMenu"
 
@@ -10,6 +10,9 @@ interface Customer {
   email?: string
   gstin?: string
   gst?: string
+  owner_id: string
+  created_at: string
+  updated_at: string
 }
 
 const partyTypeVariant: Record<string, "default" | "secondary" | "outline"> = {
@@ -30,8 +33,7 @@ export const columns = [
     header: "Name",
     cell: ({ row }: { row: { original: Customer } }) => (
       <Link
-        to="/customers/$customerId"
-        params={{ customerId: row.original.id }}
+        to={`/customers/${row.original.id}`}
         className="font-medium hover:text-primary hover:underline underline-offset-4 transition-colors"
       >
         {row.original.name}

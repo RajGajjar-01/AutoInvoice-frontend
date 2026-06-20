@@ -14,7 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import useAuth from "@/hooks/useAuth"
 
 interface AuthMethod {
   id: string
@@ -78,8 +77,6 @@ const MOCK_SESSIONS: Session[] = [
 ]
 
 export function AuthMethodsList() {
-  const { user } = useAuth()
-
   const [connected, setConnected] = useState<Record<string, boolean>>({
     google: false,
   })

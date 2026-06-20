@@ -4,12 +4,13 @@ import {
   useContext,
   useEffect,
   useState,
+  type ReactNode,
 } from "react"
 
 const initialState = {
   theme: "system",
   resolvedTheme: "light",
-  setTheme: () => null,
+  setTheme: (_: string) => {},
 }
 const ThemeProviderContext = createContext(initialState)
 export function ThemeProvider({
@@ -17,11 +18,15 @@ export function ThemeProvider({
   defaultTheme = "system",
   storageKey = "vite-ui-theme",
   ...props
+}: {
+  children: ReactNode
+  defaultTheme?: string
+  storageKey?: string
 }) {
   const [theme, setTheme] = useState(
     () => localStorage.getItem(storageKey) || defaultTheme,
   )
-  const getResolvedTheme = useCallback((theme) => {
+  const getResolvedTheme = useCallback((theme: string) => {
     if (theme === "system") {
       return window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
@@ -32,7 +37,7 @@ export function ThemeProvider({
   const [resolvedTheme, setResolvedTheme] = useState(() =>
     getResolvedTheme(theme),
   )
-  const updateTheme = useCallback((newTheme) => {
+  const updateTheme = useCallback((newTheme: string) => {
     const root = window.document.documentElement
     root.classList.remove("light", "dark")
     if (newTheme === "system") {
@@ -63,7 +68,7 @@ export function ThemeProvider({
   const value = {
     theme,
     resolvedTheme,
-    setTheme: (theme) => {
+    setTheme: (theme: string) => {
       localStorage.setItem(storageKey, theme)
       setTheme(theme)
     },

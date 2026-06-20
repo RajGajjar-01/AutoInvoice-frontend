@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query"
-import { Link } from "@tanstack/react-router"
 import {
   ArrowLeft,
   BadgeIndianRupee,
@@ -20,6 +19,7 @@ import {
   Wallet,
   Zap,
 } from "lucide-react"
+import { Link } from "react-router"
 import type { CustomerPublic } from "@/client/types.gen"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -119,7 +119,9 @@ interface CustomerDetailProps {
 
 export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
   const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
-  const invoices = invoicesRes?.data ?? []
+  const invoices = (invoicesRes?.data ?? []).filter(
+    (inv): inv is NonNullable<typeof inv> => inv != null,
+  )
 
   const partyInvoices = invoices.filter((inv) => {
     const cid = inv.customerId ?? (inv as any).customer_id
@@ -246,7 +248,7 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
                 icon={CreditCard}
                 label="Credit Limit"
                 value={
-                  customer.credit_limit != null && customer.credit_limit !== ""
+                  customer.credit_limit != null
                     ? currency(customer.credit_limit)
                     : null
                 }
@@ -351,12 +353,7 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
                 <div className="h-4 w-px bg-border shrink-0" />
                 <div className="flex items-center gap-2 flex-wrap">
                   <Link
-                    to="/create-invoice"
-                    search={{
-                      customerId: customer.id,
-                      itemId: undefined,
-                      documentType: "invoice",
-                    }}
+                    to={`/create-invoice?customerId=${customer.id}&documentType=invoice`}
                   >
                     <Button size="sm" className="h-7 gap-1.5 text-xs">
                       <FilePlus className="h-3 w-3" />

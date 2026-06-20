@@ -1,9 +1,0 @@
-[build]
-builder = "dockerfile"
-buildArgs = ["VITE_API_URL="]
-
-[deploy]
-healthcheckPath = "/health"
-healthcheckTimeout = 300
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3

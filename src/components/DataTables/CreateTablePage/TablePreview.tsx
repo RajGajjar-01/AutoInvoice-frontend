@@ -5,6 +5,8 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core"
 import {
   arrayMove,
@@ -179,15 +181,9 @@ export function TablePreview({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
 
-  const handleDragStart = ({ active }: { active: { id: string } }) =>
-    setActiveId(active.id)
-  const handleDragEnd = ({
-    active,
-    over,
-  }: {
-    active: { id: string }
-    over: { id: string } | null
-  }) => {
+  const handleDragStart = ({ active }: DragStartEvent) =>
+    setActiveId(active.id as string)
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
     setActiveId(null)
     if (!over || active.id === over.id) return
     const fromIdx = columns.findIndex((c) => c._id === active.id)
@@ -276,16 +272,19 @@ export function TablePreview({
                       const nextIdx = dir === "left" ? index - 1 : index + 1
                       if (nextIdx >= 0 && nextIdx < columns.length) {
                         const nextId = columns[nextIdx]._id
-                        document
-                          .querySelector(`[data-col-id="${nextId}"]`)
-                          ?.focus()
+                        ;(
+                          document.querySelector(
+                            `[data-col-id="${nextId}"]`,
+                          ) as HTMLElement | null
+                        )?.focus()
                         return true
                       }
                       if (dir === "right" && nextIdx === columns.length) {
-                        // If at the end, focus side panel
-                        document
-                          .querySelector(`[data-panel="side-column"]`)
-                          ?.focus()
+                        ;(
+                          document.querySelector(
+                            `[data-panel="side-column"]`,
+                          ) as HTMLElement | null
+                        )?.focus()
                         return true
                       }
                       return false

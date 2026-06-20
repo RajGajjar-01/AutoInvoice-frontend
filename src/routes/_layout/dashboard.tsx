@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
@@ -21,6 +20,7 @@ import {
   Users,
 } from "lucide-react"
 import { useMemo } from "react"
+import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -45,14 +45,8 @@ import {
   invoicesStatsQueryOptions,
 } from "@/features/invoices/queries"
 import useAuth from "@/hooks/useAuth"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import useLocalStorage from "@/hooks/useLocalStorage"
-
-export const Route = createFileRoute("/_layout/dashboard")({
-  component: Dashboard,
-  head: () => ({
-    meta: [{ title: "Dashboard" }],
-  }),
-})
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -70,11 +64,6 @@ function fmt(num: number | string, currency?: string): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })}`
-}
-
-function _pct(a: number, b: number): number {
-  if (!b) return 0
-  return Math.round(((a - b) / b) * 100)
 }
 
 const statusVariant: Record<
@@ -204,13 +193,14 @@ interface Invoice {
 }
 
 function Dashboard() {
+  useDocumentTitle("Dashboard")
   const { user: currentUser } = useAuth()
   const [items] = useLocalStorage<Item[]>("items", [])
 
   const { data: statsRes } = useQuery(invoicesStatsQueryOptions())
   const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
   const { data: customersRes } = useQuery(customersListQueryOptions())
-  const invoices: Invoice[] = invoicesRes?.data ?? []
+  const invoices: Invoice[] = (invoicesRes?.data ?? []).filter(Boolean) as unknown as Invoice[]
   const customers = customersRes?.data ?? []
 
   // ── Date helpers ────────────────────────────────────────────────────────
@@ -402,8 +392,7 @@ function Dashboard() {
                       >
                         <TableCell className="font-mono text-sm font-medium">
                           <Link
-                            to="/invoice-history/$invoiceId"
-                            params={{ invoiceId: inv.id }}
+                            to={`/invoice-history/${inv.id}`}
                             className="hover:text-primary transition-colors"
                           >
                             {inv.invoiceNumber}
@@ -414,8 +403,7 @@ function Dashboard() {
                         </TableCell>
                         <TableCell className="text-sm">
                           <Link
-                            to="/invoice-history/$invoiceId"
-                            params={{ invoiceId: inv.id }}
+                            to={`/invoice-history/${inv.id}`}
                             className="block hover:text-primary transition-colors"
                           >
                             {inv.customer?.name || "—"}
@@ -423,8 +411,7 @@ function Dashboard() {
                         </TableCell>
                         <TableCell className="text-right font-medium text-sm">
                           <Link
-                            to="/invoice-history/$invoiceId"
-                            params={{ invoiceId: inv.id }}
+                            to={`/invoice-history/${inv.id}`}
                             className="block hover:text-primary transition-colors"
                           >
                             {fmt(inv.grandTotal, inv.currency)}

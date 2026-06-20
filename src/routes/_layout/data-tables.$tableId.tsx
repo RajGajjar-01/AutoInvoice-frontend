@@ -1,7 +1,7 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, Bell, Filter, Plus, Trash2 } from "lucide-react"
 import { useDeferredValue, useEffect, useMemo, useRef } from "react"
+import { useNavigate, useParams, type LoaderFunctionArgs } from "react-router"
 import { toast } from "sonner"
 import { TablesService } from "@/client"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
@@ -44,19 +44,15 @@ import {
   useTableUiStore,
 } from "@/features/data-tables/table-ui-store"
 import { buildMandatoryDefaultRow } from "@/features/data-tables/templates"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useIsMobile } from "@/hooks/useMobile"
 import { evaluateFormula } from "@/lib/formula-engine"
 import { cn } from "@/lib/utils"
 import { queryClient } from "@/queryClient"
 
-export const Route = createFileRoute("/_layout/data-tables/$tableId")({
-  component: TableViewPage,
-  loader: ({ params }) =>
-    queryClient.ensureQueryData(tableDetailQueryOptions(params.tableId)),
-  head: () => ({
-    meta: [{ title: "Table View" }],
-  }),
-})
+export function loader({ params }: LoaderFunctionArgs) {
+  return queryClient.ensureQueryData(tableDetailQueryOptions(params.tableId))
+}
 
 const OPTION_FILTER_TYPES = new Set([
   "Status",
@@ -156,7 +152,7 @@ function TableStatsBar({
       .map((row) => {
         const value = row[targetCol.name]
         return typeof value === "string" && value.startsWith("=")
-          ? parseFloat(evaluateFormula(value, allRows, cols))
+          ? parseFloat(evaluateFormula(value, allRows, cols) as string)
           : parseFloat(value as string)
       })
       .filter((value) => !Number.isNaN(value))
@@ -217,12 +213,12 @@ function TableStatsBar({
           </span>
         </div>
         <div className="flex items-center">
-          {statsConfig.stats.map((stat, index) => (
+          {(statsConfig.stats ?? []).map((stat, index) => (
             <div
               key={stat.label}
               className={cn(
                 "flex items-center gap-1.5 px-4",
-                index < statsConfig.stats.length - 1 &&
+                index < (statsConfig.stats?.length ?? 0) - 1 &&
                   "border-r border-primary-foreground/20",
               )}
             >
@@ -241,8 +237,9 @@ function TableStatsBar({
 }
 
 function TableViewPage() {
+  useDocumentTitle("Table View")
   const isMobile = useIsMobile()
-  const { tableId } = Route.useParams()
+  const { tableId } = useParams<{ tableId: string }>()
   const navigate = useNavigate()
 
   const {
@@ -347,7 +344,7 @@ function TableViewPage() {
   const { data: currentTable } = useSuspenseQuery(
     tableDetailQueryOptions(tableId),
   )
-  const cols: TableColumn[] = currentTable?.columns ?? []
+  const cols = (currentTable?.columns ?? []) as unknown as TableColumn[]
   const allRows: TableDataRow[] = currentTable?.rows ?? []
   const rowById = useMemo(
     () => new Map(allRows.map((row) => [row.id, row])),
@@ -386,7 +383,7 @@ function TableViewPage() {
   const createRowMutation = useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
       return TablesService.createTableRow({
-        tableId,
+        tableId: tableId!,
         requestBody: {
           data,
         },
@@ -394,7 +391,7 @@ function TableViewPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId),
+        queryKey: tablesQueryKeys.detail(tableId!),
       })
     },
     onError: () => {
@@ -412,7 +409,7 @@ function TableViewPage() {
       uiPatch?: Record<string, unknown>
     }) => {
       return TablesService.updateTableRow({
-        tableId,
+        tableId: tableId!,
         rowId,
         requestBody: {
           data: apiData,
@@ -421,11 +418,11 @@ function TableViewPage() {
     },
     onMutate: async ({ rowId, uiPatch }) => {
       await queryClient.cancelQueries({
-        queryKey: tablesQueryKeys.detail(tableId),
+        queryKey: tablesQueryKeys.detail(tableId!),
       })
-      const previous = queryClient.getQueryData(tablesQueryKeys.detail(tableId))
+      const previous = queryClient.getQueryData(tablesQueryKeys.detail(tableId!))
       queryClient.setQueryData(
-        tablesQueryKeys.detail(tableId),
+        tablesQueryKeys.detail(tableId!),
         (old: TableData | undefined) => {
           if (!old) return old
           const patch = uiPatch ?? {}
@@ -446,25 +443,25 @@ function TableViewPage() {
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) {
-        queryClient.setQueryData(tablesQueryKeys.detail(tableId), ctx.previous)
+        queryClient.setQueryData(tablesQueryKeys.detail(tableId!), ctx.previous)
       }
       toast.error("Failed to update row")
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId),
+        queryKey: tablesQueryKeys.detail(tableId!),
       })
     },
   })
 
   const deleteRowMutation = useMutation({
     mutationFn: async (rowId: string) => {
-      return TablesService.deleteTableRow({ tableId, rowId })
+      return TablesService.deleteTableRow({ tableId: tableId!, rowId })
     },
     onSuccess: async (_res, rowId) => {
       removeSelectedRow(rowId)
       await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId),
+        queryKey: tablesQueryKeys.detail(tableId!),
       })
     },
     onError: () => {
@@ -475,14 +472,14 @@ function TableViewPage() {
   const bulkDeleteMutation = useMutation({
     mutationFn: async (rowIds: string[]) => {
       return TablesService.bulkDeleteTableRows({
-        tableId,
+        tableId: tableId!,
         requestBody: rowIds,
       })
     },
     onSuccess: async () => {
       clearSelectedRows()
       await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId),
+        queryKey: tablesQueryKeys.detail(tableId!),
       })
     },
     onError: () => {
@@ -600,9 +597,9 @@ function TableViewPage() {
   const rowsWithReminders = useMemo(
     () =>
       new Set(
-        (currentTable.reminders ?? []).map(
-          (reminder: { rowId: string }) => reminder.rowId,
-        ),
+        (currentTable.reminders ?? [])
+          .map((reminder) => reminder.rowId)
+          .filter((x): x is string => !!x),
       ),
     [currentTable.reminders],
   )
@@ -717,7 +714,7 @@ function TableViewPage() {
             variant="ghost"
             size="sm"
             className="text-muted-foreground hover:text-foreground gap-1.5 -ml-2 hover:bg-muted"
-            onClick={() => navigate({ to: "/data-tables" })}
+            onClick={() => navigate("/data-tables")}
           >
             <ArrowLeft className="h-4 w-4" />
             Data Tables
@@ -768,7 +765,7 @@ function TableViewPage() {
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <ExportMenu table={currentTable} rows={filteredRows} />
+            <ExportMenu table={currentTable as unknown as { name: string; columns: { name: string; type: string }[] }} rows={filteredRows} />
             <Button
               size="sm"
               className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
@@ -841,10 +838,10 @@ function TableViewPage() {
         {/* ── Table ─────────────────────────────────────────────────────── */}
         {isMobile ? (
           <MobileEntryView
-            tableId={tableId}
-            table={currentTable}
+            tableId={tableId!}
+            table={currentTable as unknown as { id: string; name: string; columns: { name: string; type: string; mandatory: boolean; options: string[] }[] }}
             rows={filteredRows}
-            cols={cols}
+            cols={cols as unknown as { name: string; type: string; mandatory: boolean; options: string[] }[]}
             onDeleteRow={handleDeleteRow}
             onAddRowWithData={handleAddRowWithData}
             onUpdateCell={handleCellChange}
@@ -1199,7 +1196,7 @@ function TableViewPage() {
       <ReminderModal
         open={reminderState.open}
         onOpenChange={(open) => setReminderState({ ...reminderState, open })}
-        tableId={tableId}
+        tableId={tableId!}
         rowId={reminderState.rowId}
         rowLabel={reminderState.rowLabel}
       />
