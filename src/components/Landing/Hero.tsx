@@ -18,7 +18,7 @@ export function Hero() {
       const tl = gsap.timeline()
 
       tl.from(".hero-badge", {
-        y: 20,
+        y: 16,
         opacity: 0,
         duration: 0.25,
         ease: "power2.out",
@@ -26,7 +26,7 @@ export function Hero() {
       tl.from(
         ".hero-title",
         {
-          y: 40,
+          y: 32,
           opacity: 0,
           duration: 0.3,
           ease: "power3.out",
@@ -45,7 +45,7 @@ export function Hero() {
       tl.from(
         ".hero-subtitle",
         {
-          y: 20,
+          y: 16,
           opacity: 0,
           duration: 0.25,
           ease: "power2.out",
@@ -53,7 +53,7 @@ export function Hero() {
         "-=0.1",
       )
       tl.from(
-        ".hero-buttons .hero-btn-primary",
+        ".hero-buttons",
         {
           y: 12,
           opacity: 0,
@@ -63,42 +63,15 @@ export function Hero() {
         "-=0.05",
       )
       tl.from(
-        ".hero-buttons .hero-btn-secondary",
-        {
-          y: 12,
-          opacity: 0,
-          duration: 0.2,
-          ease: "power2.out",
-        },
-        "-=0.15",
-      )
-      tl.from(
         ".hero-visual",
         {
-          y: 30,
+          x: 24,
           opacity: 0,
-          duration: 0.35,
+          duration: 0.4,
           ease: "power2.out",
         },
-        "-=0.1",
+        "-=0.2",
       )
-
-      gsap.to(".hero-blob-1", {
-        x: 30,
-        y: -20,
-        duration: 8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      })
-      gsap.to(".hero-blob-2", {
-        x: -30,
-        y: 20,
-        duration: 10,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      })
     }, heroRef)
 
     return () => ctx.revert()
@@ -106,53 +79,57 @@ export function Hero() {
 
   return (
     <section ref={heroRef} className="relative overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <div className="hero-blob-1 absolute top-0 left-1/4 w-96 h-96 bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl" />
-        <div className="hero-blob-2 absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl" />
-      </div>
+      <div className="hero-dot-grid absolute inset-0 -z-10" />
+      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] -translate-y-1/4 translate-x-1/4 rounded-full bg-primary/6 blur-3xl" />
 
       <div className="mx-auto max-w-6xl px-6 py-20 md:py-28 lg:py-32">
-        <div className="flex flex-col items-center text-center">
-          <div className="hero-badge inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm mb-6">
-            <CheckCircle2 className="h-4 w-4 text-primary" />
-            <span className="text-muted-foreground">
-              Trusted by 500+ businesses
-            </span>
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+          <div className="flex flex-col items-start">
+            <div className="hero-badge inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-1.5 text-sm mb-6">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+              <span className="text-muted-foreground">
+                Trusted by 500+ Indian businesses
+              </span>
+            </div>
+
+            <h1 className="hero-title font-display text-4xl font-medium tracking-tight sm:text-5xl md:text-6xl max-w-xl leading-[1.1]">
+              GST invoicing made{" "}
+              <span className="text-primary">effortless</span>{" "}
+              for your{" "}
+              <span className="underline decoration-primary decoration-2 underline-offset-4">
+                business
+              </span>
+            </h1>
+
+            <p className="hero-subtitle mt-6 text-lg text-muted-foreground md:text-xl max-w-lg leading-relaxed">
+              Create GST-compliant invoices, quotations, and challans in
+              seconds. Manage customers, track payments, and grow your
+              business, all in one place.
+            </p>
+
+            <div className="hero-buttons mt-8 flex flex-col sm:flex-row gap-3">
+              <Button size="lg" className="h-11 px-8" asChild>
+                <Link to="/signup">
+                  Start Free Trial
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-11 px-8"
+                asChild
+              >
+                <Link to="/login">Sign In</Link>
+              </Button>
+            </div>
           </div>
 
-          <h1 className="hero-title text-4xl font-medium tracking-tight sm:text-5xl md:text-6xl lg:text-7xl max-w-4xl">
-            Invoicing made <span className="text-primary">effortless</span> for
-            your{" "}
-            <span className="underline decoration-primary decoration-2 underline-offset-4">
-              business
-            </span>
-          </h1>
-
-          <p className="hero-subtitle mt-6 text-lg text-muted-foreground max-w-2xl md:text-xl">
-            Create professional invoices, track payments, manage inventory, and
-            grow your business. All in one beautiful, easy-to-use platform.
-          </p>
-
-          <div className="hero-buttons mt-8 flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="hero-btn-primary h-11 px-8" asChild>
-              <Link to="/signup">
-                Start Free Trial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="hero-btn-secondary h-11 px-8"
-              asChild
-            >
-              <Link to="/login">Sign In</Link>
-            </Button>
-          </div>
-
-          <div className="hero-visual mt-12 w-full max-w-4xl">
+          <div className="hero-visual">
             <DashboardPreview />
           </div>
+
         </div>
       </div>
     </section>

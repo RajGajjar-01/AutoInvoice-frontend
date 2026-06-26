@@ -15,23 +15,27 @@ interface Benefit {
 const benefits: Benefit[] = [
   {
     icon: Zap,
-    title: "Lightning Fast",
-    description: "Create invoices in under 60 seconds. No learning curve.",
+    title: "Invoice in 60 seconds",
+    description:
+      "No learning curve. Open AutoInvoice, fill in the details, send — done.",
   },
   {
     icon: ShieldCheck,
-    title: "GST Compliant",
-    description: "Built for Indian businesses with full GST support.",
+    title: "100% GST Compliant",
+    description:
+      "CGST, SGST, IGST, reverse charge — handled correctly every time, automatically.",
   },
   {
     icon: Clock,
-    title: "Save 5+ Hours/Week",
-    description: "Automate paperwork and focus on growing your business.",
+    title: "Save 5+ hours a week",
+    description:
+      "Stop re-entering data across spreadsheets. Customers, items, and totals are always ready.",
   },
   {
     icon: Palette,
-    title: "Your Brand",
-    description: "Customize templates with your logo, colors, and details.",
+    title: "Looks like your brand",
+    description:
+      "Add your logo, pick your colors, and send invoices that clients actually remember.",
   },
 ]
 
@@ -100,12 +104,12 @@ export function Benefits() {
   }, [])
 
   return (
-    <section ref={benefitsRef} className="py-20">
+    <section ref={benefitsRef} className="py-20 bg-muted/20">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="benefits-title text-3xl font-bold tracking-tight md:text-4xl mb-6">
-              Why businesses choose AutoInvoice
+        <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-center">
+          <div className="lg:col-span-2">
+            <h2 className="benefits-title font-display text-3xl font-semibold tracking-tight md:text-4xl mb-6">
+              Why 500+ Indian businesses choose AutoInvoice
             </h2>
             <div className="space-y-6">
               {benefits.map((benefit) => (
@@ -129,7 +133,7 @@ export function Benefits() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative lg:col-span-3">
             <div className="benefits-glow absolute inset-0 bg-gradient-to-r from-primary/10 to-blue-500/10 dark:from-primary/5 dark:to-blue-500/5 rounded-3xl blur-2xl" />
             <Card className="benefits-card relative border-2 shadow-xl">
               <CardContent className="p-8">

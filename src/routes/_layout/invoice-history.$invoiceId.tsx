@@ -134,7 +134,7 @@ function NotFound() {
 function InvoiceDetailPage() {
   useDocumentTitle("Invoice Detail")
   const { invoiceId } = useParams<{ invoiceId: string }>()
-  const { showSuccessToast } = useCustomToast()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
   const navigate = useNavigate()
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -171,12 +171,53 @@ function InvoiceDetailPage() {
     },
   })
 
+  const sendEmailMutation = useMutation({
+    mutationFn: (body: { to_email: string; subject?: string }) =>
+      InvoicesService.sendInvoiceEmail({
+        id: invoice?.id ?? "",
+        requestBody: body,
+      }),
+    onSuccess: () => showSuccessToast("Invoice sent via email"),
+    onError: () => showErrorToast("Failed to send email"),
+  })
+
+  const sendWhatsappMutation = useMutation({
+    mutationFn: (body: { to_phone: string }) =>
+      InvoicesService.sendInvoiceWhatsapp({
+        id: invoice?.id ?? "",
+        requestBody: body,
+      }),
+    onSuccess: () => showSuccessToast("Invoice sent via WhatsApp"),
+    onError: () => showErrorToast("Failed to send via WhatsApp"),
+  })
+
   if (!isLoading && !invoice) return <NotFound />
   if (!invoice) return null
 
   const cs = getCurrencySymbol(invoice.currency)
   const StatusIcon = statusIcon[invoice.status ?? "unpaid"] ?? CircleDashed
   const validItems = (invoice.items || []).filter((it) => it.name)
+
+  const handleWhatsApp = () => {
+    const phone = invoice.customer?.whatsapp || invoice.customer?.phone
+    if (!phone) {
+      showErrorToast("No WhatsApp number available for this customer")
+      return
+    }
+    sendWhatsappMutation.mutate({ to_phone: phone })
+  }
+
+  const handleEmail = () => {
+    const email = invoice.customer?.email
+    if (!email) {
+      showErrorToast("No email available for this customer")
+      return
+    }
+    sendEmailMutation.mutate({
+      to_email: email,
+      subject: `Invoice ${invoice.invoiceNumber}`,
+    })
+  }
 
   const handleToggleStatus = () => {
     const next: "paid" | "unpaid" | "overdue" =
@@ -191,11 +232,6 @@ function InvoiceDetailPage() {
 
   const handleDelete = () => {
     deleteInvoiceMutation.mutate(invoice.id)
-  }
-
-  const handleWhatsApp = () => {
-    const text = `Invoice ${invoice.invoiceNumber}\nAmount: ${cs}${Number(invoice.grandTotal).toFixed(2)}\nStatus: ${invoice.status}\nFrom: AutoInvoice`
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
   }
 
   return (
@@ -228,6 +264,10 @@ function InvoiceDetailPage() {
             <StatusIcon className="h-3.5 w-3.5" />
             {invoice.status}
           </Badge>
+          <Button variant="outline" size="sm" onClick={handleEmail}>
+            <Mail className="mr-2 h-4 w-4" />
+            Email
+          </Button>
           <Button variant="outline" size="sm" onClick={handleWhatsApp}>
             <Send className="mr-2 h-4 w-4" />
             WhatsApp

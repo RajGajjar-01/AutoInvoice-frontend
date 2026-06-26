@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react"
+import { Link as RouterLink } from "react-router"
 import { Logo } from "@/components/Common/Logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,9 +18,9 @@ const companyLinks = [
 ]
 
 const legalLinks = [
-  { label: "Privacy", href: "#privacy" },
-  { label: "Terms", href: "#terms" },
-  { label: "Cookies", href: "#cookies" },
+  { label: "Privacy", href: "/privacy-policy", internal: true },
+  { label: "Terms", href: "#terms", internal: false },
+  { label: "Cookies", href: "#cookies", internal: false },
 ]
 
 export function Footer() {
@@ -92,15 +93,25 @@ export function Footer() {
             © {currentYear} AutoInvoice. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            {legalLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-sm text-muted-foreground transition-colors duration-150 ease-out hover:text-foreground"
-              >
-                {link.label}
-              </a>
-            ))}
+            {legalLinks.map((link) =>
+              link.internal ? (
+                <RouterLink
+                  key={link.label}
+                  to={link.href}
+                  className="text-sm text-muted-foreground transition-colors duration-150 ease-out hover:text-foreground"
+                >
+                  {link.label}
+                </RouterLink>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="text-sm text-muted-foreground transition-colors duration-150 ease-out hover:text-foreground"
+                >
+                  {link.label}
+                </a>
+              )
+            )}
           </div>
         </div>
       </div>

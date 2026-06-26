@@ -24,7 +24,11 @@ export type AuthResponse = {
 };
 
 export type Body_invoice_templates_parse_excel_preview = {
-    file: (Blob | File);
+    file: string;
+};
+
+export type BulkDeleteResponse = {
+    deleted: number;
 };
 
 export type CompanySettingsCreate = {
@@ -50,6 +54,17 @@ export type CompanySettingsCreate = {
     quotation_prefix?: string;
     proforma_prefix?: string;
     challan_prefix?: string;
+    whatsapp_enabled?: boolean;
+    openwa_base_url?: string;
+    openwa_api_key?: (string | null);
+    openwa_session_id?: (string | null);
+    smtp_host?: (string | null);
+    smtp_port?: number;
+    smtp_user?: (string | null);
+    smtp_password?: (string | null);
+    smtp_tls?: boolean;
+    emails_from_email?: (string | null);
+    emails_from_name?: (string | null);
 };
 
 export type CompanySettingsPublic = {
@@ -75,6 +90,17 @@ export type CompanySettingsPublic = {
     quotation_prefix?: string;
     proforma_prefix?: string;
     challan_prefix?: string;
+    whatsapp_enabled?: boolean;
+    openwa_base_url?: string;
+    openwa_api_key?: (string | null);
+    openwa_session_id?: (string | null);
+    smtp_host?: (string | null);
+    smtp_port?: number;
+    smtp_user?: (string | null);
+    smtp_password?: (string | null);
+    smtp_tls?: boolean;
+    emails_from_email?: (string | null);
+    emails_from_name?: (string | null);
     id: string;
     owner_id: string;
     created_at: string;
@@ -104,6 +130,17 @@ export type CompanySettingsUpdate = {
     quotation_prefix?: (string | null);
     proforma_prefix?: (string | null);
     challan_prefix?: (string | null);
+    whatsapp_enabled?: (boolean | null);
+    openwa_base_url?: (string | null);
+    openwa_api_key?: (string | null);
+    openwa_session_id?: (string | null);
+    smtp_host?: (string | null);
+    smtp_port?: (number | null);
+    smtp_user?: (string | null);
+    smtp_password?: (string | null);
+    smtp_tls?: (boolean | null);
+    emails_from_email?: (string | null);
+    emails_from_name?: (string | null);
 };
 
 export type CustomerCreate = {
@@ -228,6 +265,17 @@ export type DataTableWithRows = {
 };
 
 export type DocumentType = 'invoice' | 'quotation' | 'proforma' | 'challan';
+
+export type ExcelParseResponse = {
+    columns: Array<unknown>;
+    column_mapping: {
+        [key: string]: (number);
+    };
+    data: Array<{
+        [key: string]: unknown;
+    }>;
+    total_rows: number;
+};
 
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
@@ -535,6 +583,20 @@ export type PrivateUserCreate = {
     is_superuser?: boolean;
 };
 
+export type SendEmailRequest = {
+    to_email: string;
+    subject?: string;
+};
+
+export type SendReminderRequest = {
+    to_phone: string;
+    days_overdue?: (number | null);
+};
+
+export type SendWhatsAppRequest = {
+    to_phone: string;
+};
+
 export type TableReminderCreate = {
     reminder_data: {
         [key: string]: unknown;
@@ -578,12 +640,9 @@ export type Token = {
     expires_in?: (number | null);
 };
 
-export type UserCreate = {
-    email: string;
-    is_active?: boolean;
-    is_superuser?: boolean;
-    full_name?: (string | null);
-    password: string;
+export type UpdatePassword = {
+    current_password: string;
+    new_password: string;
 };
 
 export type UserPublic = {
@@ -596,6 +655,12 @@ export type UserPublic = {
     avatar_url?: (string | null);
     created_at?: (string | null);
     updated_at?: (string | null);
+};
+
+export type UserRegister = {
+    email: string;
+    password: string;
+    full_name?: (string | null);
 };
 
 export type UsersPublic = {
@@ -628,8 +693,8 @@ export type ValidationError = {
 
 export type AdminListUsersData = {
     accessToken?: (string | null);
-    page?: number;
-    pageSize?: number;
+    limit?: number;
+    skip?: number;
 };
 
 export type AdminListUsersResponse = (PaginatedResponse_UserPublic_);
@@ -661,10 +726,10 @@ export type AdminDeleteUserData = {
     userId: string;
 };
 
-export type AdminDeleteUserResponse = (Message);
+export type AdminDeleteUserResponse = (void);
 
 export type AuthSignupData = {
-    requestBody: UserCreate;
+    requestBody: UserRegister;
 };
 
 export type AuthSignupResponse = (AuthResponse);
@@ -710,9 +775,7 @@ export type AuthResetPasswordResponse = (Message);
 
 export type AuthUpdatePasswordData = {
     accessToken?: (string | null);
-    requestBody: {
-        [key: string]: (string);
-    };
+    requestBody: UpdatePassword;
 };
 
 export type AuthUpdatePasswordResponse = (Message);
@@ -741,7 +804,7 @@ export type CompanySettingsDeleteCompanySettingsData = {
     accessToken?: (string | null);
 };
 
-export type CompanySettingsDeleteCompanySettingsResponse = (Message);
+export type CompanySettingsDeleteCompanySettingsResponse = (void);
 
 export type CustomersReadCustomersData = {
     accessToken?: (string | null);
@@ -778,10 +841,14 @@ export type CustomersDeleteCustomerData = {
     id: string;
 };
 
-export type CustomersDeleteCustomerResponse = (Message);
+export type CustomersDeleteCustomerResponse = (void);
 
 export type HealthResponse = ({
-    [key: string]: unknown;
+    [key: string]: (string);
+});
+
+export type SentryDebugResponse = ({
+    [key: string]: (string);
 });
 
 export type InvoicesGetDashboardStatsData = {
@@ -829,7 +896,37 @@ export type InvoicesDeleteInvoiceData = {
     id: string;
 };
 
-export type InvoicesDeleteInvoiceResponse = (Message);
+export type InvoicesDeleteInvoiceResponse = (void);
+
+export type InvoicesSendInvoiceEmailData = {
+    accessToken?: (string | null);
+    id: string;
+    requestBody: SendEmailRequest;
+};
+
+export type InvoicesSendInvoiceEmailResponse = ({
+    [key: string]: (string);
+});
+
+export type InvoicesSendInvoiceWhatsappData = {
+    accessToken?: (string | null);
+    id: string;
+    requestBody: SendWhatsAppRequest;
+};
+
+export type InvoicesSendInvoiceWhatsappResponse = ({
+    [key: string]: unknown;
+});
+
+export type InvoicesSendInvoiceReminderData = {
+    accessToken?: (string | null);
+    id: string;
+    requestBody: SendReminderRequest;
+};
+
+export type InvoicesSendInvoiceReminderResponse = ({
+    [key: string]: unknown;
+});
 
 export type InvoiceTemplatesReadInvoiceTemplatesData = {
     accessToken?: (string | null);
@@ -872,7 +969,7 @@ export type InvoiceTemplatesDeleteInvoiceTemplateData = {
     id: string;
 };
 
-export type InvoiceTemplatesDeleteInvoiceTemplateResponse = (Message);
+export type InvoiceTemplatesDeleteInvoiceTemplateResponse = (void);
 
 export type InvoiceTemplatesActivateInvoiceTemplateData = {
     accessToken?: (string | null);
@@ -886,7 +983,7 @@ export type InvoiceTemplatesParseExcelPreviewData = {
     formData: Body_invoice_templates_parse_excel_preview;
 };
 
-export type InvoiceTemplatesParseExcelPreviewResponse = (unknown);
+export type InvoiceTemplatesParseExcelPreviewResponse = (ExcelParseResponse);
 
 export type ItemsReadItemsData = {
     accessToken?: (string | null);
@@ -905,6 +1002,12 @@ export type ItemsCreateItemData = {
 };
 
 export type ItemsCreateItemResponse = (ItemPublic);
+
+export type ItemsListCategoriesData = {
+    accessToken?: (string | null);
+};
+
+export type ItemsListCategoriesResponse = (Array<(string)>);
 
 export type ItemsReadItemData = {
     accessToken?: (string | null);
@@ -926,7 +1029,7 @@ export type ItemsDeleteItemData = {
     id: string;
 };
 
-export type ItemsDeleteItemResponse = (Message);
+export type ItemsDeleteItemResponse = (void);
 
 export type ItemsAdjustStockData = {
     accessToken?: (string | null);
@@ -937,12 +1040,6 @@ export type ItemsAdjustStockData = {
 };
 
 export type ItemsAdjustStockResponse = (ItemPublic);
-
-export type ItemsListCategoriesData = {
-    accessToken?: (string | null);
-};
-
-export type ItemsListCategoriesResponse = (Array<(string)>);
 
 export type NotificationsGetNotificationsData = {
     accessToken?: (string | null);
@@ -965,7 +1062,7 @@ export type NotificationsClearAllData = {
     accessToken?: (string | null);
 };
 
-export type NotificationsClearAllResponse = (Message);
+export type NotificationsClearAllResponse = (void);
 
 export type NotificationsGetNotificationData = {
     accessToken?: (string | null);
@@ -987,7 +1084,7 @@ export type NotificationsDeleteNotificationData = {
     id: string;
 };
 
-export type NotificationsDeleteNotificationResponse = (Message);
+export type NotificationsDeleteNotificationResponse = (void);
 
 export type NotificationsMarkAllReadData = {
     accessToken?: (string | null);
@@ -1079,7 +1176,7 @@ export type TablesBulkDeleteTableRowsData = {
     tableId: string;
 };
 
-export type TablesBulkDeleteTableRowsResponse = (unknown);
+export type TablesBulkDeleteTableRowsResponse = (BulkDeleteResponse);
 
 export type TablesCreateTableReminderData = {
     accessToken?: (string | null);
@@ -1122,7 +1219,7 @@ export type UsersDeleteUserMeData = {
     accessToken?: (string | null);
 };
 
-export type UsersDeleteUserMeResponse = (Message);
+export type UsersDeleteUserMeResponse = (void);
 
 export type UsersReadUserByIdData = {
     accessToken?: (string | null);
@@ -1144,7 +1241,7 @@ export type UsersDeleteUserData = {
     userId: string;
 };
 
-export type UsersDeleteUserResponse = (Message);
+export type UsersDeleteUserResponse = (void);
 
 export type UtilsTestEmailData = {
     accessToken?: (string | null);

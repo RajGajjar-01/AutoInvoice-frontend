@@ -149,13 +149,25 @@ export const Body_invoice_templates_parse_excel_previewSchema = {
     properties: {
         file: {
             type: 'string',
-            format: 'binary',
+            contentMediaType: 'application/octet-stream',
             title: 'File'
         }
     },
     type: 'object',
     required: ['file'],
     title: 'Body_invoice-templates-parse_excel_preview'
+} as const;
+
+export const BulkDeleteResponseSchema = {
+    properties: {
+        deleted: {
+            type: 'integer',
+            title: 'Deleted'
+        }
+    },
+    type: 'object',
+    required: ['deleted'],
+    title: 'BulkDeleteResponse'
 } as const;
 
 export const CompanySettingsCreateSchema = {
@@ -393,6 +405,111 @@ export const CompanySettingsCreateSchema = {
             maxLength: 20,
             title: 'Challan Prefix',
             default: 'CHL-'
+        },
+        whatsapp_enabled: {
+            type: 'boolean',
+            title: 'Whatsapp Enabled',
+            default: false
+        },
+        openwa_base_url: {
+            type: 'string',
+            maxLength: 500,
+            title: 'Openwa Base Url',
+            default: 'http://localhost:2785'
+        },
+        openwa_api_key: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Openwa Api Key'
+        },
+        openwa_session_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Openwa Session Id'
+        },
+        smtp_host: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Host'
+        },
+        smtp_port: {
+            type: 'integer',
+            title: 'Smtp Port',
+            default: 587
+        },
+        smtp_user: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp User'
+        },
+        smtp_password: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Password'
+        },
+        smtp_tls: {
+            type: 'boolean',
+            title: 'Smtp Tls',
+            default: true
+        },
+        emails_from_email: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Emails From Email'
+        },
+        emails_from_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Emails From Name'
         }
     },
     type: 'object',
@@ -635,6 +752,111 @@ export const CompanySettingsPublicSchema = {
             maxLength: 20,
             title: 'Challan Prefix',
             default: 'CHL-'
+        },
+        whatsapp_enabled: {
+            type: 'boolean',
+            title: 'Whatsapp Enabled',
+            default: false
+        },
+        openwa_base_url: {
+            type: 'string',
+            maxLength: 500,
+            title: 'Openwa Base Url',
+            default: 'http://localhost:2785'
+        },
+        openwa_api_key: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Openwa Api Key'
+        },
+        openwa_session_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Openwa Session Id'
+        },
+        smtp_host: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Host'
+        },
+        smtp_port: {
+            type: 'integer',
+            title: 'Smtp Port',
+            default: 587
+        },
+        smtp_user: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp User'
+        },
+        smtp_password: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Password'
+        },
+        smtp_tls: {
+            type: 'boolean',
+            title: 'Smtp Tls',
+            default: true
+        },
+        emails_from_email: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Emails From Email'
+        },
+        emails_from_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Emails From Name'
         },
         id: {
             type: 'string',
@@ -928,6 +1150,135 @@ export const CompanySettingsUpdateSchema = {
                 }
             ],
             title: 'Challan Prefix'
+        },
+        whatsapp_enabled: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Whatsapp Enabled'
+        },
+        openwa_base_url: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Openwa Base Url'
+        },
+        openwa_api_key: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Openwa Api Key'
+        },
+        openwa_session_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Openwa Session Id'
+        },
+        smtp_host: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Host'
+        },
+        smtp_port: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Port'
+        },
+        smtp_user: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp User'
+        },
+        smtp_password: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Password'
+        },
+        smtp_tls: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Tls'
+        },
+        emails_from_email: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Emails From Email'
+        },
+        emails_from_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Emails From Name'
         }
     },
     type: 'object',
@@ -1823,6 +2174,38 @@ export const DocumentTypeSchema = {
     type: 'string',
     enum: ['invoice', 'quotation', 'proforma', 'challan'],
     title: 'DocumentType'
+} as const;
+
+export const ExcelParseResponseSchema = {
+    properties: {
+        columns: {
+            items: {},
+            type: 'array',
+            title: 'Columns'
+        },
+        column_mapping: {
+            additionalProperties: {
+                type: 'integer'
+            },
+            type: 'object',
+            title: 'Column Mapping'
+        },
+        data: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        total_rows: {
+            type: 'integer',
+            title: 'Total Rows'
+        }
+    },
+    type: 'object',
+    required: ['columns', 'column_mapping', 'data', 'total_rows'],
+    title: 'ExcelParseResponse'
 } as const;
 
 export const HTTPValidationErrorSchema = {
@@ -3647,6 +4030,59 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const SendEmailRequestSchema = {
+    properties: {
+        to_email: {
+            type: 'string',
+            format: 'email',
+            title: 'To Email'
+        },
+        subject: {
+            type: 'string',
+            title: 'Subject',
+            default: ''
+        }
+    },
+    type: 'object',
+    required: ['to_email'],
+    title: 'SendEmailRequest'
+} as const;
+
+export const SendReminderRequestSchema = {
+    properties: {
+        to_phone: {
+            type: 'string',
+            title: 'To Phone'
+        },
+        days_overdue: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Days Overdue'
+        }
+    },
+    type: 'object',
+    required: ['to_phone'],
+    title: 'SendReminderRequest'
+} as const;
+
+export const SendWhatsAppRequestSchema = {
+    properties: {
+        to_phone: {
+            type: 'string',
+            title: 'To Phone'
+        }
+    },
+    type: 'object',
+    required: ['to_phone'],
+    title: 'SendWhatsAppRequest'
+} as const;
+
 export const TableReminderCreateSchema = {
     properties: {
         reminder_data: {
@@ -3781,46 +4217,24 @@ export const TokenSchema = {
     title: 'Token'
 } as const;
 
-export const UserCreateSchema = {
+export const UpdatePasswordSchema = {
     properties: {
-        email: {
-            type: 'string',
-            maxLength: 255,
-            format: 'email',
-            title: 'Email'
-        },
-        is_active: {
-            type: 'boolean',
-            title: 'Is Active',
-            default: true
-        },
-        is_superuser: {
-            type: 'boolean',
-            title: 'Is Superuser',
-            default: false
-        },
-        full_name: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Full Name'
-        },
-        password: {
+        current_password: {
             type: 'string',
             maxLength: 128,
             minLength: 8,
-            title: 'Password'
+            title: 'Current Password'
+        },
+        new_password: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 8,
+            title: 'New Password'
         }
     },
     type: 'object',
-    required: ['email', 'password'],
-    title: 'UserCreate'
+    required: ['current_password', 'new_password'],
+    title: 'UpdatePassword'
 } as const;
 
 export const UserPublicSchema = {
@@ -3902,6 +4316,38 @@ export const UserPublicSchema = {
     type: 'object',
     required: ['email', 'id'],
     title: 'UserPublic'
+} as const;
+
+export const UserRegisterSchema = {
+    properties: {
+        email: {
+            type: 'string',
+            maxLength: 255,
+            format: 'email',
+            title: 'Email'
+        },
+        password: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 8,
+            title: 'Password'
+        },
+        full_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Full Name'
+        }
+    },
+    type: 'object',
+    required: ['email', 'password'],
+    title: 'UserRegister'
 } as const;
 
 export const UserUpdateSchema = {

@@ -191,7 +191,7 @@ function InvoiceHistoryPage() {
   useDocumentTitle("Invoice History")
   const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
   const invoices = (invoicesRes?.data ?? []) as Invoice[]
-  const { showSuccessToast } = useCustomToast()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [sortOrder, setSortOrder] = useState<string>("newest")
@@ -287,10 +287,23 @@ function InvoiceHistoryPage() {
     setDeleteTarget(null)
   }
 
+  const sendWhatsappMutation = useMutation({
+    mutationFn: (body: { id: string; to_phone: string }) =>
+      InvoicesService.sendInvoiceWhatsapp({
+        id: body.id,
+        requestBody: { to_phone: body.to_phone },
+      }),
+    onSuccess: () => showSuccessToast("Invoice sent via WhatsApp"),
+    onError: () => showErrorToast("Failed to send via WhatsApp"),
+  })
+
   const handleWhatsApp = (inv: Invoice) => {
-    const cs = getCurrencySymbol(inv.currency)
-    const text = `Invoice ${inv.invoiceNumber}\nAmount: ${cs}${Number(inv.grandTotal).toFixed(2)}\nStatus: ${inv.status}\nFrom: AutoInvoice`
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
+    const phone = (inv as any).customer?.whatsapp || (inv as any).customer?.phone
+    if (!phone) {
+      showErrorToast("No WhatsApp number available")
+      return
+    }
+    sendWhatsappMutation.mutate({ id: inv.id, to_phone: phone })
   }
 
   const hasSearch = search.trim() !== "" || statusFilter !== "all"

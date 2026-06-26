@@ -177,7 +177,7 @@ const AddCustomer = () => {
           Add Customer
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <div className="rounded-lg bg-primary/10 p-1.5">
@@ -197,24 +197,113 @@ const AddCustomer = () => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col flex-1 min-h-0"
           >
-            <div className="overflow-y-auto flex-1 pr-1 -mr-1">
-              <div className="grid gap-4 py-1">
-                <SectionHeading>Basic Info</SectionHeading>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="sm:col-span-2">
+            <div className="overflow-y-auto flex-1 pr-1">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 py-1">
+                {/* ── Left Column ── */}
+                <div className="flex flex-col gap-4">
+                  <SectionHeading>Basic Info</SectionHeading>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Party Name{" "}
+                              <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Business name or individual name"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
-                      name="name"
+                      name="partyType"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Party Name{" "}
-                            <span className="text-destructive">*</span>
+                            Party Type <span className="text-destructive">*</span>
                           </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="customer">
+                                <span className="flex items-center gap-2">
+                                  <User className="h-3.5 w-3.5 text-primary" />
+                                  Customer
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="supplier">
+                                <span className="flex items-center gap-2">
+                                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                  Supplier
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="both">Both</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <SectionHeading>Contact</SectionHeading>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone</FormLabel>
+                          <FormControl>
+                            <Input placeholder="+91 98765 43210" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="whatsapp"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>WhatsApp Number</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Business name or individual name"
+                              placeholder="If different from phone"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem className="sm:col-span-2">
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="email@example.com"
+                              type="email"
                               {...field}
                             />
                           </FormControl>
@@ -223,260 +312,171 @@ const AddCustomer = () => {
                       )}
                     />
                   </div>
+
+                  <SectionHeading>Other</SectionHeading>
                   <FormField
                     control={form.control}
-                    name="partyType"
+                    name="tags"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          Party Type <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <FormLabel>Tags</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="VIP, Wholesale, New (comma-separated)"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Custom labels for grouping
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <textarea
+                            className="flex min-h-[72px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                            placeholder="Internal notes — not visible to the customer"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* ── Right Column ── */}
+                <div className="flex flex-col gap-4">
+                  <SectionHeading>Tax &amp; Address</SectionHeading>
+                  <FormField
+                    control={form.control}
+                    name="gstin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>GSTIN</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="22AAAAA0000A1Z5"
+                            className="uppercase font-mono"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(e.target.value.toUpperCase())
+                            }
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Optional — printed on B2B invoices
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-1 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="billingAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Billing Address</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
+                            <textarea
+                              className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                              placeholder="Full billing address"
+                              {...field}
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="customer">
-                              <span className="flex items-center gap-2">
-                                <User className="h-3.5 w-3.5 text-primary" />
-                                Customer
-                              </span>
-                            </SelectItem>
-                            <SelectItem value="supplier">
-                              <span className="flex items-center gap-2">
-                                <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                Supplier
-                              </span>
-                            </SelectItem>
-                            <SelectItem value="both">Both</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="shippingAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Shipping Address</FormLabel>
+                          <FormControl>
+                            <textarea
+                              className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                              placeholder="Optional — if different from billing"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <SectionHeading>Financial</SectionHeading>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="openingBalance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Opening Balance</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="0.00"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Balance before system setup
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="creditLimit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Credit Limit</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="No limit"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>Max credit allowed</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="paymentTerms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Payment Terms</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Net 30" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Auto-sets invoice due date
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
-
-                <SectionHeading>Contact</SectionHeading>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+91 98765 43210" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="whatsapp"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>WhatsApp Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="If different from phone"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="email@example.com"
-                            type="email"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <SectionHeading>Tax &amp; Address</SectionHeading>
-
-                <FormField
-                  control={form.control}
-                  name="gstin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>GSTIN</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="22AAAAA0000A1Z5"
-                          className="uppercase font-mono"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(e.target.value.toUpperCase())
-                          }
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Optional — printed on B2B invoices
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="billingAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Billing Address</FormLabel>
-                        <FormControl>
-                          <textarea
-                            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                            placeholder="Full billing address"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="shippingAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Shipping Address</FormLabel>
-                        <FormControl>
-                          <textarea
-                            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                            placeholder="Optional — if different from billing"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <SectionHeading>Financial</SectionHeading>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="openingBalance"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Opening Balance</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="0.00"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Balance before system setup
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="creditLimit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Credit Limit</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="No limit"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>Max credit allowed</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="paymentTerms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Payment Terms</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g. Net 30" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Auto-sets invoice due date
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <SectionHeading>Other</SectionHeading>
-
-                <FormField
-                  control={form.control}
-                  name="tags"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tags</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="VIP, Wholesale, New (comma-separated)"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Custom labels for grouping
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notes</FormLabel>
-                      <FormControl>
-                        <textarea
-                          className="flex min-h-[72px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                          placeholder="Internal notes — not visible to the customer"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
             </div>
 

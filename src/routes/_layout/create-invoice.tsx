@@ -18,7 +18,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useSearchParams } from "react-router"
 import { z } from "zod"
-import { OpenAPI } from "@/client"
 import { CustomersService, InvoicesService } from "@/client/sdk.gen"
 import { ModernExcelTable } from "@/components/modern-excel-table"
 import { Button } from "@/components/ui/button"
@@ -56,7 +55,6 @@ import { invoicesQueryKeys } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import useLocalStorage from "@/hooks/useLocalStorage"
-import { api } from "@/lib/api"
 import { queryClient } from "@/queryClient"
 
 const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
@@ -1275,27 +1273,11 @@ function CreateInvoicePage() {
       return
     }
 
-    const html = buildInvoiceHtml()
     const finalSubject = `Invoice ${invoiceNumber} from ${companyDetails.name || "AutoInvoice"}`
-    const apiUrl = OpenAPI.BASE || ""
-
-    try {
-      showSuccessToast("Sending invoice via email...")
-      await api.post(`${apiUrl}/api/v1/utils/send-invoice/`, {
-        email_to: formData.customerEmail,
-        subject: finalSubject,
-        html_content: html,
-      })
-      showSuccessToast(`Invoice successfully sent to ${formData.customerEmail}`)
-      return
-    } catch (err) {
-      console.error("Email API failed:", err)
-      const mailBody = `Dear ${formData.customerName},\n\nPlease find your invoice ${invoiceNumber} for ${currencySymbol}${grandTotal.toFixed(2)} attached.\n\nDue Date: ${formData.dueDate || "N/A"}\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
-      window.open(
-        `mailto:${formData.customerEmail}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`,
-      )
-      return
-    }
+    const mailBody = `Dear ${formData.customerName},\n\nPlease find your invoice ${invoiceNumber} for ${currencySymbol}${grandTotal.toFixed(2)} attached.\n\nDue Date: ${formData.dueDate || "N/A"}\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
+    window.open(
+      `mailto:${formData.customerEmail}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`,
+    )
   }
 
   return (

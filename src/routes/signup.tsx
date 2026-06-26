@@ -153,6 +153,17 @@ function SignUp() {
             </LoadingButton>
           </div>
 
+          <p className="text-center text-xs text-muted-foreground">
+            By signing up, you agree to our{" "}
+            <RouterLink
+              to="/privacy-policy"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              Privacy Policy
+            </RouterLink>
+            .
+          </p>
+
           <div className="text-center text-sm">
             Already have an account?{" "}
             <RouterLink to="/login" className="underline underline-offset-4">

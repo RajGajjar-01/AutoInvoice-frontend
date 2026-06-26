@@ -4,14 +4,17 @@ import { Footer } from "@/components/Common/Footer"
 import { Logo } from "@/components/Common/Logo"
 import { Benefits } from "@/components/Landing/Benefits"
 import { CTA } from "@/components/Landing/CTA"
+import { FAQ } from "@/components/Landing/FAQ"
 import { Features } from "@/components/Landing/Features"
 import { Hero } from "@/components/Landing/Hero"
+import { HowItWorks } from "@/components/Landing/HowItWorks"
+import { Pricing } from "@/components/Landing/Pricing"
 import { Button } from "@/components/ui/button"
 import useAuth from "@/hooks/useAuth"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function LandingPage() {
-  useDocumentTitle("AutoInvoice - Professional Invoicing Made Simple")
+  useDocumentTitle("AutoInvoice — Free GST Invoice Software for Indian Businesses")
   const { user, isLoading } = useAuth()
 
   return (
@@ -41,8 +44,11 @@ function LandingPage() {
 
       <main className="flex-1">
         <Hero />
+        <HowItWorks />
         <Features />
         <Benefits />
+        <Pricing />
+        <FAQ />
         <CTA />
       </main>
 

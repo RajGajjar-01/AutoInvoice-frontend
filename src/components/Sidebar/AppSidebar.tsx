@@ -8,7 +8,6 @@ import {
   LineChart,
   PanelLeft,
   Table2,
-  UserCircle,
   Users,
 } from "lucide-react"
 import { useState } from "react"
@@ -34,7 +33,6 @@ const baseItems = [
   { icon: FileText, title: "Invoices", path: "/invoices" },
   { icon: LineChart, title: "Insights", path: "/insights" },
   { icon: Bell, title: "Notifications", path: "/notifications" },
-  { icon: UserCircle, title: "Account", path: "/profile" },
 ]
 
 export function AppSidebar() {

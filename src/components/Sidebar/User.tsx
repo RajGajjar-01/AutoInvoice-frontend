@@ -1,4 +1,4 @@
-import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
+import { ChevronsUpDown, LogOut, Settings, UserCircle } from "lucide-react"
 import { Link as RouterLink } from "react-router"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -75,6 +75,12 @@ export function User({ user }: UserProps) {
               <UserInfo fullName={user?.full_name} email={user?.email} />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <RouterLink to="/profile" onClick={handleMenuClick}>
+              <DropdownMenuItem>
+                <UserCircle />
+                Profile
+              </DropdownMenuItem>
+            </RouterLink>
             <RouterLink to="/settings" onClick={handleMenuClick}>
               <DropdownMenuItem>
                 <Settings />

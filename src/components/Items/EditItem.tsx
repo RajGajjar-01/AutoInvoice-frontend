@@ -178,7 +178,7 @@ const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
     <>
       {trigger}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary/10 p-2">

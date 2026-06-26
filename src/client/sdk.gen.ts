@@ -3,14 +3,14 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminListUsersData, AdminListUsersResponse, AdminCreateUserData, AdminCreateUserResponse, AdminGetUserData, AdminGetUserResponse, AdminUpdateUserData, AdminUpdateUserResponse, AdminDeleteUserData, AdminDeleteUserResponse, AuthSignupData, AuthSignupResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutResponse, AuthGetCurrentUserInfoData, AuthGetCurrentUserInfoResponse, AuthUpdateCurrentUserData, AuthUpdateCurrentUserResponse, AuthForgotPasswordData, AuthForgotPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthUpdatePasswordData, AuthUpdatePasswordResponse, CompanySettingsGetCompanySettingsData, CompanySettingsGetCompanySettingsResponse, CompanySettingsCreateCompanySettingsData, CompanySettingsCreateCompanySettingsResponse, CompanySettingsUpdateCompanySettingsData, CompanySettingsUpdateCompanySettingsResponse, CompanySettingsDeleteCompanySettingsData, CompanySettingsDeleteCompanySettingsResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, HealthResponse, InvoicesGetDashboardStatsData, InvoicesGetDashboardStatsResponse, InvoicesReadInvoicesData, InvoicesReadInvoicesResponse, InvoicesCreateInvoiceData, InvoicesCreateInvoiceResponse, InvoicesReadInvoiceData, InvoicesReadInvoiceResponse, InvoicesUpdateInvoiceData, InvoicesUpdateInvoiceResponse, InvoicesDeleteInvoiceData, InvoicesDeleteInvoiceResponse, InvoiceTemplatesReadInvoiceTemplatesData, InvoiceTemplatesReadInvoiceTemplatesResponse, InvoiceTemplatesCreateInvoiceTemplateData, InvoiceTemplatesCreateInvoiceTemplateResponse, InvoiceTemplatesReadActiveInvoiceTemplateData, InvoiceTemplatesReadActiveInvoiceTemplateResponse, InvoiceTemplatesReadInvoiceTemplateData, InvoiceTemplatesReadInvoiceTemplateResponse, InvoiceTemplatesUpdateInvoiceTemplateData, InvoiceTemplatesUpdateInvoiceTemplateResponse, InvoiceTemplatesDeleteInvoiceTemplateData, InvoiceTemplatesDeleteInvoiceTemplateResponse, InvoiceTemplatesActivateInvoiceTemplateData, InvoiceTemplatesActivateInvoiceTemplateResponse, InvoiceTemplatesParseExcelPreviewData, InvoiceTemplatesParseExcelPreviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, ItemsAdjustStockData, ItemsAdjustStockResponse, ItemsListCategoriesData, ItemsListCategoriesResponse, NotificationsGetNotificationsData, NotificationsGetNotificationsResponse, NotificationsCreateNotificationData, NotificationsCreateNotificationResponse, NotificationsClearAllData, NotificationsClearAllResponse, NotificationsGetNotificationData, NotificationsGetNotificationResponse, NotificationsUpdateNotificationData, NotificationsUpdateNotificationResponse, NotificationsDeleteNotificationData, NotificationsDeleteNotificationResponse, NotificationsMarkAllReadData, NotificationsMarkAllReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, TablesListTablesData, TablesListTablesResponse, TablesCreateTableData, TablesCreateTableResponse, TablesGetTableData, TablesGetTableResponse, TablesUpdateTableData, TablesUpdateTableResponse, TablesDeleteTableData, TablesDeleteTableResponse, TablesDuplicateTableData, TablesDuplicateTableResponse, TablesCreateTableRowData, TablesCreateTableRowResponse, TablesUpdateTableRowData, TablesUpdateTableRowResponse, TablesDeleteTableRowData, TablesDeleteTableRowResponse, TablesBulkDeleteTableRowsData, TablesBulkDeleteTableRowsResponse, TablesCreateTableReminderData, TablesCreateTableReminderResponse, TablesDeleteTableReminderData, TablesDeleteTableReminderResponse, UsersReadUsersData, UsersReadUsersResponse, UsersReadUserMeData, UsersReadUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersDeleteUserMeData, UsersDeleteUserMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminListUsersData, AdminListUsersResponse, AdminCreateUserData, AdminCreateUserResponse, AdminGetUserData, AdminGetUserResponse, AdminUpdateUserData, AdminUpdateUserResponse, AdminDeleteUserData, AdminDeleteUserResponse, AuthSignupData, AuthSignupResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutResponse, AuthGetCurrentUserInfoData, AuthGetCurrentUserInfoResponse, AuthUpdateCurrentUserData, AuthUpdateCurrentUserResponse, AuthForgotPasswordData, AuthForgotPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthUpdatePasswordData, AuthUpdatePasswordResponse, CompanySettingsGetCompanySettingsData, CompanySettingsGetCompanySettingsResponse, CompanySettingsCreateCompanySettingsData, CompanySettingsCreateCompanySettingsResponse, CompanySettingsUpdateCompanySettingsData, CompanySettingsUpdateCompanySettingsResponse, CompanySettingsDeleteCompanySettingsData, CompanySettingsDeleteCompanySettingsResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, HealthResponse, SentryDebugResponse, InvoicesGetDashboardStatsData, InvoicesGetDashboardStatsResponse, InvoicesReadInvoicesData, InvoicesReadInvoicesResponse, InvoicesCreateInvoiceData, InvoicesCreateInvoiceResponse, InvoicesReadInvoiceData, InvoicesReadInvoiceResponse, InvoicesUpdateInvoiceData, InvoicesUpdateInvoiceResponse, InvoicesDeleteInvoiceData, InvoicesDeleteInvoiceResponse, InvoicesSendInvoiceEmailData, InvoicesSendInvoiceEmailResponse, InvoicesSendInvoiceWhatsappData, InvoicesSendInvoiceWhatsappResponse, InvoicesSendInvoiceReminderData, InvoicesSendInvoiceReminderResponse, InvoiceTemplatesReadInvoiceTemplatesData, InvoiceTemplatesReadInvoiceTemplatesResponse, InvoiceTemplatesCreateInvoiceTemplateData, InvoiceTemplatesCreateInvoiceTemplateResponse, InvoiceTemplatesReadActiveInvoiceTemplateData, InvoiceTemplatesReadActiveInvoiceTemplateResponse, InvoiceTemplatesReadInvoiceTemplateData, InvoiceTemplatesReadInvoiceTemplateResponse, InvoiceTemplatesUpdateInvoiceTemplateData, InvoiceTemplatesUpdateInvoiceTemplateResponse, InvoiceTemplatesDeleteInvoiceTemplateData, InvoiceTemplatesDeleteInvoiceTemplateResponse, InvoiceTemplatesActivateInvoiceTemplateData, InvoiceTemplatesActivateInvoiceTemplateResponse, InvoiceTemplatesParseExcelPreviewData, InvoiceTemplatesParseExcelPreviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsListCategoriesData, ItemsListCategoriesResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, ItemsAdjustStockData, ItemsAdjustStockResponse, NotificationsGetNotificationsData, NotificationsGetNotificationsResponse, NotificationsCreateNotificationData, NotificationsCreateNotificationResponse, NotificationsClearAllData, NotificationsClearAllResponse, NotificationsGetNotificationData, NotificationsGetNotificationResponse, NotificationsUpdateNotificationData, NotificationsUpdateNotificationResponse, NotificationsDeleteNotificationData, NotificationsDeleteNotificationResponse, NotificationsMarkAllReadData, NotificationsMarkAllReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, TablesListTablesData, TablesListTablesResponse, TablesCreateTableData, TablesCreateTableResponse, TablesGetTableData, TablesGetTableResponse, TablesUpdateTableData, TablesUpdateTableResponse, TablesDeleteTableData, TablesDeleteTableResponse, TablesDuplicateTableData, TablesDuplicateTableResponse, TablesCreateTableRowData, TablesCreateTableRowResponse, TablesUpdateTableRowData, TablesUpdateTableRowResponse, TablesDeleteTableRowData, TablesDeleteTableRowResponse, TablesBulkDeleteTableRowsData, TablesBulkDeleteTableRowsResponse, TablesCreateTableReminderData, TablesCreateTableReminderResponse, TablesDeleteTableReminderData, TablesDeleteTableReminderResponse, UsersReadUsersData, UsersReadUsersResponse, UsersReadUserMeData, UsersReadUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersDeleteUserMeData, UsersDeleteUserMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminService {
     /**
      * List Users
      * @param data The data for the request.
-     * @param data.page
-     * @param data.pageSize
+     * @param data.skip
+     * @param data.limit
      * @param data.accessToken
      * @returns PaginatedResponse_UserPublic_ Successful Response
      * @throws ApiError
@@ -23,8 +23,8 @@ export class AdminService {
                 access_token: data.accessToken
             },
             query: {
-                page: data.page,
-                page_size: data.pageSize
+                skip: data.skip,
+                limit: data.limit
             },
             errors: {
                 422: 'Validation Error'
@@ -111,7 +111,7 @@ export class AdminService {
      * @param data The data for the request.
      * @param data.userId
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteUser(data: AdminDeleteUserData): CancelablePromise<AdminDeleteUserResponse> {
@@ -311,7 +311,6 @@ export class AuthService {
 export class CompanySettingsService {
     /**
      * Get Company Settings
-     * Get company settings for the current user.
      * @param data The data for the request.
      * @param data.accessToken
      * @returns CompanySettingsPublic Successful Response
@@ -332,7 +331,6 @@ export class CompanySettingsService {
     
     /**
      * Create Company Settings
-     * Create company settings for the current user.
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.accessToken
@@ -356,7 +354,6 @@ export class CompanySettingsService {
     
     /**
      * Update Company Settings
-     * Update company settings for the current user.
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.accessToken
@@ -380,10 +377,9 @@ export class CompanySettingsService {
     
     /**
      * Delete Company Settings
-     * Delete company settings for the current user.
      * @param data The data for the request.
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteCompanySettings(data: CompanySettingsDeleteCompanySettingsData = {}): CancelablePromise<CompanySettingsDeleteCompanySettingsResponse> {
@@ -403,7 +399,6 @@ export class CompanySettingsService {
 export class CustomersService {
     /**
      * Read Customers
-     * Retrieve customers owned by the current user.
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
@@ -430,7 +425,6 @@ export class CustomersService {
     
     /**
      * Create Customer
-     * Create a new customer.
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.accessToken
@@ -454,7 +448,6 @@ export class CustomersService {
     
     /**
      * Read Customer
-     * Get customer by ID.
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
@@ -479,7 +472,6 @@ export class CustomersService {
     
     /**
      * Update Customer
-     * Update a customer.
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
@@ -507,11 +499,10 @@ export class CustomersService {
     
     /**
      * Delete Customer
-     * Delete a customer.
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteCustomer(data: CustomersDeleteCustomerData): CancelablePromise<CustomersDeleteCustomerResponse> {
@@ -535,7 +526,7 @@ export class DefaultService {
     /**
      * Health
      * Health check endpoint for Railway and Docker.
-     * @returns unknown Successful Response
+     * @returns string Successful Response
      * @throws ApiError
      */
     public static health(): CancelablePromise<HealthResponse> {
@@ -544,14 +535,24 @@ export class DefaultService {
             url: '/health'
         });
     }
+    
+    /**
+     * Sentry Debug
+     * Intentionally triggers an error to verify Sentry is capturing events.
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static sentryDebug(): CancelablePromise<SentryDebugResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/sentry-debug'
+        });
+    }
 }
 
 export class InvoicesService {
     /**
      * Get Dashboard Stats
-     * Get dashboard statistics for the current user.
-     *
-     * - **document_type**: Filter stats by document type (invoice, quotation, proforma, challan)
      * @param data The data for the request.
      * @param data.documentType
      * @param data.accessToken
@@ -576,11 +577,6 @@ export class InvoicesService {
     
     /**
      * Read Invoices
-     * Retrieve invoices owned by the current user.
-     *
-     * - **status**: Filter by invoice status
-     * - **document_type**: Filter by document type (invoice, quotation, proforma, challan)
-     * - **customer_id**: Filter by customer
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
@@ -613,13 +609,6 @@ export class InvoicesService {
     
     /**
      * Create Invoice
-     * Create a new invoice/quotation/proforma/challan.
-     *
-     * Set **document_type** to create different document types:
-     * - invoice: Regular invoice
-     * - quotation: Price quote with validity period
-     * - proforma: Proforma invoice
-     * - challan: Delivery challan
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.accessToken
@@ -643,7 +632,6 @@ export class InvoicesService {
     
     /**
      * Read Invoice
-     * Get invoice by ID with customer details.
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
@@ -668,7 +656,6 @@ export class InvoicesService {
     
     /**
      * Update Invoice
-     * Update an invoice.
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
@@ -696,11 +683,10 @@ export class InvoicesService {
     
     /**
      * Delete Invoice
-     * Delete an invoice.
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteInvoice(data: InvoicesDeleteInvoiceData): CancelablePromise<InvoicesDeleteInvoiceResponse> {
@@ -713,6 +699,87 @@ export class InvoicesService {
             cookies: {
                 access_token: data.accessToken
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Send Invoice Email
+     * @param data The data for the request.
+     * @param data.id
+     * @param data.requestBody
+     * @param data.accessToken
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static sendInvoiceEmail(data: InvoicesSendInvoiceEmailData): CancelablePromise<InvoicesSendInvoiceEmailResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/invoices/{id}/send-email',
+            path: {
+                id: data.id
+            },
+            cookies: {
+                access_token: data.accessToken
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Send Invoice Whatsapp
+     * @param data The data for the request.
+     * @param data.id
+     * @param data.requestBody
+     * @param data.accessToken
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static sendInvoiceWhatsapp(data: InvoicesSendInvoiceWhatsappData): CancelablePromise<InvoicesSendInvoiceWhatsappResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/invoices/{id}/send-whatsapp',
+            path: {
+                id: data.id
+            },
+            cookies: {
+                access_token: data.accessToken
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Send Invoice Reminder
+     * @param data The data for the request.
+     * @param data.id
+     * @param data.requestBody
+     * @param data.accessToken
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static sendInvoiceReminder(data: InvoicesSendInvoiceReminderData): CancelablePromise<InvoicesSendInvoiceReminderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/invoices/{id}/send-reminder',
+            path: {
+                id: data.id
+            },
+            cookies: {
+                access_token: data.accessToken
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
@@ -846,7 +913,7 @@ export class InvoiceTemplatesService {
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteInvoiceTemplate(data: InvoiceTemplatesDeleteInvoiceTemplateData): CancelablePromise<InvoiceTemplatesDeleteInvoiceTemplateResponse> {
@@ -894,7 +961,7 @@ export class InvoiceTemplatesService {
      * @param data The data for the request.
      * @param data.formData
      * @param data.accessToken
-     * @returns unknown Successful Response
+     * @returns ExcelParseResponse Successful Response
      * @throws ApiError
      */
     public static parseExcelPreview(data: InvoiceTemplatesParseExcelPreviewData): CancelablePromise<InvoiceTemplatesParseExcelPreviewResponse> {
@@ -916,11 +983,6 @@ export class InvoiceTemplatesService {
 export class ItemsService {
     /**
      * Read Items
-     * Retrieve items with optional filters.
-     *
-     * - **search**: Search by name, description, or SKU
-     * - **category**: Filter by category
-     * - **stock_status**: Filter by stock status (in_stock, low_stock, out_of_stock)
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
@@ -953,7 +1015,6 @@ export class ItemsService {
     
     /**
      * Create Item
-     * Create new item.
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.accessToken
@@ -976,8 +1037,27 @@ export class ItemsService {
     }
     
     /**
+     * List Categories
+     * @param data The data for the request.
+     * @param data.accessToken
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static listCategories(data: ItemsListCategoriesData = {}): CancelablePromise<ItemsListCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/items/categories/list',
+            cookies: {
+                access_token: data.accessToken
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Read Item
-     * Get item by ID.
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
@@ -1002,7 +1082,6 @@ export class ItemsService {
     
     /**
      * Update Item
-     * Update an item.
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
@@ -1030,11 +1109,10 @@ export class ItemsService {
     
     /**
      * Delete Item
-     * Delete an item.
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteItem(data: ItemsDeleteItemData): CancelablePromise<ItemsDeleteItemResponse> {
@@ -1055,11 +1133,6 @@ export class ItemsService {
     
     /**
      * Adjust Stock
-     * Adjust item stock by a quantity delta.
-     *
-     * - **quantity**: Amount to add (positive) or subtract (negative)
-     * - **reason**: Reason for adjustment (sale, purchase, adjustment, etc.)
-     * - **reference**: Optional reference (invoice number, PO number, etc.)
      * @param data The data for the request.
      * @param data.id
      * @param data.quantity
@@ -1089,36 +1162,11 @@ export class ItemsService {
             }
         });
     }
-    
-    /**
-     * List Categories
-     * Get list of distinct categories used by user's items.
-     * @param data The data for the request.
-     * @param data.accessToken
-     * @returns string Successful Response
-     * @throws ApiError
-     */
-    public static listCategories(data: ItemsListCategoriesData = {}): CancelablePromise<ItemsListCategoriesResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/items/categories/list',
-            cookies: {
-                access_token: data.accessToken
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
 }
 
 export class NotificationsService {
     /**
      * Get Notifications
-     * Get notifications for the current user.
-     *
-     * - **unread_only**: Only return unread notifications
-     * - **type**: Filter by notification type
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
@@ -1149,7 +1197,6 @@ export class NotificationsService {
     
     /**
      * Create Notification
-     * Create a new notification.
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.accessToken
@@ -1173,10 +1220,9 @@ export class NotificationsService {
     
     /**
      * Clear All
-     * Delete all notifications for the current user.
      * @param data The data for the request.
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static clearAll(data: NotificationsClearAllData = {}): CancelablePromise<NotificationsClearAllResponse> {
@@ -1194,7 +1240,6 @@ export class NotificationsService {
     
     /**
      * Get Notification
-     * Get a specific notification.
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
@@ -1219,7 +1264,6 @@ export class NotificationsService {
     
     /**
      * Update Notification
-     * Update a notification (e.g., mark as read).
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
@@ -1247,11 +1291,10 @@ export class NotificationsService {
     
     /**
      * Delete Notification
-     * Delete a notification.
      * @param data The data for the request.
      * @param data.id
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteNotification(data: NotificationsDeleteNotificationData): CancelablePromise<NotificationsDeleteNotificationResponse> {
@@ -1272,7 +1315,6 @@ export class NotificationsService {
     
     /**
      * Mark All Read
-     * Mark all notifications as read.
      * @param data The data for the request.
      * @param data.accessToken
      * @returns Message Successful Response
@@ -1316,13 +1358,6 @@ export class PrivateService {
 export class TablesService {
     /**
      * List Tables
-     * List all tables owned by the current user with pagination.
-     *
-     * - **skip**: Number of records to skip (default: 0)
-     * - **limit**: Number of records to return (default: 50, max: 100)
-     * - **sort_by**: Field to sort by (name or created_at)
-     * - **sort_order**: Sort direction (asc or desc)
-     * - **search**: Optional search term for table name
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
@@ -1355,10 +1390,6 @@ export class TablesService {
     
     /**
      * Create Table
-     * Create a new data table with column definitions.
-     *
-     * - **name**: Table name (1-255 characters)
-     * - **columns**: Array of column definitions
      * @param data The data for the request.
      * @param data.requestBody
      * @param data.accessToken
@@ -1382,7 +1413,6 @@ export class TablesService {
     
     /**
      * Get Table
-     * Get a specific table with all rows and reminders.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.accessToken
@@ -1407,8 +1437,6 @@ export class TablesService {
     
     /**
      * Update Table
-     * Update table name or column definitions.
-     * Only provided fields will be updated.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.requestBody
@@ -1436,7 +1464,6 @@ export class TablesService {
     
     /**
      * Delete Table
-     * Delete a table and all associated rows (cascade).
      * @param data The data for the request.
      * @param data.tableId
      * @param data.accessToken
@@ -1461,7 +1488,6 @@ export class TablesService {
     
     /**
      * Duplicate Table
-     * Duplicate a table with all its rows.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.accessToken
@@ -1486,7 +1512,6 @@ export class TablesService {
     
     /**
      * Create Table Row
-     * Add a new row to a table.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.requestBody
@@ -1514,7 +1539,6 @@ export class TablesService {
     
     /**
      * Update Table Row
-     * Update a specific row's data.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.rowId
@@ -1544,7 +1568,6 @@ export class TablesService {
     
     /**
      * Delete Table Row
-     * Delete a specific row.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.rowId
@@ -1571,12 +1594,11 @@ export class TablesService {
     
     /**
      * Bulk Delete Table Rows
-     * Delete multiple rows in a single transaction.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.requestBody
      * @param data.accessToken
-     * @returns unknown Successful Response
+     * @returns BulkDeleteResponse Successful Response
      * @throws ApiError
      */
     public static bulkDeleteTableRows(data: TablesBulkDeleteTableRowsData): CancelablePromise<TablesBulkDeleteTableRowsResponse> {
@@ -1599,7 +1621,6 @@ export class TablesService {
     
     /**
      * Create Table Reminder
-     * Create a reminder for a table.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.requestBody
@@ -1627,7 +1648,6 @@ export class TablesService {
     
     /**
      * Delete Table Reminder
-     * Delete a specific reminder.
      * @param data The data for the request.
      * @param data.tableId
      * @param data.reminderId
@@ -1727,7 +1747,7 @@ export class UsersService {
      * Delete User Me
      * @param data The data for the request.
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteUserMe(data: UsersDeleteUserMeData = {}): CancelablePromise<UsersDeleteUserMeResponse> {
@@ -1799,7 +1819,7 @@ export class UsersService {
      * @param data The data for the request.
      * @param data.userId
      * @param data.accessToken
-     * @returns Message Successful Response
+     * @returns void Successful Response
      * @throws ApiError
      */
     public static deleteUser(data: UsersDeleteUserData): CancelablePromise<UsersDeleteUserResponse> {

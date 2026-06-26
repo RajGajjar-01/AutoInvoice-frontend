@@ -9,7 +9,7 @@ import {
   Users,
 } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -19,22 +19,26 @@ interface Feature {
   description: string
   color: string
   bg: string
+  stat?: string
 }
 
+// Wide (col-span-2) features: 0, 3, 5
+// Narrow (col-span-1) features: 1, 2, 4
 const features: Feature[] = [
   {
     icon: FileText,
-    title: "Professional Invoices",
+    title: "Professional GST Invoices",
     description:
-      "Create stunning invoices, quotations, proformas, and delivery challans in seconds.",
+      "Create GST-compliant invoices, quotations, proformas, and delivery challans in seconds — ready to share as PDF or email directly to clients.",
     color: "text-primary",
     bg: "bg-primary/10",
+    stat: "Ready in under 60 seconds",
   },
   {
     icon: LayoutTemplate,
     title: "Multiple Templates",
     description:
-      "Choose from beautiful templates like Clean Teal, Geometric, Circle Studio, and more.",
+      "Clean Teal, Geometric, Circle Studio, and more — pick a design that fits your brand.",
     color: "text-blue-500 dark:text-blue-400",
     bg: "bg-blue-500/10 dark:bg-blue-500/20",
   },
@@ -42,7 +46,7 @@ const features: Feature[] = [
     icon: Users,
     title: "Customer Management",
     description:
-      "Organize customers, suppliers, and parties with GST details and contact info.",
+      "Organise customers, suppliers, and parties with GST details and contact info.",
     color: "text-emerald-500 dark:text-emerald-400",
     bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
   },
@@ -50,15 +54,16 @@ const features: Feature[] = [
     icon: Package,
     title: "Inventory Tracking",
     description:
-      "Track stock levels, get low-stock alerts, and manage your product catalogue.",
+      "Track stock levels across your product catalogue, get low-stock alerts, and adjust quantities — all linked to your invoices automatically.",
     color: "text-violet-500 dark:text-violet-400",
     bg: "bg-violet-500/10 dark:bg-violet-500/20",
+    stat: "Real-time stock alerts",
   },
   {
     icon: IndianRupee,
     title: "Payment Tracking",
     description:
-      "Monitor paid, unpaid, and overdue invoices. Know your receivables at a glance.",
+      "See paid, unpaid, and overdue invoices at a glance. Know your receivables without digging through spreadsheets.",
     color: "text-amber-500 dark:text-amber-400",
     bg: "bg-amber-500/10 dark:bg-amber-500/20",
   },
@@ -66,11 +71,53 @@ const features: Feature[] = [
     icon: BarChart3,
     title: "Business Dashboard",
     description:
-      "Revenue insights, KPIs, and trends to understand your business performance.",
+      "Revenue trends, top customers, outstanding receivables, and KPIs — everything you need to understand how your business is performing at a glance.",
     color: "text-rose-500 dark:text-rose-400",
     bg: "bg-rose-500/10 dark:bg-rose-500/20",
+    stat: "Full revenue insights",
   },
 ]
+
+function FeatureCard({
+  feature,
+  wide,
+  className,
+}: {
+  feature: Feature
+  wide?: boolean
+  className?: string
+}) {
+  return (
+    <div
+      className={cn(
+        "feature-card rounded-xl border bg-card p-6 transition-shadow duration-200 hover:shadow-md",
+        wide ? "flex gap-5 items-start" : "flex flex-col",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "rounded-lg p-3 shrink-0",
+          feature.bg,
+          wide ? "mt-0.5" : "mb-4",
+        )}
+      >
+        <feature.icon className={cn("h-6 w-6", feature.color)} />
+      </div>
+      <div className="min-w-0">
+        <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {feature.description}
+        </p>
+        {wide && feature.stat && (
+          <p className="mt-3 text-xs font-medium text-muted-foreground/70">
+            {feature.stat}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export function Features() {
   const featuresRef = useRef<HTMLDivElement>(null)
@@ -116,39 +163,31 @@ export function Features() {
   }, [])
 
   return (
-    <section ref={featuresRef} className="py-20 bg-muted/30">
+    <section ref={featuresRef} className="py-20">
       <div className="mx-auto max-w-6xl px-6">
         <div className="features-heading text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Everything you need to manage invoices
+          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+            All the tools your business needs
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Powerful features designed for small businesses, freelancers, and
-            entrepreneurs.
+            GST-ready billing, inventory, customers, and insights — built for
+            Indian small businesses and freelancers.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => (
-            <Card
-              key={feature.title}
-              className="feature-card group border bg-card cursor-pointer transition-[transform,box-shadow] duration-200 ease-out hover:shadow-lg active:scale-[0.98] @[supports(hover:hover)]:hover:-translate-y-1"
-            >
-              <CardContent className="p-6">
-                <div
-                  className={`feature-icon rounded-lg p-3 w-fit ${feature.bg} mb-4 transition-transform duration-200 ease-out group-hover:scale-110`}
-                >
-                  <feature.icon className={`h-6 w-6 ${feature.color}`} />
-                </div>
-                <h3 className="feature-title text-lg font-semibold mb-2 transition-transform duration-200 ease-out group-hover:translate-x-0.5">
-                  {feature.title}
-                </h3>
-                <p className="feature-desc text-sm text-muted-foreground transition-[transform,opacity] duration-200 ease-out group-hover:translate-x-0.5">
-                  {feature.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Alternating bento grid: wide-narrow, narrow-wide, narrow-wide */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5">
+          {/* Row 1: wide left, narrow right */}
+          <FeatureCard feature={features[0]} wide className="md:col-span-2" />
+          <FeatureCard feature={features[1]} />
+
+          {/* Row 2: narrow left, wide right */}
+          <FeatureCard feature={features[2]} />
+          <FeatureCard feature={features[3]} wide className="md:col-span-2" />
+
+          {/* Row 3: narrow left, wide right */}
+          <FeatureCard feature={features[4]} />
+          <FeatureCard feature={features[5]} wide className="md:col-span-2" />
         </div>
       </div>
     </section>

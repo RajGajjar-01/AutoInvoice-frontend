@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router"
 import ErrorComponent from "@/components/Common/ErrorComponent"
+import MinimalLayout from "@/components/Common/MinimalLayout"
 import NotFound from "@/components/Common/NotFound"
 import ProtectedLayout from "@/components/Common/ProtectedLayout"
 import Admin, { loader as adminLoader } from "@/routes/_layout/admin"
@@ -38,6 +39,7 @@ import UserSettings from "@/routes/_layout/settings"
 import TemplateBuilderPage from "@/routes/_layout/template-builder"
 import LandingPage from "@/routes/index"
 import Login from "@/routes/login"
+import PrivacyPolicy from "@/routes/privacy-policy"
 import RecoverPassword from "@/routes/recover-password"
 import ResetPassword, {
   loader as resetPasswordLoader,
@@ -51,6 +53,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <LandingPage /> },
       { path: "login", element: <Login /> },
+      { path: "privacy-policy", element: <PrivacyPolicy /> },
       { path: "signup", element: <SignUp /> },
       { path: "recover-password", element: <RecoverPassword /> },
       {
@@ -73,11 +76,10 @@ export const router = createBrowserRouter([
           },
           { path: "profile", element: <AccountPage /> },
           { path: "settings", element: <UserSettings /> },
-          { path: "template-builder", element: <TemplateBuilderPage /> },
+          { path: "create-invoice", element: <CreateInvoicePage /> },
           { path: "create-challan", element: <CreateChallanPage /> },
           { path: "create-proforma", element: <CreateProformaPage /> },
           { path: "create-quotation", element: <CreateQuotationPage /> },
-          { path: "create-invoice", element: <CreateInvoicePage /> },
           {
             path: "customers",
             element: <CustomersLayout />,
@@ -123,6 +125,12 @@ export const router = createBrowserRouter([
               },
             ],
           },
+        ],
+      },
+      {
+        element: <MinimalLayout />,
+        children: [
+          { path: "template-builder", element: <TemplateBuilderPage /> },
         ],
       },
       { path: "*", element: <NotFound /> },
