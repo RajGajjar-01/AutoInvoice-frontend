@@ -8,8 +8,7 @@ const steps = [
   {
     number: "01",
     title: "Set up your profile",
-    description:
-      "Add your business name, GST number, logo, and address once.",
+    description: "Add your business name, GST number, logo, and address once.",
   },
   {
     number: "02",
@@ -68,7 +67,7 @@ export function HowItWorks() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-20 bg-muted/20">
+    <section ref={sectionRef} className="py-20 bg-muted/50">
       <div className="mx-auto max-w-6xl px-6">
         <div className="hiw-heading text-center mb-20">
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
@@ -86,19 +85,11 @@ export function HowItWorks() {
               key={step.number}
               className="hiw-step relative flex flex-col items-center text-center"
             >
-              <span
-                aria-hidden="true"
-                className="font-display absolute inset-x-0 -top-6 text-center text-[8rem] font-semibold leading-none text-foreground/[0.04] select-none pointer-events-none"
-              >
-                {step.number}
-              </span>
-              <div className="relative z-10 pt-14 flex flex-col items-center px-6">
-                <div className="w-10 h-10 rounded-full border border-primary/30 bg-primary/10 flex items-center justify-center mb-5">
-                  <span className="text-xs font-semibold text-primary tracking-wider">
-                    {step.number}
-                  </span>
-                </div>
-                <h3 className="text-base font-semibold mb-2">{step.title}</h3>
+              <div className="flex flex-col items-center">
+                <span className="font-display text-5xl md:text-6xl font-extrabold text-primary mb-4 select-none">
+                  {step.number}
+                </span>
+                <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-[220px]">
                   {step.description}
                 </p>

@@ -181,7 +181,9 @@ export function Pricing() {
                 </p>
                 <div className="mt-4">
                   {tier.monthlyPrice === 0 ? (
-                    <span className="font-display text-4xl font-semibold">Free</span>
+                    <span className="font-display text-4xl font-semibold">
+                      Free
+                    </span>
                   ) : (
                     <>
                       <span className="font-display text-4xl font-semibold">
@@ -195,8 +197,8 @@ export function Pricing() {
                       </span>
                       {annual && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Billed as ₹
-                          {tier.annualPrice.toLocaleString("en-IN")}/year
+                          Billed as ₹{tier.annualPrice.toLocaleString("en-IN")}
+                          /year
                         </p>
                       )}
                     </>

@@ -3,18 +3,22 @@ import { Appearance } from "@/components/Common/Appearance"
 import { Footer } from "@/components/Common/Footer"
 import { Logo } from "@/components/Common/Logo"
 import { Benefits } from "@/components/Landing/Benefits"
+import { BusinessesAcrossIndia } from "@/components/Landing/BusinessesAcrossIndia"
 import { CTA } from "@/components/Landing/CTA"
 import { FAQ } from "@/components/Landing/FAQ"
 import { Features } from "@/components/Landing/Features"
 import { Hero } from "@/components/Landing/Hero"
 import { HowItWorks } from "@/components/Landing/HowItWorks"
 import { Pricing } from "@/components/Landing/Pricing"
+import { TechnologyShowcase } from "@/components/Landing/TechnologyShowcase"
 import { Button } from "@/components/ui/button"
 import useAuth from "@/hooks/useAuth"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function LandingPage() {
-  useDocumentTitle("AutoInvoice — Free GST Invoice Software for Indian Businesses")
+  useDocumentTitle(
+    "AutoInvoice — Free GST Invoice Software for Indian Businesses",
+  )
   const { user, isLoading } = useAuth()
 
   return (
@@ -42,10 +46,12 @@ function LandingPage() {
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 animate-in">
         <Hero />
         <HowItWorks />
         <Features />
+        <BusinessesAcrossIndia />
+        <TechnologyShowcase />
         <Benefits />
         <Pricing />
         <FAQ />

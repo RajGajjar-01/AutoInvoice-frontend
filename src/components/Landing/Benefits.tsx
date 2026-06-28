@@ -104,7 +104,7 @@ export function Benefits() {
   }, [])
 
   return (
-    <section ref={benefitsRef} className="py-20 bg-muted/20">
+    <section ref={benefitsRef} className="py-20 bg-muted/50">
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-center">
           <div className="lg:col-span-2">

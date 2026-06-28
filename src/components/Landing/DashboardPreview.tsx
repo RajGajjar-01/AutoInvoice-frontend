@@ -12,9 +12,27 @@ import {
 const chart = [42, 58, 35, 70, 52, 88, 64, 95]
 
 const invoices = [
-  { num: "INV-2403", client: "Tech Solutions", initial: "T", amount: "₹18,000", paid: true },
-  { num: "INV-2402", client: "XYZ Ltd", initial: "X", amount: "₹32,500", paid: false },
-  { num: "INV-2401", client: "ABC Corp", initial: "A", amount: "₹45,000", paid: true },
+  {
+    num: "INV-2403",
+    client: "Tech Solutions",
+    initial: "T",
+    amount: "₹18,000",
+    paid: true,
+  },
+  {
+    num: "INV-2402",
+    client: "XYZ Ltd",
+    initial: "X",
+    amount: "₹32,500",
+    paid: false,
+  },
+  {
+    num: "INV-2401",
+    client: "ABC Corp",
+    initial: "A",
+    amount: "₹45,000",
+    paid: true,
+  },
 ]
 
 const navIcons = [
@@ -35,7 +53,9 @@ export function DashboardPreview() {
           <CheckCircle2 className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <p className="font-display text-xs font-semibold leading-tight">Payment received</p>
+          <p className="font-display text-xs font-semibold leading-tight">
+            Payment received
+          </p>
           <p className="text-[11px] text-muted-foreground leading-tight">
             ₹45,000 from ABC Corp
           </p>
@@ -103,7 +123,9 @@ export function DashboardPreview() {
           {/* Recent invoices */}
           <div className="rounded-xl border bg-background">
             <div className="flex items-center justify-between border-b px-4 py-2.5">
-              <p className="font-display text-xs font-semibold">Recent invoices</p>
+              <p className="font-display text-xs font-semibold">
+                Recent invoices
+              </p>
               <p className="text-[11px] text-primary">View all</p>
             </div>
             <div className="divide-y">
