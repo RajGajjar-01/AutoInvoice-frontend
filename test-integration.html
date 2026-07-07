@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Test - Data Tables</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #444;
+            font-size: 18px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pass {
+            background: #28a745;
+            color: white;
+        }
+        .status.fail {
+            background: #dc3545;
+            color: white;
+        }
+        .status.pending {
+            background: #ffc107;
+            color: #333;
+        }
+        .credentials {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .credentials input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            width: 200px;
+        }
+        .summary {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 30px;
+        }
+        .summary h2 {
+            margin-top: 0;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Frontend-Backend Integration Test</h1>
+        <p class="subtitle">Test the connection between React frontend and FastAPI backend</p>
+
+        <div class="credentials">
+            <strong>Login Credentials:</strong><br><br>
+            <input type="email" id="username" placeholder="Email" value="admin@example.com">
+            <input type="password" id="password" placeholder="Password" value="83a7ba9be8a8890ec6e5ceb72f28faa7">
+        </div>
+
+        <!-- Test 1: Health Check -->
+        <div class="test-section">
+            <h2>Test 1: Health Check <span class="status pending" id="status1">PENDING</span></h2>
+            <p>Tests if the backend is reachable and CORS is configured correctly.</p>
+            <button onclick="testHealthCheck()">Run Test</button>
+            <div id="result1"></div>
+        </div>
+
+        <!-- Test 2: Login -->
+        <div class="test-section">
+            <h2>Test 2: Login & Cookie Authentication <span class="status pending" id="status2">PENDING</span></h2>
+            <p>Tests if login works and cookies are set correctly.</p>
+            <button onclick="testLogin()">Run Test</button>
+            <div id="result2"></div>
+        </div>
+
+        <!-- Test 3: Authenticated Request -->
+        <div class="test-section">
+            <h2>Test 3: Authenticated Request <span class="status pending" id="status3">PENDING</span></h2>
+            <p>Tests if cookies are sent with requests and authentication works.</p>
+            <button onclick="testAuthenticatedRequest()" id="test3Btn" disabled>Run Test</button>
+            <div id="result3"></div>
+        </div>
+
+        <!-- Test 4: List Tables -->
+        <div class="test-section">
+            <h2>Test 4: List Tables API <span class="status pending" id="status4">PENDING</span></h2>
+            <p>Tests if the tables API endpoint works correctly.</p>
+            <button onclick="testListTables()" id="test4Btn" disabled>Run Test</button>
+            <div id="result4"></div>
+        </div>
+
+        <!-- Test 5: Create Table -->
+        <div class="test-section">
+            <h2>Test 5: Create Table <span class="status pending" id="status5">PENDING</span></h2>
+            <p>Tests if creating a new table works.</p>
+            <button onclick="testCreateTable()" id="test5Btn" disabled>Run Test</button>
+            <div id="result5"></div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary" id="summary" style="display: none;">
+            <h2>📊 Test Summary</h2>
+            <div id="summaryContent"></div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+            <h3>🔍 Debugging Tips</h3>
+            <ul>
+                <li>Open browser DevTools (F12) to see detailed errors</li>
+                <li>Check Network tab to see request/response details</li>
+                <li>Check Application → Cookies to see if cookies are set</li>
+                <li>Make sure backend is running on http://localhost:8000</li>
+                <li>Make sure frontend OpenAPI config has WITH_CREDENTIALS: true</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const testResults = {
+            test1: null,
+            test2: null,
+            test3: null,
+            test4: null,
+            test5: null
+        };
+
+        function showResult(testId, success, message, data = null) {
+            const resultDiv = document.getElementById(`result${testId}`);
+            const statusSpan = document.getElementById(`status${testId}`);
+            
+            resultDiv.className = `result ${success ? 'success' : 'error'}`;
+            statusSpan.className = `status ${success ? 'pass' : 'fail'}`;
+            statusSpan.textContent = success ? 'PASS' : 'FAIL';
+            
+            let content = message;
+            if (data) {
+                content += `\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+            }
+            resultDiv.textContent = content;
+            
+            testResults[`test${testId}`] = success;
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const results = Object.values(testResults);
+            const completed = results.filter(r => r !== null).length;
+            const passed = results.filter(r => r === true).length;
+            const failed = results.filter(r => r === false).length;
+            
+            if (completed > 0) {
+                document.getElementById('summary').style.display = 'block';
+                document.getElementById('summaryContent').innerHTML = `
+                    <p><strong>Tests Completed:</strong> ${completed}/5</p>
+                    <p><strong>Passed:</strong> ${passed}</p>
+                    <p><strong>Failed:</strong> ${failed}</p>
+                    ${completed === 5 && passed === 5 ? '<p style="color: #28a745; font-weight: bold;">✅ All tests passed! Integration is working correctly.</p>' : ''}
+                    ${failed > 0 ? '<p style="color: #dc3545; font-weight: bold;">❌ Some tests failed. Check the error messages above.</p>' : ''}
+                `;
+            }
+        }
+
+        async function testHealthCheck() {
+            try {
+                const response = await fetch(`${API_URL}/api/v1/utils/health-check/`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                showResult(1, true, '✅ Health check passed! Backend is reachable and CORS is configured correctly.', data);
+            } catch (error) {
+                showResult(1, false, `❌ Health check failed!\n\nError: ${error.message}\n\nPossible causes:\n- Backend is not running\n- CORS is not configured correctly\n- Wrong API URL`);
+            }
+        }
+
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/v1/login/access-token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        username: username,
+                        password: password
+                    }),
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`HTTP ${response.status}: ${errorData.detail || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Check if cookie was set
+                const cookies = document.cookie;
+                const hasCookie = cookies.includes('access_token');
+                
+                showResult(2, true, `✅ Login successful! Cookie ${hasCookie ? 'was' : 'should be'} set (HttpOnly cookies are not visible to JavaScript).\n\nCheck DevTools → Application → Cookies to verify.`, data);
+                
+                // Enable next tests
+                document.getElementById('test3Btn').disabled = false;
+                document.getElementById('test4Btn').disabled = false;
+                document.getElementById('test5Btn').disabled = false;
+            } catch (error) {
+                showResult(2, false, `❌ Login failed!\n\nError: ${error.message}\n\nPossible causes:\n- Invalid credentials\n- Backend authentication not working\n- CORS credentials not allowed`);
+            }
+        }
+
+        async function testAuthenticatedRequest() {
+            try {
+                const response = await fetch(`${API_URL}/api/v1/users/me`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Unauthorized - Cookie not sent or invalid. Make sure WITH_CREDENTIALS is true in OpenAPI config.');
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                showResult(3, true, '✅ Authenticated request successful! Cookies are being sent correctly.', data);
+            } catch (error) {
+                showResult(3, false, `❌ Authenticated request failed!\n\nError: ${error.message}\n\nPossible causes:\n- Cookies not being sent (check WITH_CREDENTIALS in OpenAPI.ts)\n- Cookie expired\n- Need to login again`);
+            }
+        }
+
+        async function testListTables() {
+            try {
+                const response = await fetch(`${API_URL}/api/v1/tables`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Unauthorized - Need to login first');
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                showResult(4, true, `✅ List tables successful! Found ${data.total} table(s).`, data);
+            } catch (error) {
+                showResult(4, false, `❌ List tables failed!\n\nError: ${error.message}`);
+            }
+        }
+
+        async function testCreateTable() {
+            try {
+                const response = await fetch(`${API_URL}/api/v1/tables`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: `Test Table ${Date.now()}`,
+                        columns: [
+                            { name: 'Name', type: 'Text', mandatory: true, options: [] },
+                            { name: 'Email', type: 'Text', mandatory: false, options: [] }
+                        ]
+                    }),
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`HTTP ${response.status}: ${errorData.detail || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                showResult(5, true, '✅ Create table successful! Table was created.', data);
+            } catch (error) {
+                showResult(5, false, `❌ Create table failed!\n\nError: ${error.message}`);
+            }
+        }
+
+        // Run all tests button
+        async function _runAllTests() {
+            await testHealthCheck();
+            await new Promise(r => setTimeout(r, 500));
+            await testLogin();
+            await new Promise(r => setTimeout(r, 500));
+            await testAuthenticatedRequest();
+            await new Promise(r => setTimeout(r, 500));
+            await testListTables();
+            await new Promise(r => setTimeout(r, 500));
+            await testCreateTable();
+        }
+    </script>
+</body>
+</html>

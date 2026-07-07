@@ -1,23 +1,37 @@
-# Stage 0, "build-stage", based on Node.js, to build and compile the frontend
+# Stage 0: Build the frontend
 FROM node:20-alpine AS build-stage
 
 WORKDIR /app
 
-COPY package.json package-lock.json /app/
+# Install pnpm globally
+RUN npm install -g pnpm
 
-RUN npm install
+# Copy package files first for better caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-COPY . /app
+# Install dependencies using pnpm
+RUN pnpm install --frozen-lockfile
 
-ARG VITE_API_URL
+# Copy source code
+COPY . .
 
-RUN npm run build
+# Build argument for API URL - empty string for relative path (nginx proxy)
+ARG VITE_API_URL=
+ENV VITE_API_URL=$VITE_API_URL
 
+# Build the app
+RUN pnpm build
 
-# Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
-FROM nginx:1
+# Stage 1: Serve with Nginx
+FROM nginx:1-alpine
 
+# Copy built files
 COPY --from=build-stage /app/dist/ /usr/share/nginx/html
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
+# Copy nginx config as a template (nginx image handles envsubst)
+COPY ./nginx.conf /etc/nginx/templates/default.conf.template
+
+# Expose port (Railway sets PORT env var dynamically)
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
