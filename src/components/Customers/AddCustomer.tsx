@@ -230,7 +230,8 @@ const AddCustomer = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Party Type <span className="text-destructive">*</span>
+                            Party Type{" "}
+                            <span className="text-destructive">*</span>
                           </FormLabel>
                           <Select
                             onValueChange={field.onChange}

@@ -286,7 +286,9 @@ function InsightsPage() {
   useQuery(invoicesStatsQueryOptions())
   useQuery(customersListQueryOptions())
 
-  const invoices: Invoice[] = (invoicesResponse?.data ?? []).filter(Boolean) as unknown as Invoice[]
+  const invoices: Invoice[] = (invoicesResponse?.data ?? []).filter(
+    Boolean,
+  ) as unknown as Invoice[]
 
   // SVG fill attributes don't resolve CSS custom properties
   const tickColor = resolvedTheme === "dark" ? "#94a3b8" : "#64748b"

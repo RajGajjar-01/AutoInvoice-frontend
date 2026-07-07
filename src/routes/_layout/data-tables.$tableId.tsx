@@ -1,7 +1,7 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowLeft, Bell, Filter, Plus, Trash2 } from "lucide-react"
 import { useDeferredValue, useEffect, useMemo, useRef } from "react"
-import { useNavigate, useParams, type LoaderFunctionArgs } from "react-router"
+import { type LoaderFunctionArgs, useNavigate, useParams } from "react-router"
 import { toast } from "sonner"
 import { TablesService } from "@/client"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
@@ -420,7 +420,9 @@ function TableViewPage() {
       await queryClient.cancelQueries({
         queryKey: tablesQueryKeys.detail(tableId!),
       })
-      const previous = queryClient.getQueryData(tablesQueryKeys.detail(tableId!))
+      const previous = queryClient.getQueryData(
+        tablesQueryKeys.detail(tableId!),
+      )
       queryClient.setQueryData(
         tablesQueryKeys.detail(tableId!),
         (old: TableData | undefined) => {
@@ -765,7 +767,15 @@ function TableViewPage() {
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <ExportMenu table={currentTable as unknown as { name: string; columns: { name: string; type: string }[] }} rows={filteredRows} />
+            <ExportMenu
+              table={
+                currentTable as unknown as {
+                  name: string
+                  columns: { name: string; type: string }[]
+                }
+              }
+              rows={filteredRows}
+            />
             <Button
               size="sm"
               className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
@@ -839,9 +849,27 @@ function TableViewPage() {
         {isMobile ? (
           <MobileEntryView
             tableId={tableId!}
-            table={currentTable as unknown as { id: string; name: string; columns: { name: string; type: string; mandatory: boolean; options: string[] }[] }}
+            table={
+              currentTable as unknown as {
+                id: string
+                name: string
+                columns: {
+                  name: string
+                  type: string
+                  mandatory: boolean
+                  options: string[]
+                }[]
+              }
+            }
             rows={filteredRows}
-            cols={cols as unknown as { name: string; type: string; mandatory: boolean; options: string[] }[]}
+            cols={
+              cols as unknown as {
+                name: string
+                type: string
+                mandatory: boolean
+                options: string[]
+              }[]
+            }
             onDeleteRow={handleDeleteRow}
             onAddRowWithData={handleAddRowWithData}
             onUpdateCell={handleCellChange}

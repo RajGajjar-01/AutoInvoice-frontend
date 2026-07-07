@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Suspense, useMemo } from "react"
 import { redirect } from "react-router"
-import { AdminService, UsersService, type UserPublic } from "@/client"
+import { AdminService, type UserPublic, UsersService } from "@/client"
 import AddUser from "@/components/Admin/AddUser"
 import { columns } from "@/components/Admin/columns"
 import { DataTable } from "@/components/Common/DataTable"

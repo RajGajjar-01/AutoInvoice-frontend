@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse, AxiosInstance } from 'axios';
 
 import { ApiError } from './ApiError';
+import { handleMockRequest } from './mockApi';
 import type { ApiRequestOptions } from './ApiRequestOptions';
 import type { ApiResult } from './ApiResult';
 import { CancelablePromise } from './CancelablePromise';
@@ -314,6 +315,26 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions<T>,
 			const headers = await getHeaders(config, options);
 
 			if (!onCancel.isCancelled) {
+				// Use local mock API when backend is not running or in dev mode
+				const mockRes = handleMockRequest(options, url);
+				if (mockRes) {
+					const responseBody = mockRes.data;
+					let transformedBody = responseBody;
+					if (options.responseTransformer && isSuccess(mockRes.status)) {
+						transformedBody = await options.responseTransformer(responseBody)
+					}
+					const result: ApiResult = {
+						url,
+						ok: isSuccess(mockRes.status),
+						status: mockRes.status,
+						statusText: mockRes.statusText,
+						body: transformedBody,
+					};
+					catchErrorCodes(options, result);
+					resolve(result.body);
+					return;
+				}
+
 				let response = await sendRequest<T>(config, options, url, body, formData, headers, onCancel, axiosClient);
 
 				for (const fn of config.interceptors.response._fns) {

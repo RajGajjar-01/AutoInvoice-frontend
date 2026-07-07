@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
 import type { LucideIcon } from "lucide-react"
-import React from "react"
 import {
   ArrowLeft,
   Briefcase,
@@ -17,6 +16,7 @@ import {
   Upload,
   Wrench,
 } from "lucide-react"
+import type React from "react"
 import { useRef, useState } from "react"
 import { Link } from "react-router"
 import { ExcelImportDialog } from "@/components/InvoiceTemplates/ExcelImportDialog"

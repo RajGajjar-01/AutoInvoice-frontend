@@ -10,6 +10,7 @@ const slugify = (text) =>
 const randomItemTitle = () => `Item ${Math.random().toString(36).substring(7)}`
 const randomItemDescription = () =>
   `Description ${Math.random().toString(36).substring(7)}`
+
 export {
   randomEmail,
   randomItemDescription,

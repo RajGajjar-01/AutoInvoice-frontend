@@ -1,6 +1,7 @@
-import { Check, Zap } from "lucide-react";
-import { Link } from "react-router";
-import { Button } from "@/components/ui/button";
+import { Check, Zap } from "lucide-react"
+import { useState } from "react"
+import { Link } from "react-router"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -8,12 +9,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+} from "@/components/ui/card"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function Pricing() {
-  const [billingCycle, setBillingCycle] = useState("monthly");
+  const [billingCycle, setBillingCycle] = useState("monthly")
 
   const plans = [
     {
@@ -27,17 +27,18 @@ export function Pricing() {
         "Basic manual entry",
         "Excel export",
         "Single user access",
-        "Email support"
+        "Email support",
       ],
       cta: "Start Free",
       ctaLink: "/signup",
-      popular: false
+      popular: false,
     },
     {
       name: "Advanced",
       price: billingCycle === "monthly" ? "₹999" : "₹9,999",
       period: billingCycle === "monthly" ? "/month" : "/year",
-      description: "For growing businesses that need more power and flexibility",
+      description:
+        "For growing businesses that need more power and flexibility",
       features: [
         "Unlimited invoices",
         "AI-powered invoice extraction",
@@ -47,11 +48,11 @@ export function Pricing() {
         "Advanced filters & reports",
         "Up to 5 users",
         "Priority email support",
-        "GST reports"
+        "GST reports",
       ],
       cta: "Start 14-Day Trial",
       ctaLink: "/signup",
-      popular: true
+      popular: true,
     },
     {
       name: "Premium",
@@ -67,16 +68,19 @@ export function Pricing() {
         "Custom integrations",
         "Dedicated account manager",
         "24/7 phone support",
-        "Advanced analytics dashboard"
+        "Advanced analytics dashboard",
       ],
       cta: "Contact Sales",
       ctaLink: "/signup",
-      popular: false
-    }
-  ];
+      popular: false,
+    },
+  ]
 
   return (
-    <section id="pricing" className="bg-gradient-to-b from-white to-gray-50 py-24">
+    <section
+      id="pricing"
+      className="bg-gradient-to-b from-white to-gray-50 py-24"
+    >
       <div className="container mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">
@@ -84,7 +88,8 @@ export function Pricing() {
             Simple, Transparent Pricing
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that fits your business needs. No hidden fees, cancel anytime.
+            Choose the plan that fits your business needs. No hidden fees,
+            cancel anytime.
           </p>
         </div>
 
@@ -112,8 +117,11 @@ export function Pricing() {
           {plans.map((plan, index) => (
             <Card
               key={index}
-              className={`relative flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${plan.popular ? "border-[#0a4a5c] shadow-xl md:scale-105 z-10" : ""
-                }`}
+              className={`relative flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+                plan.popular
+                  ? "border-[#0a4a5c] shadow-xl md:scale-105 z-10"
+                  : ""
+              }`}
             >
               {plan.popular && (
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#0a4a5c]" />
@@ -139,14 +147,19 @@ export function Pricing() {
               <CardContent className="flex-1 pb-8">
                 <div className="flex items-baseline gap-1 mb-8">
                   <span className="text-5xl font-bold">{plan.price}</span>
-                  <span className="text-muted-foreground font-medium">{plan.period}</span>
+                  <span className="text-muted-foreground font-medium">
+                    {plan.period}
+                  </span>
                 </div>
 
                 <ul className="space-y-4">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3 text-sm">
                       <div className="rounded-full bg-green-100 p-1">
-                        <Check className="h-3 w-3 text-green-600" strokeWidth={3} />
+                        <Check
+                          className="h-3 w-3 text-green-600"
+                          strokeWidth={3}
+                        />
                       </div>
                       <span>{feature}</span>
                     </li>
@@ -158,10 +171,11 @@ export function Pricing() {
                 <Button
                   asChild
                   size="lg"
-                  className={`w-full py-6 text-base font-semibold ${plan.popular
+                  className={`w-full py-6 text-base font-semibold ${
+                    plan.popular
                       ? "bg-[#0a4a5c] hover:bg-[#083a48]"
                       : "variant-outline"
-                    }`}
+                  }`}
                   variant={plan.popular ? "default" : "outline"}
                 >
                   <Link to={plan.ctaLink}>{plan.cta}</Link>
@@ -174,10 +188,14 @@ export function Pricing() {
         {/* Bottom Note */}
         <div className="text-center mt-12">
           <p className="text-muted-foreground">
-            All plans include a <span className="font-semibold text-[#0a4a5c]">14-day free trial</span>. No credit card required.
+            All plans include a{" "}
+            <span className="font-semibold text-[#0a4a5c]">
+              14-day free trial
+            </span>
+            . No credit card required.
           </p>
         </div>
       </div>
     </section>
-  );
+  )
 }

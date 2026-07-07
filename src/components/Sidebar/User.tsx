@@ -1,5 +1,6 @@
 import { ChevronsUpDown, LogOut, Settings, UserCircle } from "lucide-react"
 import { Link as RouterLink } from "react-router"
+import type { UserPublic } from "@/client"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -15,7 +16,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import type { UserPublic } from "@/client"
 import useAuth from "@/hooks/useAuth"
 import { getInitials } from "@/utils"
 
@@ -23,7 +23,13 @@ interface UserProps {
   user?: UserPublic | null
 }
 
-function UserInfo({ fullName, email }: { fullName?: string | null; email?: string | null }) {
+function UserInfo({
+  fullName,
+  email,
+}: {
+  fullName?: string | null
+  email?: string | null
+}) {
   return (
     <div className="flex items-center gap-2.5 w-full min-w-0">
       <Avatar className="size-8">

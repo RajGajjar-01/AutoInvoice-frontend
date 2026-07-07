@@ -1,7 +1,7 @@
-import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
 import { Pencil, Save, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface ProfileSectionProps {
   id: string
@@ -34,7 +34,7 @@ export function ProfileSection({
       ref={sectionRef}
       className={cn(
         "rounded-xl border bg-card overflow-hidden transition-all duration-200",
-        isEditing && "border-primary/40 shadow-sm ring-1 ring-primary/10"
+        isEditing && "border-primary/40 shadow-sm ring-1 ring-primary/10",
       )}
     >
       <div
@@ -42,14 +42,14 @@ export function ProfileSection({
           "flex items-center justify-between px-5 py-3 border-b",
           isEditing
             ? "bg-primary/5 border-primary/20"
-            : "bg-muted/30 border-border"
+            : "bg-muted/30 border-border",
         )}
       >
         <div className="flex items-center gap-2.5">
           <div
             className={cn(
               "rounded-md p-1.5",
-              isEditing ? "bg-primary/15" : "bg-primary/10"
+              isEditing ? "bg-primary/15" : "bg-primary/10",
             )}
           >
             <Icon className="h-3.5 w-3.5 text-primary" />
@@ -88,9 +88,7 @@ export function ProfileSection({
           )}
         </div>
       </div>
-      <div className="px-5 py-4">
-        {isEditing ? editContent : viewContent}
-      </div>
+      <div className="px-5 py-4">{isEditing ? editContent : viewContent}</div>
     </div>
   )
 }

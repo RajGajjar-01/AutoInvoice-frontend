@@ -22,4 +22,5 @@ async function logOutUser(page) {
   await page.getByRole("menuitem", { name: "Log out" }).click()
   await page.goto("/login")
 }
+
 export { logInUser, logOutUser, signUpNewUser }

@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query"
-import { InvoicesService } from "@/client/sdk.gen"
+import { CustomersService, InvoicesService } from "@/client/sdk.gen"
 import type {
   InvoicePublic,
   InvoiceStatus,
@@ -54,15 +54,35 @@ export const invoicesListQueryOptions = (params?: InvoiceListParams) =>
   queryOptions({
     queryKey: invoicesQueryKeys.list(params),
     queryFn: async () => {
-      const res = await InvoicesService.readInvoices({
-        skip: params?.skip ?? 0,
-        limit: params?.limit ?? 200,
-        status: params?.status ?? undefined,
+      const [res, customersRes] = await Promise.all([
+        InvoicesService.readInvoices({
+          skip: params?.skip ?? 0,
+          limit: params?.limit ?? 200,
+          status: params?.status ?? undefined,
+        }),
+        CustomersService.readCustomers({ limit: 1000 }).catch(() => ({
+          data: [],
+        })),
+      ])
+
+      const customersMap = new Map(
+        (customersRes?.data ?? []).map((c) => [c.id, c]),
+      )
+
+      const adaptedData = (res.data ?? []).map((inv) => {
+        const adapted = adaptInvoiceToUi(inv)
+        if (adapted && !adapted.customer && adapted.customerId) {
+          const cust = customersMap.get(adapted.customerId)
+          if (cust) {
+            adapted.customer = adaptCustomerToUi(cust)
+          }
+        }
+        return adapted
       })
 
       return {
         ...res,
-        data: (res.data ?? []).map(adaptInvoiceToUi),
+        data: adaptedData,
       }
     },
   })

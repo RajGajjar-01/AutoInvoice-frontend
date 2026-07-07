@@ -117,7 +117,7 @@ export function Benefits() {
                   key={benefit.title}
                   className="benefit-item group flex gap-4 items-start"
                 >
-                  <div className="benefit-icon rounded-lg p-2.5 bg-primary/10 shrink-0 transition-transform duration-200 ease-out @[supports(hover:hover)]:group-hover:scale-110">
+                  <div className="benefit-icon rounded-lg p-2.5 bg-primary/10 shrink-0 transition-transform duration-200 ease-out supports-[hover:hover]:group-hover:scale-110">
                     <benefit.icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>

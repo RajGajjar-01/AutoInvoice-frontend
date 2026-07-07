@@ -40,7 +40,8 @@ import {
   User,
   X,
 } from "lucide-react"
-import React, { useCallback, useState } from "react"
+import type React from "react"
+import { useCallback, useState } from "react"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -946,10 +947,17 @@ function TemplateBuilderPage() {
   const serverCustomTemplate =
     serverTemplates.find((t) => t.kind === "custom") ?? null
   const savedTemplate = serverCustomTemplate?.custom_data ?? null
-  const savedData = savedTemplate as { blocks?: Block[]; globalStyle?: GlobalStyle; savedAt?: string } | null
+  const savedData = savedTemplate as {
+    blocks?: Block[]
+    globalStyle?: GlobalStyle
+    savedAt?: string
+  } | null
 
-  const [blocks, setBlocks] = useState<Block[]>(() =>
-    (savedData?.blocks?.length ? savedData.blocks : DEFAULT_BLOCKS) as Block[],
+  const [blocks, setBlocks] = useState<Block[]>(
+    () =>
+      (savedData?.blocks?.length
+        ? savedData.blocks
+        : DEFAULT_BLOCKS) as Block[],
   )
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dragActiveId, setDragActiveId] = useState<string | null>(null)

@@ -83,7 +83,9 @@ interface Customer {
 function CustomersPage() {
   useDocumentTitle("Customers")
   const { data, isLoading } = useQuery(customersListQueryOptions())
-  const customers: Customer[] = (data?.data?.filter((c): c is NonNullable<typeof c> => c != null) ?? []) as Customer[]
+  const customers: Customer[] = (data?.data?.filter(
+    (c): c is NonNullable<typeof c> => c != null,
+  ) ?? []) as Customer[]
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const deferredSearch = useDeferredValue(search)

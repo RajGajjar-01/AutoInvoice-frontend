@@ -1,14 +1,17 @@
-import { Link } from "react-router";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react"
+import { Link } from "react-router"
+import { Button } from "@/components/ui/button"
 
 export function FinalCTA() {
   return (
     <section className="relative bg-gradient-to-br from-[#0a4a5c] via-[#0d6580] to-[#0a4a5c] py-24 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse" />
+        <div
+          className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        />
       </div>
 
       <div className="relative z-10 container mx-auto px-6 text-center">
@@ -46,5 +49,5 @@ export function FinalCTA() {
         </p>
       </div>
     </section>
-  );
+  )
 }

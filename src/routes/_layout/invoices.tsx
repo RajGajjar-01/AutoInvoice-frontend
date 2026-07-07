@@ -19,8 +19,8 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Link } from "react-router"
-import type { InvoiceStatus } from "@/client/types.gen"
 import { InvoicesService } from "@/client/sdk.gen"
+import type { InvoiceStatus } from "@/client/types.gen"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -291,7 +291,8 @@ function InvoicesPage() {
   })
 
   const handleWhatsApp = (inv: Invoice) => {
-    const phone = (inv as any).customer?.whatsapp || (inv as any).customer?.phone
+    const phone =
+      (inv as any).customer?.whatsapp || (inv as any).customer?.phone
     if (!phone) {
       showErrorToast("No WhatsApp number available")
       return

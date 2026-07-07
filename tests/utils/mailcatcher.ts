@@ -28,4 +28,5 @@ function findLastEmail({ request, filter, timeout = 5e3 }) {
   }
   return Promise.race([timeoutPromise, checkEmails()])
 }
+
 export { findLastEmail }

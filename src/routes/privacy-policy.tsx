@@ -63,9 +63,7 @@ function PrivacyPolicy() {
               (SPDI Rules), and is aligned with the{" "}
               <strong>Digital Personal Data Protection Act, 2023</strong> (DPDP
               Act) and the{" "}
-              <strong>
-                Digital Personal Data Protection Rules, 2025
-              </strong>{" "}
+              <strong>Digital Personal Data Protection Rules, 2025</strong>{" "}
               notified by the Ministry of Electronics and Information Technology
               (MeitY).
             </p>
@@ -160,7 +158,9 @@ function PrivacyPolicy() {
           </Section>
 
           <Section title="3. How We Use Your Data">
-            <p>We use your personal data strictly for the following purposes:</p>
+            <p>
+              We use your personal data strictly for the following purposes:
+            </p>
             <ul className="list-disc list-inside space-y-2 mt-2">
               <li>Creating and managing your {COMPANY_NAME} account</li>
               <li>
@@ -220,10 +220,10 @@ function PrivacyPolicy() {
             </p>
             <ul className="list-disc list-inside space-y-2 mt-2">
               <li>
-                <strong className="text-foreground">WhatsApp</strong> — when
-                you choose to send reminders to customers via WhatsApp, their
-                phone number and reminder message are transmitted to WhatsApp
-                servers (operated by Meta Platforms, Inc.). This transmission is
+                <strong className="text-foreground">WhatsApp</strong> — when you
+                choose to send reminders to customers via WhatsApp, their phone
+                number and reminder message are transmitted to WhatsApp servers
+                (operated by Meta Platforms, Inc.). This transmission is
                 governed by WhatsApp's own Privacy Policy.
               </li>
               <li>
@@ -282,13 +282,9 @@ function PrivacyPolicy() {
                 All passwords are stored using industry-standard hashing
                 (bcrypt)
               </li>
-              <li>
-                Data in transit is encrypted using TLS/HTTPS at all times
-              </li>
+              <li>Data in transit is encrypted using TLS/HTTPS at all times</li>
               <li>Access controls limit who can view personal data</li>
-              <li>
-                Regular security reviews of our infrastructure and code
-              </li>
+              <li>Regular security reviews of our infrastructure and code</li>
             </ul>
             <p>
               In the event of a data breach that may affect your rights or
@@ -385,10 +381,10 @@ function PrivacyPolicy() {
 
           <Section title="11. Children's Privacy">
             <p>
-              {COMPANY_NAME} is not directed at children under the age of 18.
-              We do not knowingly collect personal data from minors. If you
-              believe a minor has provided us with personal data, please contact
-              our Grievance Officer and we will delete it promptly.
+              {COMPANY_NAME} is not directed at children under the age of 18. We
+              do not knowingly collect personal data from minors. If you believe
+              a minor has provided us with personal data, please contact our
+              Grievance Officer and we will delete it promptly.
             </p>
           </Section>
 

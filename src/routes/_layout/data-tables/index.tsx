@@ -233,10 +233,20 @@ function DataTablesPage() {
 
       {/* ── Tabs ─────────────────────────────────────────────── */}
       <Tabs defaultValue="my-tables">
-        <div className="flex items-center justify-between gap-4">
-          <TabsList>
-            <TabsTrigger value="my-tables">My Tables</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
+        <div className="flex items-center justify-between gap-4 border-b border-border/20 pb-1">
+          <TabsList variant="line" className="gap-6">
+            <TabsTrigger
+              value="my-tables"
+              className="text-sm font-semibold px-1 pb-2 rounded-none data-[state=active]:text-primary after:bg-primary"
+            >
+              My Tables
+            </TabsTrigger>
+            <TabsTrigger
+              value="templates"
+              className="text-sm font-semibold px-1 pb-2 rounded-none data-[state=active]:text-primary after:bg-primary"
+            >
+              Templates
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -249,19 +259,17 @@ function DataTablesPage() {
                 placeholder="Search your tables..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9"
+                className="pl-9 h-9.5 bg-card/25 border-border/40 focus-visible:ring-1 focus-visible:ring-primary/20"
               />
             </div>
           )}
 
           {allTables.length === 0 ? (
-            <EmptyState
-              onCreateClick={openCreateBlank}
-            />
+            <EmptyState onCreateClick={openCreateBlank} />
           ) : (
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="rounded-2xl border border-border/30 bg-card/30 dark:bg-[#151922]/20 backdrop-blur-md overflow-hidden shadow-sm">
               {/* List header */}
-              <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-4 py-2 border-b border-border bg-muted/40">
+              <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3 border-b border-border/20 bg-muted/20 dark:bg-muted/10">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Name
                 </span>
@@ -277,22 +285,25 @@ function DataTablesPage() {
               {/* List rows */}
               {tables.map((table, idx) => (
                 <div key={table.id}>
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors group">
+                  <div
+                    onClick={() => navigate(`/data-tables/${table.id}`)}
+                    className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-primary/[0.04] dark:hover:bg-primary/[0.02] transition-all duration-200 group cursor-pointer"
+                  >
                     {/* Name + icon */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="shrink-0 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Table2 className="h-4 w-4 text-primary" />
+                      <div className="shrink-0 h-9 w-9 rounded-xl bg-gradient-to-tr from-primary/15 to-primary/5 dark:from-primary/10 dark:to-primary/0 flex items-center justify-center border border-primary/20 shadow-sm transition-transform duration-200 group-hover:scale-105">
+                        <Table2 className="h-4.5 w-4.5 text-primary" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
+                        <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                           {table.name}
                         </p>
                         {table.description ? (
-                          <p className="text-[11px] text-muted-foreground truncate">
+                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                             {table.description}
                           </p>
                         ) : table.columns.length > 0 ? (
-                          <p className="text-[11px] text-muted-foreground truncate">
+                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                             {table.columns
                               .slice(0, 3)
                               .map((c) => c.name || "Untitled")
@@ -307,15 +318,14 @@ function DataTablesPage() {
 
                     {/* Field count */}
                     <Badge
-                      variant="secondary"
-                      className="w-20 justify-center tabular-nums text-[11px]"
+                      className="w-20 justify-center tabular-nums text-[10px] font-semibold tracking-wider bg-primary/5 text-primary border border-primary/15 shadow-none hover:bg-primary/5"
                     >
                       {table.columns.length}{" "}
                       {table.columns.length === 1 ? "field" : "fields"}
                     </Badge>
 
                     {/* Created date */}
-                    <span className="text-xs text-muted-foreground w-24 text-right whitespace-nowrap">
+                    <span className="text-xs text-muted-foreground w-24 text-right whitespace-nowrap font-medium">
                       {table.createdAt
                         ? new Date(table.createdAt).toLocaleDateString(
                             "en-IN",
@@ -334,7 +344,7 @@ function DataTablesPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>

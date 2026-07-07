@@ -19,6 +19,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
   useSidebar,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
@@ -99,7 +100,9 @@ export function AppSidebar() {
         <Main items={items} />
       </SidebarContent>
       <SidebarFooter>
-        <SidebarAppearance />
+        <SidebarMenu>
+          <SidebarAppearance />
+        </SidebarMenu>
         <User user={currentUser} />
       </SidebarFooter>
     </Sidebar>

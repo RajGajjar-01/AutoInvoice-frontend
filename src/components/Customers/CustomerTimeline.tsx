@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import useLocalStorage from "@/hooks/useLocalStorage"
 
 const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
   paid: "default",
@@ -171,17 +170,14 @@ interface Customer {
 
 interface CustomerTimelineProps {
   customer: Customer
+  invoices?: Invoice[]
 }
 
-export function CustomerTimeline({ customer }: CustomerTimelineProps) {
-  const [invoices] = useLocalStorage<Invoice[]>("invoices", [])
-
+export function CustomerTimeline({ customer, invoices = [] }: CustomerTimelineProps) {
   const partyInvoices = invoices
     .filter((inv) => {
-      if (!inv.customer) return false
-      if (inv.customerId && inv.customerId === customer.id) return true
-      if (inv.partyId && inv.partyId === customer.id) return true
-      return inv.customer.name?.toLowerCase() === customer.name?.toLowerCase()
+      const cid = inv.customerId ?? (inv as any).customer_id
+      return cid === customer.id
     })
     .sort((a, b) => {
       const aDate = a.createdAt || a.invoiceDate || ""

@@ -17,10 +17,15 @@ import {
   StickyNote,
   Trash2,
   User,
+  Eye,
+  Download,
 } from "lucide-react"
 import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { InvoicesService } from "@/client/sdk.gen"
+import useLocalStorage from "@/hooks/useLocalStorage"
+import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
+import { downloadInvoicePdf, buildInvoiceHtml } from "@/lib/pdfHelper"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -137,6 +142,14 @@ function InvoiceDetailPage() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const navigate = useNavigate()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [companyDetails] = useLocalStorage<any>("company-details", {})
+  const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
+  const selectedTemplate = activeTemplate?.kind === "built_in"
+    ? activeTemplate?.built_in_id
+    : activeTemplate?.kind === "custom"
+      ? activeTemplate?.built_in_id
+      : "clean-teal"
 
   const { data: invoice, isLoading } = useQuery(
     invoiceDetailQueryOptions(invoiceId),
@@ -152,7 +165,9 @@ function InvoiceDetailPage() {
     }) => {
       return InvoicesService.updateInvoice({
         id,
-        requestBody: patch as Parameters<typeof InvoicesService.updateInvoice>[0]["requestBody"],
+        requestBody: patch as Parameters<
+          typeof InvoicesService.updateInvoice
+        >[0]["requestBody"],
       })
     },
     onSuccess: async () => {
@@ -197,6 +212,53 @@ function InvoiceDetailPage() {
   const cs = getCurrencySymbol(invoice.currency)
   const StatusIcon = statusIcon[invoice.status ?? "unpaid"] ?? CircleDashed
   const validItems = (invoice.items || []).filter((it) => it.name)
+
+  const handleDownloadPDF = () => {
+    showSuccessToast("Generating PDF...")
+
+    const invoiceData = {
+      invoiceNumber: invoice.invoiceNumber,
+      invoiceDate: invoice.invoiceDate,
+      dueDate: invoice.dueDate,
+      currency: invoice.currency,
+      subtotal: invoice.subtotal || 0,
+      totalTax: invoice.totalTax || 0,
+      grandTotal: invoice.grandTotal || 0,
+      discount: invoice.discount || 0,
+      notes: invoice.notes,
+      paymentTerms: invoice.paymentTerms,
+      poNumber: invoice.poNumber,
+      placeOfSupply: invoice.placeOfSupply,
+      customer: {
+        name: invoice.customer?.name || "",
+        email: invoice.customer?.email || "",
+        phone: invoice.customer?.phone || "",
+        address: invoice.customer?.address || "",
+        gst: invoice.customer?.gst || "",
+      },
+      items: (invoice.items || []).map((it) => ({
+        name: it.name,
+        description: it.description,
+        quantity: it.quantity || 0,
+        price: it.price || 0,
+        tax: it.tax || 0,
+        unit: it.unit || "",
+      })),
+    }
+
+    downloadInvoicePdf(
+      invoiceData,
+      companyDetails || {},
+      selectedTemplate || "clean-teal",
+    )
+      .then(() => {
+        showSuccessToast("PDF downloaded successfully!")
+      })
+      .catch((err) => {
+        console.error("PDF generation failed:", err)
+        showErrorToast("Failed to generate PDF")
+      })
+  }
 
   const handleWhatsApp = () => {
     const phone = invoice.customer?.whatsapp || invoice.customer?.phone
@@ -271,6 +333,14 @@ function InvoiceDetailPage() {
           <Button variant="outline" size="sm" onClick={handleWhatsApp}>
             <Send className="mr-2 h-4 w-4" />
             WhatsApp
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
+            <Eye className="mr-2 h-4 w-4" />
+            Preview
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+            <Download className="mr-2 h-4 w-4" />
+            Download PDF
           </Button>
           <Button
             variant="outline"
@@ -357,7 +427,9 @@ function InvoiceDetailPage() {
                     <TableBody>
                       {validItems.map((it, i) => {
                         const lineTotal =
-                          (it.quantity ?? 0) * (it.price ?? 0) * (1 + (it.tax ?? 0) / 100)
+                          (it.quantity ?? 0) *
+                          (it.price ?? 0) *
+                          (1 + (it.tax ?? 0) / 100)
                         return (
                           <TableRow key={i}>
                             <TableCell>
@@ -515,7 +587,9 @@ function InvoiceDetailPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
                 <Badge
-                  variant={statusVariant[invoice.status ?? "unpaid"] ?? "outline"}
+                  variant={
+                    statusVariant[invoice.status ?? "unpaid"] ?? "outline"
+                  }
                   className="capitalize cursor-pointer gap-1"
                   onClick={handleToggleStatus}
                 >
@@ -554,6 +628,67 @@ function InvoiceDetailPage() {
               Delete
             </LoadingButton>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Preview Dialog ── */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Invoice Preview</DialogTitle>
+          </DialogHeader>
+          <iframe
+            title="invoice-preview"
+            srcDoc={
+              previewOpen
+                ? buildInvoiceHtml(
+                    {
+                      invoiceNumber: invoice.invoiceNumber,
+                      invoiceDate: invoice.invoiceDate,
+                      dueDate: invoice.dueDate,
+                      currency: invoice.currency,
+                      subtotal: invoice.subtotal || 0,
+                      totalTax: invoice.totalTax || 0,
+                      grandTotal: invoice.grandTotal || 0,
+                      discount: invoice.discount || 0,
+                      notes: invoice.notes,
+                      paymentTerms: invoice.paymentTerms,
+                      poNumber: invoice.poNumber,
+                      placeOfSupply: invoice.placeOfSupply,
+                      customer: {
+                        name: invoice.customer?.name || "",
+                        email: invoice.customer?.email || "",
+                        phone: invoice.customer?.phone || "",
+                        address: invoice.customer?.address || "",
+                        gst: invoice.customer?.gst || "",
+                      },
+                      items: (invoice.items || []).map((it) => ({
+                        name: it.name,
+                        description: it.description,
+                        quantity: it.quantity || 0,
+                        price: it.price || 0,
+                        tax: it.tax || 0,
+                        unit: it.unit || "",
+                      })),
+                    },
+                    companyDetails || {},
+                    selectedTemplate || "clean-teal",
+                  )
+                : ""
+            }
+            className="w-full flex-1 rounded-md border bg-background"
+            style={{ minHeight: "65vh" }}
+            sandbox="allow-same-origin"
+          />
+          <div className="flex justify-end gap-2 mt-3">
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={handleDownloadPDF}>
+              <Download className="mr-2 h-4 w-4" />
+              Download PDF
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

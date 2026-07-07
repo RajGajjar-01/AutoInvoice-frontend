@@ -110,7 +110,7 @@ export function Footer() {
                 >
                   {link.label}
                 </a>
-              )
+              ),
             )}
           </div>
         </div>

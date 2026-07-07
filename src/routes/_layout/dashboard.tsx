@@ -200,7 +200,9 @@ function Dashboard() {
   const { data: statsRes } = useQuery(invoicesStatsQueryOptions())
   const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
   const { data: customersRes } = useQuery(customersListQueryOptions())
-  const invoices: Invoice[] = (invoicesRes?.data ?? []).filter(Boolean) as unknown as Invoice[]
+  const invoices: Invoice[] = (invoicesRes?.data ?? []).filter(
+    Boolean,
+  ) as unknown as Invoice[]
   const customers = customersRes?.data ?? []
 
   // ── Date helpers ────────────────────────────────────────────────────────
@@ -269,25 +271,48 @@ function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* ── Header ── */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {greeting}, {firstName}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {hasData
-              ? "Here's what's happening with your business today."
-              : "Welcome to AutoInvoice. Load demo data from Settings → Demo Data to get started."}
-          </p>
-        </div>
-        <Link to="/create-invoice">
-          <Button>
-            <FilePlus className="mr-2 h-4 w-4" />
-            New Invoice
-          </Button>
-        </Link>
-      </div>
+      {/* ── Welcome & Quick Start Banner ── */}
+      <Card className="relative overflow-hidden border border-primary/10 bg-gradient-to-br from-primary/[0.04] via-transparent to-transparent shadow-xs">
+        <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/5 blur-3xl" />
+        <CardContent className="p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary">Workspace Dashboard</span>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              {greeting}, {firstName}
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-md">
+              Here's a quick overview of your business performance and pending actions today.
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Link to="/create-invoice">
+              <Button size="default" className="shadow-sm">
+                <FilePlus className="mr-2 h-4 w-4" />
+                Create Invoice
+              </Button>
+            </Link>
+            <Link to="/customers">
+              <Button variant="outline" size="default" className="shadow-xs bg-background/50 border-border/40 hover:bg-muted">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Customer
+              </Button>
+            </Link>
+            <Link to="/items">
+              <Button variant="outline" size="default" className="shadow-xs bg-background/50 border-border/40 hover:bg-muted">
+                <PackagePlus className="mr-2 h-4 w-4" />
+                Add Item
+              </Button>
+            </Link>
+            <Link to="/invoices">
+              <Button variant="outline" size="default" className="shadow-xs bg-background/50 border-border/40 hover:bg-muted">
+                <History className="mr-2 h-4 w-4" />
+                History
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -498,43 +523,6 @@ function Dashboard() {
               </CardContent>
             </Card>
           )}
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 pb-3 space-y-1">
-              <QuickActionRow
-                icon={FilePlus}
-                iconClass="bg-primary/10 text-primary"
-                title="Create Invoice"
-                description="Generate a new professional invoice"
-                to="/create-invoice"
-              />
-              <QuickActionRow
-                icon={UserPlus}
-                iconClass="bg-blue-500/10 text-blue-500"
-                title="Add Customer"
-                description="Register a new customer or supplier"
-                to="/customers"
-              />
-              <QuickActionRow
-                icon={PackagePlus}
-                iconClass="bg-violet-500/10 text-violet-500"
-                title="Add Item"
-                description="Add a product or service to inventory"
-                to="/items"
-              />
-              <QuickActionRow
-                icon={History}
-                iconClass="bg-emerald-500/10 text-emerald-500"
-                title="Invoice History"
-                description="Search and manage all invoices"
-                to="/invoices"
-              />
-            </CardContent>
-          </Card>
 
           {/* Inventory Alert */}
           {(stats.lowStockItems > 0 || stats.outItems > 0) && (

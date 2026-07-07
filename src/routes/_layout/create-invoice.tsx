@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "@tanstack/react-query"
+import { Link, useSearchParams } from "react-router"
 import html2pdf from "html2pdf.js"
 import {
   ArrowLeft,
@@ -16,8 +17,8 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
-import { Link, useSearchParams } from "react-router"
 import { z } from "zod"
+import { OpenAPI } from "@/client"
 import { CustomersService, InvoicesService } from "@/client/sdk.gen"
 import { ModernExcelTable } from "@/components/modern-excel-table"
 import { Button } from "@/components/ui/button"
@@ -53,9 +54,11 @@ import {
 import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
 import { invoicesQueryKeys } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import useLocalStorage from "@/hooks/useLocalStorage"
+import { api } from "@/lib/api"
 import { queryClient } from "@/queryClient"
+
+
 
 const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
 
@@ -109,6 +112,7 @@ interface InvoiceItem {
   discountType?: "flat" | "percent"
   unit?: string
   hsnCode?: string
+  showHsn?: boolean
 }
 
 interface InventoryItem {
@@ -118,6 +122,7 @@ interface InventoryItem {
   salePrice?: number
   taxRate?: number
   unit?: string
+  hsnCode?: string
   stock?: number
   stockHistory?: Array<{
     date: string
@@ -185,8 +190,32 @@ const emptyItem: InvoiceItem = {
   tax: 0,
 }
 
+// ── Amount in Words ─────────────────────────────────────────────────────
+const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine",
+  "Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen",
+  "Eighteen","Nineteen"]
+const tens = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"]
+
+function numToWords(n: number): string {
+  if (n === 0) return "Zero"
+  if (n < 0) return "Minus " + numToWords(-n)
+  if (n < 20) return ones[n]
+  if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "")
+  if (n < 1000) return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + numToWords(n % 100) : "")
+  if (n < 100000) return numToWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + numToWords(n % 1000) : "")
+  if (n < 10000000) return numToWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + numToWords(n % 100000) : "")
+  return numToWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + numToWords(n % 10000000) : "")
+}
+
+function amountToWords(amount: number): string {
+  const rupees = Math.floor(amount)
+  const paise = Math.round((amount - rupees) * 100)
+  let result = numToWords(rupees) + " Rupees"
+  if (paise > 0) result += " and " + numToWords(paise) + " Paise"
+  return result + " Only"
+}
+
 function CreateInvoicePage() {
-  useDocumentTitle("Create Invoice")
   const [inventoryItems, setInventoryItems] = useLocalStorage<InventoryItem[]>(
     "items",
     [],
@@ -200,7 +229,7 @@ function CreateInvoicePage() {
   const [searchParams] = useSearchParams()
   const preselectedCustomerId = searchParams.get("customerId") ?? undefined
   const preselectedItemId = searchParams.get("itemId") ?? undefined
-  const documentType = searchParams.get("documentType") || "invoice"
+  const documentType = searchParams.get("documentType") ?? "invoice"
 
   const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
 
@@ -216,7 +245,7 @@ function CreateInvoicePage() {
           : "clean-teal"
 
   const { data: customersRes } = useQuery(customersListQueryOptions())
-  const customers: Customer[] = (customersRes?.data ?? []).filter(Boolean) as unknown as Customer[]
+  const customers: Customer[] = customersRes?.data ?? []
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
   const [invoiceNumber] = useState<string>(generateInvoiceNumber)
@@ -225,7 +254,7 @@ function CreateInvoicePage() {
   const [previewOpen, setPreviewOpen] = useState<boolean>(false)
 
   const form = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceFormSchema) as any,
+    resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       customerName: "",
       customerPhone: "",
@@ -239,10 +268,10 @@ function CreateInvoicePage() {
       placeOfSupply: "",
       reverseCharge: false,
       discountType: "percent",
-      discountValue: undefined,
-      shippingCharge: undefined,
+      discountValue: "",
+      shippingCharge: "",
       extraChargeLabel: "Handling Charges",
-      extraChargeAmount: undefined,
+      extraChargeAmount: "",
       roundOff: false,
       bankName: "",
       accountName: "",
@@ -264,7 +293,7 @@ function CreateInvoicePage() {
   const currency = form.watch("currency")
 
   const createCustomerMutation = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (payload: Record<string, unknown>) => {
       return CustomersService.createCustomer({
         requestBody: payload,
       })
@@ -275,7 +304,7 @@ function CreateInvoicePage() {
   })
 
   const createInvoiceMutation = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (payload: Record<string, unknown>) => {
       return InvoicesService.createInvoice({
         requestBody: payload,
       })
@@ -318,7 +347,7 @@ function CreateInvoicePage() {
       const invItem = inventoryItems.find((i) => i.id === itemId)
       if (!invItem) return
 
-      setItems((prev) =>
+    setItems((prev) =>
         prev.map((item, i) =>
           i === index
             ? {
@@ -329,6 +358,8 @@ function CreateInvoicePage() {
                 price: invItem.salePrice || 0,
                 tax: invItem.taxRate || 0,
                 unit: invItem.unit || "pcs",
+                hsnCode: invItem.hsnCode || "",
+                showHsn: !!(invItem.hsnCode),
               }
             : item,
         ),
@@ -367,7 +398,7 @@ function CreateInvoicePage() {
   const updateItem = (
     index: number,
     field: keyof InvoiceItem,
-    value: string | number,
+    value: string | number | boolean,
   ) => {
     setItems((prev) =>
       prev.map((item, i) =>
@@ -375,19 +406,21 @@ function CreateInvoicePage() {
           ? {
               ...item,
               [field]:
-                field === "quantity" ||
-                field === "price" ||
-                field === "tax" ||
-                field === "discount"
-                  ? Number(value) || 0
-                  : value,
+                field === "showHsn"
+                  ? Boolean(value)
+                  : field === "quantity" ||
+                      field === "price" ||
+                      field === "tax" ||
+                      field === "discount"
+                    ? Number(value) || 0
+                    : value,
             }
           : item,
       ),
     )
   }
 
-  const { subtotal, totalTax, itemsDiscount, invoiceDiscount, grandTotal } =
+  const { subtotal, totalTax, itemsDiscount, invoiceDiscount, rawGrandTotal, grandTotal } =
     useMemo(() => {
       let sub = 0
       let tax = 0
@@ -424,6 +457,7 @@ function CreateInvoicePage() {
         totalTax: adjustedTax,
         itemsDiscount: itemDisc,
         invoiceDiscount: invDisc,
+        rawGrandTotal: rawGrand,
         grandTotal: grand,
       }
     }, [
@@ -511,6 +545,7 @@ function CreateInvoicePage() {
       showErrorToast("Failed to save invoice")
     }
 
+    let _stockDeducted = false
     setInventoryItems((prev) => {
       const newInventory = [...prev]
       items.forEach((invLine) => {
@@ -534,6 +569,7 @@ function CreateInvoicePage() {
             },
           ],
         }
+        _stockDeducted = true
       })
       return newInventory
     })
@@ -616,7 +652,7 @@ function CreateInvoicePage() {
       red?: boolean
     }
 
-    const summaryEntries: SummaryEntry[] = [
+    const summaryEntries: (SummaryEntry | null)[] = [
       { label: "Subtotal", value: cs + subtotal.toFixed(2) },
       itemsDiscount > 0
         ? {
@@ -642,7 +678,7 @@ function CreateInvoicePage() {
             value: cs + Number(extraChargeAmount).toFixed(2),
           }
         : null,
-    ].filter((e): e is SummaryEntry => e !== null)
+    ].filter(Boolean) as SummaryEntry[]
 
     const bankHtml =
       activeBankDetails &&
@@ -1236,7 +1272,7 @@ function CreateInvoicePage() {
           },
         }
 
-        const pdfBlob = await html2pdf().set(opt as any).from(html).output("blob")
+        const pdfBlob = await html2pdf().set(opt).from(html).output("blob")
         const file = new File([pdfBlob], filename, { type: "application/pdf" })
 
         try {
@@ -1273,11 +1309,27 @@ function CreateInvoicePage() {
       return
     }
 
+    const html = buildInvoiceHtml()
     const finalSubject = `Invoice ${invoiceNumber} from ${companyDetails.name || "AutoInvoice"}`
-    const mailBody = `Dear ${formData.customerName},\n\nPlease find your invoice ${invoiceNumber} for ${currencySymbol}${grandTotal.toFixed(2)} attached.\n\nDue Date: ${formData.dueDate || "N/A"}\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
-    window.open(
-      `mailto:${formData.customerEmail}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`,
-    )
+    const apiUrl = OpenAPI.BASE || ""
+
+    try {
+      showSuccessToast("Sending invoice via email...")
+      await api.post(`${apiUrl}/api/v1/utils/send-invoice/`, {
+        email_to: formData.customerEmail,
+        subject: finalSubject,
+        html_content: html,
+      })
+      showSuccessToast(`Invoice successfully sent to ${formData.customerEmail}`)
+      return
+    } catch (err) {
+      console.error("Email API failed:", err)
+      const mailBody = `Dear ${formData.customerName},\n\nPlease find your invoice ${invoiceNumber} for ${currencySymbol}${grandTotal.toFixed(2)} attached.\n\nDue Date: ${formData.dueDate || "N/A"}\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
+      window.open(
+        `mailto:${formData.customerEmail}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`,
+      )
+      return
+    }
   }
 
   return (
@@ -1298,7 +1350,7 @@ function CreateInvoicePage() {
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit as any)}
+          onSubmit={form.handleSubmit(onSubmit)}
           className="grid grid-cols-1 lg:grid-cols-3 gap-4"
         >
           <div className="lg:col-span-2 space-y-6">
@@ -1521,10 +1573,16 @@ function CreateInvoicePage() {
                             <button
                               type="button"
                               onClick={() => field.onChange(!field.value)}
-                              className={`relative w-10 h-5 rounded-full transition-colors ${field.value ? "bg-primary" : "bg-muted"}`}
+                              className={`relative inline-flex w-11 h-6 rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
+                                field.value
+                                  ? "bg-primary"
+                                  : "bg-slate-300 dark:bg-slate-600"
+                              }`}
                             >
                               <span
-                                className={`absolute top-0.5 w-4 h-4 rounded-full bg-background shadow transition-all ${field.value ? "left-5" : "left-0.5"}`}
+                                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out ${
+                                  field.value ? "translate-x-5" : "translate-x-0.5"
+                                }`}
                               />
                             </button>
                             <span className="text-xs text-muted-foreground">
@@ -1549,9 +1607,9 @@ function CreateInvoicePage() {
               </CardHeader>
               <CardContent>
                 <ModernExcelTable
-                  items={items as any}
-                  inventoryItems={inventoryItems as any}
-                  updateItem={updateItem as any}
+                  items={items}
+                  inventoryItems={inventoryItems}
+                  updateItem={updateItem}
                   handleItemSelect={handleItemSelect}
                   addItem={addItem}
                   removeItem={removeItem}
@@ -1680,10 +1738,16 @@ function CreateInvoicePage() {
                           <button
                             type="button"
                             onClick={() => field.onChange(!field.value)}
-                            className={`relative w-10 h-5 rounded-full transition-colors ${field.value ? "bg-primary" : "bg-muted"}`}
+                            className={`relative inline-flex w-11 h-6 rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
+                              field.value
+                                ? "bg-primary"
+                                : "bg-slate-300 dark:bg-slate-600"
+                            }`}
                           >
                             <span
-                              className={`absolute top-0.5 w-4 h-4 rounded-full bg-background shadow transition-all ${field.value ? "left-5" : "left-0.5"}`}
+                              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out ${
+                                field.value ? "translate-x-5" : "translate-x-0.5"
+                              }`}
                             />
                           </button>
                         </FormControl>
@@ -1911,8 +1975,8 @@ function CreateInvoicePage() {
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">Round Off</span>
                     <span className="text-muted-foreground">
-                      {Math.round(grandTotal) - grandTotal >= 0 ? "+" : ""}
-                      {(Math.round(grandTotal) - grandTotal).toFixed(2)}
+                      {(grandTotal - rawGrandTotal) >= 0 ? "+" : ""}
+                      {(grandTotal - rawGrandTotal).toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -1923,6 +1987,12 @@ function CreateInvoicePage() {
                     {currencySymbol}
                     {grandTotal.toFixed(2)}
                   </span>
+                </div>
+                <div className="rounded-md bg-muted/40 border border-border/30 px-3 py-2 mt-1">
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    <span className="font-semibold text-foreground">Amount in Words: </span>
+                    {amountToWords(roundOff ? Math.round(grandTotal) : grandTotal)}
+                  </p>
                 </div>
 
                 <Separator />
