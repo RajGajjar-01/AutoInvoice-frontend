@@ -1,6 +1,9 @@
 import { Suspense } from "react"
-import { useNavigate, useParams, type LoaderFunctionArgs } from "react-router"
-import { ItemDetail, type Item as ItemDetailItem } from "@/components/Items/ItemDetail"
+import { type LoaderFunctionArgs, useNavigate, useParams } from "react-router"
+import {
+  ItemDetail,
+  type Item as ItemDetailItem,
+} from "@/components/Items/ItemDetail"
 import PendingItemDetail from "@/components/Pending/PendingItemDetail"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import useLocalStorage from "@/hooks/useLocalStorage"

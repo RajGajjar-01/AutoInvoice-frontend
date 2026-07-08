@@ -31,9 +31,7 @@ import ItemsPage from "@/routes/_layout/items/index"
 import ItemDetailPage, {
   loader as itemDetailLoader,
 } from "@/routes/_layout/items.$itemId"
-import NotificationsPage, {
-  loader as notificationsLoader,
-} from "@/routes/_layout/notifications"
+import NotificationsPage from "@/routes/_layout/notifications"
 import AccountPage from "@/routes/_layout/profile"
 import UserSettings from "@/routes/_layout/settings"
 import TemplateBuilderPage from "@/routes/_layout/template-builder"
@@ -69,11 +67,7 @@ export const router = createBrowserRouter([
           { path: "insights", element: <InsightsPage /> },
           { path: "invoices", element: <InvoicesPage /> },
           { path: "invoice-templates", element: <InvoiceTemplatesPage /> },
-          {
-            path: "notifications",
-            element: <NotificationsPage />,
-            loader: notificationsLoader,
-          },
+          { path: "notifications", element: <NotificationsPage /> },
           { path: "profile", element: <AccountPage /> },
           { path: "settings", element: <UserSettings /> },
           { path: "create-invoice", element: <CreateInvoicePage /> },

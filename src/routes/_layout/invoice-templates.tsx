@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
 import type { LucideIcon } from "lucide-react"
-import React from "react"
 import {
   ArrowLeft,
   Briefcase,
@@ -17,6 +16,7 @@ import {
   Upload,
   Wrench,
 } from "lucide-react"
+import type React from "react"
 import { useRef, useState } from "react"
 import { Link } from "react-router"
 import { ExcelImportDialog } from "@/components/InvoiceTemplates/ExcelImportDialog"
@@ -1577,8 +1577,6 @@ function InvoiceTemplatesPage() {
           ? "imported"
           : "clean-teal"
 
-  const customTemplate = serverCustomTemplate?.custom_data ?? null
-
   const importedTemplate: ImportedTemplate | null = serverImportedTemplate
     ? serverImportedTemplate.kind === "imported_pdf"
       ? {
@@ -1756,7 +1754,7 @@ function InvoiceTemplatesPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="font-display text-2xl font-bold tracking-tight">
             Invoice Templates
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -1845,97 +1843,6 @@ function InvoiceTemplatesPage() {
             </Card>
           )
         })}
-      </div>
-
-      {/* Custom Template Builder */}
-      <div className="mt-2">
-        <h2 className="text-lg font-semibold mb-4">Custom Template Builder</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Saved custom template card — shown only if one exists */}
-          {customTemplate && (
-            <Card
-              className={`relative hover:shadow-lg transition-all duration-200 ${
-                selectedTemplate === "custom"
-                  ? "border-primary ring-2 ring-primary/20"
-                  : "hover:border-primary/40"
-              }`}
-            >
-              {selectedTemplate === "custom" && (
-                <div className="absolute top-3 right-3 z-10">
-                  <Badge variant="default" className="text-xs shadow">
-                    <Check className="mr-1 h-3 w-3" />
-                    Active
-                  </Badge>
-                </div>
-              )}
-              <CardHeader className="pt-3 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-md p-1.5 bg-primary/10 text-primary">
-                    <Pencil className="h-4 w-4" />
-                  </div>
-                  <CardTitle className="text-sm">
-                    Your Custom Template
-                  </CardTitle>
-                </div>
-                <CardDescription className="text-xs">
-                  Last edited:{" "}
-                  {new Date(customTemplate.savedAt).toLocaleDateString()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div className="flex flex-wrap gap-1 mb-3">
-                  <Badge variant="outline" className="text-[10px] font-normal">
-                    {customTemplate.blocks?.length || 0} blocks
-                  </Badge>
-                  <Badge variant="outline" className="text-[10px] font-normal">
-                    Custom layout
-                  </Badge>
-                </div>
-                <div className="flex gap-2">
-                  <Link to="/template-builder" className="flex-1">
-                    <Button size="sm" variant="outline" className="w-full">
-                      <Pencil className="mr-1 h-3 w-3" />
-                      Edit
-                    </Button>
-                  </Link>
-                  <Button
-                    size="sm"
-                    className="flex-1"
-                    variant={
-                      selectedTemplate === "custom" ? "secondary" : "default"
-                    }
-                    onClick={() => handleSelectTemplate("custom")}
-                    disabled={selectedTemplate === "custom"}
-                  >
-                    {selectedTemplate === "custom" ? "Selected" : "Use This"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Builder launcher card */}
-          <Card className="border-dashed hover:border-primary/40 hover:shadow-md transition-all duration-200">
-            <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="rounded-full bg-primary/10 p-4 mb-3">
-                <Pencil className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-base font-semibold mb-1">
-                Drag & Drop Builder
-              </h3>
-              <p className="text-xs text-muted-foreground max-w-xs mb-4">
-                Arrange Company Header, Customer Details, Item Table, Signature
-                and more into your own layout — then save and use it.
-              </p>
-              <Link to="/template-builder">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Open Template Builder
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
       {/* ── Import Your Own Template ── */}

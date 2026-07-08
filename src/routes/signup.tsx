@@ -53,7 +53,6 @@ function SignUp() {
 
   const onSubmit = (data: FormValues) => {
     if (signUpMutation.isPending) return
-    // exclude confirm_password from submission data
     const { confirm_password: _confirm_password, ...submitData } = data
     signUpMutation.mutate(submitData)
   }
@@ -66,7 +65,10 @@ function SignUp() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Create an account</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight">Create an account</h1>
+            <p className="text-sm text-muted-foreground">
+              Get started with AutoInvoice
+            </p>
           </div>
 
           <div className="grid gap-4">
@@ -79,8 +81,9 @@ function SignUp() {
                   <FormControl>
                     <Input
                       data-testid="full-name-input"
-                      placeholder="User"
+                      placeholder="John Doe"
                       type="text"
+                      autoComplete="name"
                       {...field}
                     />
                   </FormControl>
@@ -100,6 +103,7 @@ function SignUp() {
                       data-testid="email-input"
                       placeholder="user@example.com"
                       type="email"
+                      autoComplete="email"
                       {...field}
                     />
                   </FormControl>
@@ -117,7 +121,8 @@ function SignUp() {
                   <FormControl>
                     <PasswordInput
                       data-testid="password-input"
-                      placeholder="Password"
+                      placeholder="Create a password"
+                      autoComplete="new-password"
                       {...field}
                     />
                   </FormControl>
@@ -135,7 +140,8 @@ function SignUp() {
                   <FormControl>
                     <PasswordInput
                       data-testid="confirm-password-input"
-                      placeholder="Confirm Password"
+                      placeholder="Re-enter your password"
+                      autoComplete="new-password"
                       {...field}
                     />
                   </FormControl>
@@ -149,7 +155,7 @@ function SignUp() {
               className="w-full"
               loading={signUpMutation.isPending}
             >
-              Sign Up
+              Create Account
             </LoadingButton>
           </div>
 
@@ -157,16 +163,19 @@ function SignUp() {
             By signing up, you agree to our{" "}
             <RouterLink
               to="/privacy-policy"
-              className="underline underline-offset-4 hover:text-foreground"
+              className="underline underline-offset-4 hover:text-foreground transition-colors"
             >
               Privacy Policy
             </RouterLink>
             .
           </p>
 
-          <div className="text-center text-sm">
+          <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <RouterLink to="/login" className="underline underline-offset-4">
+            <RouterLink
+              to="/login"
+              className="underline underline-offset-4 hover:text-foreground transition-colors font-medium"
+            >
               Log in
             </RouterLink>
           </div>

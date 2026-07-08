@@ -2,6 +2,7 @@ import gsap from "gsap"
 import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
 import { Link } from "react-router"
+import { InteractiveDotGrid } from "@/components/Landing/InteractiveDotGrid"
 import { Button } from "@/components/ui/button"
 
 export function Hero() {
@@ -33,15 +34,6 @@ export function Hero() {
         "-=0.1",
       )
       tl.from(
-        ".hero-title .text-primary",
-        {
-          opacity: 0,
-          duration: 0.25,
-          ease: "power2.out",
-        },
-        "-=0.15",
-      )
-      tl.from(
         ".hero-subtitle",
         {
           y: 16,
@@ -67,11 +59,14 @@ export function Hero() {
   }, [])
 
   return (
-    <section ref={heroRef} className="relative overflow-hidden">
-      <div className="hero-dot-grid absolute inset-0 -z-10" />
+    <section
+      ref={heroRef}
+      className="relative flex min-h-[calc(100svh-4rem)] items-center overflow-hidden"
+    >
+      <InteractiveDotGrid />
       <div className="absolute top-0 left-1/2 -z-10 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-primary/6 blur-3xl" />
 
-      <div className="mx-auto max-w-4xl px-6 py-24 md:py-32 lg:py-40">
+      <div className="mx-auto max-w-4xl px-6 py-20">
         <div className="flex flex-col items-center text-center">
           <div className="hero-badge inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-1.5 text-sm mb-6">
             <CheckCircle2 className="h-4 w-4 text-primary" />

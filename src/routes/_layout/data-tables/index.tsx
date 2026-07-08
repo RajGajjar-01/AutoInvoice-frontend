@@ -1,4 +1,3 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
 import {
   Copy,
   MoreHorizontal,
@@ -9,9 +8,9 @@ import {
   Trash2,
 } from "lucide-react"
 import { useState } from "react"
-import { useNavigate } from "react-router"
+import { useLoaderData, useNavigate, useRevalidator } from "react-router"
 import { toast } from "sonner"
-import { TablesService } from "@/client"
+import { type DataTablePublic, TablesService } from "@/client"
 import { EmptyState } from "@/components/DataTables/EmptyState"
 import { TemplateSelector } from "@/components/DataTables/TemplateSelector"
 import { Badge } from "@/components/ui/badge"
@@ -35,9 +34,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { tablesListQueryOptions } from "@/features/data-tables/queries"
+import { adaptTableListItemToUi } from "@/features/data-tables/queries"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { queryClient } from "@/queryClient"
 
 interface TableData {
   id: string
@@ -61,17 +59,29 @@ interface RenameDialogState {
   renameValue: string
 }
 
-export function loader() {
-  queryClient.ensureQueryData(tablesListQueryOptions({}))
+export async function loader() {
+  try {
+    const res = await TablesService.listTables({
+      skip: 0,
+      limit: 50,
+      sortBy: "created_at",
+      sortOrder: "desc",
+    })
+    const items = (res.data ?? []) as DataTablePublic[]
+    return { data: items.map(adaptTableListItemToUi) }
+  } catch {
+    return { data: [] }
+  }
 }
 
 function DataTablesPage() {
   useDocumentTitle("Data Tables")
   const navigate = useNavigate()
+  const { revalidate } = useRevalidator()
   const [search, setSearch] = useState("")
 
-  const { data } = useQuery(tablesListQueryOptions({}))
-  const allTables = (data?.data ?? []) as unknown as TableData[]
+  const { data } = useLoaderData() as { data: ReturnType<typeof adaptTableListItemToUi>[] }
+  const allTables = data as unknown as TableData[]
   const q = search.trim().toLowerCase()
   const tables = q
     ? allTables.filter(
@@ -97,54 +107,6 @@ function DataTablesPage() {
     renameValue: "",
   })
 
-  const deleteTableMutation = useMutation({
-    mutationFn: async (tableId: string) => {
-      return TablesService.deleteTable({ tableId })
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["tables"] })
-      toast.success("Table deleted")
-    },
-    onError: () => {
-      toast.error("Failed to delete table")
-    },
-  })
-
-  const renameTableMutation = useMutation({
-    mutationFn: async ({
-      tableId,
-      name,
-    }: {
-      tableId: string
-      name: string
-    }) => {
-      return TablesService.updateTable({
-        tableId,
-        requestBody: { name },
-      })
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["tables"] })
-      toast.success("Table renamed")
-    },
-    onError: () => {
-      toast.error("Failed to rename table")
-    },
-  })
-
-  const duplicateTableMutation = useMutation({
-    mutationFn: async (tableId: string) => {
-      return TablesService.duplicateTable({ tableId })
-    },
-    onSuccess: async (_createdTable) => {
-      await queryClient.invalidateQueries({ queryKey: ["tables"] })
-      toast.success("Table duplicated")
-    },
-    onError: () => {
-      toast.error("Failed to duplicate table")
-    },
-  })
-
   // ── Handlers ────────────────────────────────────────────────────────────
   const openCreateBlank = () => navigate("/data-tables/new")
 
@@ -162,16 +124,22 @@ function DataTablesPage() {
     })
   }
 
-  const handleDeleteConfirm = () => {
-    if (deleteDialog.tableId) {
-      deleteTableMutation.mutate(deleteDialog.tableId)
-    }
+  const handleDeleteConfirm = async () => {
+    const tableId = deleteDialog.tableId
     setDeleteDialog({
       open: false,
       tableId: null,
       tableName: "",
       confirmInput: "",
     })
+    if (!tableId) return
+    try {
+      await TablesService.deleteTable({ tableId })
+      toast.success("Table deleted")
+      revalidate()
+    } catch {
+      toast.error("Failed to delete table")
+    }
   }
 
   const handleRenameRequest = (id: string) => {
@@ -185,26 +153,36 @@ function DataTablesPage() {
     })
   }
 
-  const handleRenameConfirm = () => {
+  const handleRenameConfirm = async () => {
     const trimmed = renameDialog.renameValue.trim()
-    if (trimmed && trimmed !== renameDialog.tableName) {
-      if (renameDialog.tableId) {
-        renameTableMutation.mutate({
-          tableId: renameDialog.tableId,
-          name: trimmed,
-        })
-      }
-    }
+    const tableId = renameDialog.tableId
     setRenameDialog({
       open: false,
       tableId: null,
       tableName: "",
       renameValue: "",
     })
+    if (!tableId || !trimmed || trimmed === renameDialog.tableName) return
+    try {
+      await TablesService.updateTable({
+        tableId,
+        requestBody: { name: trimmed },
+      })
+      toast.success("Table renamed")
+      revalidate()
+    } catch {
+      toast.error("Failed to rename table")
+    }
   }
 
-  const handleDuplicate = (id: string) => {
-    duplicateTableMutation.mutate(id)
+  const handleDuplicate = async (id: string) => {
+    try {
+      await TablesService.duplicateTable({ tableId: id })
+      toast.success("Table duplicated")
+      revalidate()
+    } catch {
+      toast.error("Failed to duplicate table")
+    }
   }
 
   const deleteNameMatches =
@@ -215,7 +193,7 @@ function DataTablesPage() {
       {/* ── Page Header ──────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="font-display text-2xl font-bold tracking-tight">
             Your Data Tables
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -255,9 +233,7 @@ function DataTablesPage() {
           )}
 
           {allTables.length === 0 ? (
-            <EmptyState
-              onCreateClick={openCreateBlank}
-            />
+            <EmptyState onCreateClick={openCreateBlank} />
           ) : (
             <div className="rounded-xl border border-border bg-card overflow-hidden">
               {/* List header */}

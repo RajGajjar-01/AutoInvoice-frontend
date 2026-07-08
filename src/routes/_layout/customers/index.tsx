@@ -14,12 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import { customersListQueryOptions } from "@/features/customers/queries"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function CustomersEmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-20">
+    <div className="flex flex-col items-center justify-center text-center py-20 animate-in">
       <div className="rounded-full bg-muted p-5 mb-5">
         <ContactRound className="h-8 w-8 text-muted-foreground" />
       </div>
@@ -28,6 +29,32 @@ function CustomersEmptyState() {
         Get started by adding your first customer, supplier, or company.
       </p>
       <AddCustomer />
+    </div>
+  )
+}
+
+function CustomersSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-9 w-36" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-24 rounded-xl border bg-card p-6">
+            <Skeleton className="h-4 w-24 mb-3" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+        ))}
+      </div>
+      <div className="h-8 w-full skeleton-loading" />
+      <div className="h-64 rounded-xl border bg-card">
+        <Skeleton className="h-full w-full" />
+      </div>
     </div>
   )
 }
@@ -48,7 +75,7 @@ function StatsCard({
   valueClass,
 }: StatsCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
@@ -83,7 +110,9 @@ interface Customer {
 function CustomersPage() {
   useDocumentTitle("Customers")
   const { data, isLoading } = useQuery(customersListQueryOptions())
-  const customers: Customer[] = (data?.data?.filter((c): c is NonNullable<typeof c> => c != null) ?? []) as Customer[]
+  const customers: Customer[] = (data?.data?.filter(
+    (c): c is NonNullable<typeof c> => c != null,
+  ) ?? []) as Customer[]
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const deferredSearch = useDeferredValue(search)
@@ -106,10 +135,7 @@ function CustomersPage() {
       }
     }
 
-    return {
-      customerCount: customersTotal,
-      supplierCount: suppliersTotal,
-    }
+    return { customerCount: customersTotal, supplierCount: suppliersTotal }
   }, [customers])
 
   const filtered = useMemo(() => {
@@ -141,12 +167,13 @@ function CustomersPage() {
 
   const totalCount = customers.length
 
+  if (isLoading) return <CustomersSkeleton />
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-in">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Customers</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Manage your customers, suppliers, and companies
           </p>
@@ -154,8 +181,7 @@ function CustomersPage() {
         <AddCustomer />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in animate-in-delay-1">
         <StatsCard
           icon={Users}
           title="Total Parties"
@@ -178,13 +204,11 @@ function CustomersPage() {
         />
       </div>
 
-      {/* Content */}
-      {isLoading ? null : customers.length === 0 ? (
+      {customers.length === 0 ? (
         <CustomersEmptyState />
       ) : (
         <>
-          {/* Toolbar */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 animate-in animate-in-delay-2">
             <div className="relative max-w-sm flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -208,7 +232,7 @@ function CustomersPage() {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="flex flex-col items-center justify-center py-16 text-center animate-in">
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Search className="h-6 w-6 text-muted-foreground" />
               </div>
@@ -218,7 +242,9 @@ function CustomersPage() {
               </p>
             </div>
           ) : (
-            <DataTable columns={columns} data={filtered as any} />
+            <div className="animate-in animate-in-delay-2">
+              <DataTable columns={columns} data={filtered as any} />
+            </div>
           )}
         </>
       )}

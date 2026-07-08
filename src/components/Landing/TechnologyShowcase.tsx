@@ -51,7 +51,7 @@ function BarChart() {
           {yLabels.map((label) => (
             <div
               key={label}
-              className="border-t border-dashed border-muted-foreground/10 w-full"
+              className="chart-gridline border-t border-dashed border-muted-foreground/10 w-full origin-left"
             />
           ))}
         </div>
@@ -62,7 +62,7 @@ function BarChart() {
             className="flex-1 flex flex-col items-center justify-end h-full relative z-10"
           >
             <div
-              className={`w-full max-w-[28px] rounded-t-md transition-all duration-500 ${bar.accent ? "bg-primary" : "bg-foreground/10 dark:bg-foreground/15"}`}
+              className={`chart-bar w-full max-w-[28px] rounded-t-md ${bar.accent ? "bg-primary" : "bg-foreground/10 dark:bg-foreground/15"}`}
               style={{ height: `${bar.value}%` }}
             />
           </div>
@@ -146,21 +146,32 @@ export function TechnologyShowcase() {
         })
       })
 
-      // Bar chart bars animate height
-      const bars = gsap.utils.toArray<Element>(".tech-card .rounded-t-md")
-      bars.forEach((bar, i) => {
-        gsap.from(bar, {
-          scaleY: 0,
-          transformOrigin: "bottom",
-          duration: 0.5,
-          delay: 0.3 + i * 0.06,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: bar,
-            start: "top 95%",
-            toggleActions: "play none none none",
-          },
-        })
+      // Dashboard chart: gridlines sweep in, then bars grow from the baseline
+      gsap.from(".chart-gridline", {
+        scaleX: 0,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.05,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".tech-card",
+          start: "top 85%",
+          toggleActions: "play none none none",
+        },
+      })
+
+      gsap.from(".chart-bar", {
+        scaleY: 0,
+        transformOrigin: "bottom",
+        duration: 0.6,
+        delay: 0.2,
+        stagger: 0.07,
+        ease: "back.out(1.6)",
+        scrollTrigger: {
+          trigger: ".tech-card",
+          start: "top 85%",
+          toggleActions: "play none none none",
+        },
       })
     }, sectionRef)
 

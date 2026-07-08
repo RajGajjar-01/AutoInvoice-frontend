@@ -51,10 +51,9 @@ api.interceptors.request.use((config) => {
       if (nextConfig.headers instanceof axios.AxiosHeaders) {
         nextConfig.headers.set("X-CSRF-Token", csrf)
       } else {
-        nextConfig.headers = Object.assign(
-          nextConfig.headers ?? {},
-          { "X-CSRF-Token": csrf },
-        ) as AxiosHeaders
+        nextConfig.headers = Object.assign(nextConfig.headers ?? {}, {
+          "X-CSRF-Token": csrf,
+        }) as AxiosHeaders
       }
     }
   }

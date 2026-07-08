@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "@tanstack/react-query"
 import { Bell, MessageSquare, Phone } from "lucide-react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useRevalidator } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
 import { TablesService } from "@/client"
@@ -27,8 +27,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { tablesQueryKeys } from "@/features/data-tables/queries"
-import { queryClient } from "@/queryClient"
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 const reminderSchema = z.object({
@@ -86,44 +84,29 @@ export function ReminderModal({
   }, [open, form])
 
   const { isSubmitting } = form.formState
+  const { revalidate } = useRevalidator()
 
-  const createReminderMutation = useMutation({
-    mutationFn: async (reminderData: {
-      row_id: string
-      title: string
-      description: string
-      date: string
-      notificationType: string
-    }) => {
-      return TablesService.createTableReminder({
+  const onSubmit = async (data: FormValues) => {
+    if (!rowId) return
+    try {
+      await TablesService.createTableReminder({
         tableId,
         requestBody: {
-          reminder_data: reminderData,
+          reminder_data: {
+            row_id: rowId,
+            title: data.title,
+            description: data.description ?? "",
+            date: data.date,
+            notificationType: data.notificationType,
+          },
         },
       })
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId),
-      })
+      revalidate()
       toast.success("Reminder set successfully")
       onOpenChange(false)
-    },
-    onError: () => {
+    } catch {
       toast.error("Failed to set reminder")
-    },
-  })
-
-  const onSubmit = (data: FormValues) => {
-    if (!rowId) return
-
-    createReminderMutation.mutate({
-      row_id: rowId,
-      title: data.title,
-      description: data.description ?? "",
-      date: data.date,
-      notificationType: data.notificationType,
-    })
+    }
   }
 
   return (

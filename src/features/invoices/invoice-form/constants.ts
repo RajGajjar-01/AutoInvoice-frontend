@@ -1,0 +1,80 @@
+import { z } from "zod"
+import type { InvoiceItem } from "./types"
+
+export const gstinRegex =
+  /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
+
+export const invoiceFormSchema = z.object({
+  customerName: z.string().min(1, { message: "Customer name is required" }),
+  customerPhone: z.string().optional(),
+  customerEmail: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .or(z.literal(""))
+    .optional(),
+  customerGst: z
+    .string()
+    .refine((v) => !v || gstinRegex.test(v.toUpperCase()), {
+      message: "Invalid GSTIN format (e.g. 22AAAAA0000A1Z5)",
+    })
+    .optional(),
+  customerAddress: z.string().optional(),
+  invoiceDate: z.string().min(1, { message: "Invoice date is required" }),
+  dueDate: z.string().optional(),
+  currency: z.enum(["INR", "USD", "EUR", "GBP", "AED", "SGD"]),
+  poNumber: z.string().optional(),
+  placeOfSupply: z.string().optional(),
+  reverseCharge: z.boolean().optional(),
+  discountType: z.enum(["percent", "flat"]).optional(),
+  discountValue: z.coerce.number().nonnegative().optional(),
+  shippingCharge: z.coerce.number().nonnegative().optional(),
+  extraChargeLabel: z.string().optional(),
+  extraChargeAmount: z.coerce.number().nonnegative().optional(),
+  roundOff: z.boolean().optional(),
+  bankName: z.string().optional(),
+  accountName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifsc: z.string().optional(),
+  branch: z.string().optional(),
+  upi: z.string().optional(),
+  notes: z.string().optional(),
+  paymentTerms: z.string().optional(),
+})
+
+export type InvoiceFormData = z.infer<typeof invoiceFormSchema>
+
+export const emptyItem: InvoiceItem = {
+  name: "",
+  description: "",
+  quantity: 0,
+  price: 0,
+  tax: 0,
+}
+
+export const defaultFormValues: InvoiceFormData = {
+  customerName: "",
+  customerPhone: "",
+  customerEmail: "",
+  customerGst: "",
+  customerAddress: "",
+  invoiceDate: new Date().toISOString().slice(0, 10),
+  dueDate: "",
+  currency: "INR",
+  poNumber: "",
+  placeOfSupply: "",
+  reverseCharge: false,
+  discountType: "percent",
+  discountValue: undefined,
+  shippingCharge: undefined,
+  extraChargeLabel: "Handling Charges",
+  extraChargeAmount: undefined,
+  roundOff: false,
+  bankName: "",
+  accountName: "",
+  accountNumber: "",
+  ifsc: "",
+  branch: "",
+  upi: "",
+  notes: "",
+  paymentTerms: "",
+}

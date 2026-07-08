@@ -1,18 +1,9 @@
-import { TablesService } from "@/client/sdk.gen"
 import type {
   DataTablePublic,
   DataTableWithRows,
   TableReminderPublic,
   TableRowPublic,
 } from "@/client/types.gen"
-
-interface TableListParams {
-  skip?: number
-  limit?: number
-  sortBy?: string
-  sortOrder?: string
-  search?: string
-}
 
 interface AdaptedRow {
   id: string
@@ -63,41 +54,4 @@ export const adaptTableListItemToUi = (table: DataTablePublic) => ({
   ...table,
   createdAt: table.created_at,
   updatedAt: table.updated_at,
-})
-
-export const tablesQueryKeys = {
-  all: ["tables"],
-  list: (params?: TableListParams) => [
-    ...tablesQueryKeys.all,
-    "list",
-    params ?? {},
-  ],
-  detail: (tableId: string) => [...tablesQueryKeys.all, "detail", tableId],
-}
-
-export const tablesListQueryOptions = (params?: TableListParams) => ({
-  queryKey: tablesQueryKeys.list(params),
-  queryFn: async () => {
-    const res = await TablesService.listTables({
-      skip: params?.skip ?? 0,
-      limit: params?.limit ?? 50,
-      sortBy: params?.sortBy ?? "created_at",
-      sortOrder: params?.sortOrder ?? "desc",
-      search: params?.search,
-    })
-    const data = (res.data ?? []) as DataTablePublic[]
-    return {
-      ...res,
-      data: data.map(adaptTableListItemToUi),
-    }
-  },
-})
-
-export const tableDetailQueryOptions = (tableId: string | undefined) => ({
-  queryKey: tablesQueryKeys.detail(tableId ?? ""),
-  queryFn: async () => {
-    const table = await TablesService.getTable({ tableId: tableId! })
-    return adaptTableDetailToUi(table)
-  },
-  enabled: !!tableId,
 })

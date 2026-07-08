@@ -32,7 +32,7 @@ function StatsCard({
   valueClass,
 }: StatsCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
@@ -50,7 +50,7 @@ function StatsCard({
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
+    <div className="flex flex-col items-center justify-center py-20 text-center animate-in">
       <div className="rounded-full bg-muted p-5 mb-5">
         <Package className="h-8 w-8 text-muted-foreground" />
       </div>
@@ -93,22 +93,18 @@ function ItemsPage() {
   const [stockFilter, setStockFilter] = useState<string>("all")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
 
-  // Derived stats
   const totalCount = items.length
   const lowStockCount = items.filter(
     (i) => (i.stock ?? 0) > 0 && (i.stock ?? 0) < (i.lowStockThreshold ?? 5),
   ).length
   const outOfStockCount = items.filter((i) => (i.stock ?? 0) === 0).length
 
-  // Categories for filter dropdown
   const categories = [
     "all",
     ...new Set(items.map((i) => i.category).filter(Boolean)),
   ]
 
-  // Filtering
   const filtered = items.filter((item) => {
-    // Stock status filter
     if (
       stockFilter === "in_stock" &&
       (item.stock ?? 0) < (item.lowStockThreshold ?? 5)
@@ -120,11 +116,9 @@ function ItemsPage() {
     }
     if (stockFilter === "out_of_stock" && (item.stock ?? 0) !== 0) return false
 
-    // Category filter
     if (categoryFilter !== "all" && item.category !== categoryFilter)
       return false
 
-    // Search
     const q = search.trim().toLowerCase()
     if (!q) return true
     return (
@@ -141,7 +135,7 @@ function ItemsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Items</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight">Items</h1>
             <p className="text-muted-foreground text-sm mt-1">
               Manage your product catalogue and track stock
             </p>
@@ -154,10 +148,9 @@ function ItemsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-in">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Items</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Items</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Manage your product catalogue and track stock
           </p>
@@ -165,8 +158,7 @@ function ItemsPage() {
         <AddItem />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in animate-in-delay-1">
         <StatsCard
           icon={Package}
           title="Total Items"
@@ -191,8 +183,7 @@ function ItemsPage() {
         />
       </div>
 
-      {/* Toolbar */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-3 flex-wrap animate-in animate-in-delay-2">
         <div className="relative max-w-sm flex-1 min-w-40">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -203,7 +194,6 @@ function ItemsPage() {
           />
         </div>
 
-        {/* Category filter */}
         {categories.length > 1 && (
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-36">
@@ -223,7 +213,6 @@ function ItemsPage() {
           </Select>
         )}
 
-        {/* Stock filter */}
         <Select value={stockFilter} onValueChange={setStockFilter}>
           <SelectTrigger className="w-36">
             <SelectValue placeholder="Stock status" />
@@ -238,9 +227,8 @@ function ItemsPage() {
         </Select>
       </div>
 
-      {/* Table or no-results */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex flex-col items-center justify-center py-16 text-center animate-in">
           <div className="rounded-full bg-muted p-4 mb-4">
             <Search className="h-6 w-6 text-muted-foreground" />
           </div>
@@ -250,7 +238,9 @@ function ItemsPage() {
           </p>
         </div>
       ) : (
-        <DataTable columns={columns} data={filtered as any} />
+        <div className="animate-in animate-in-delay-2">
+          <DataTable columns={columns} data={filtered as any} />
+        </div>
       )}
     </div>
   )

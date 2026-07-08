@@ -152,7 +152,9 @@ function InvoiceDetailPage() {
     }) => {
       return InvoicesService.updateInvoice({
         id,
-        requestBody: patch as Parameters<typeof InvoicesService.updateInvoice>[0]["requestBody"],
+        requestBody: patch as Parameters<
+          typeof InvoicesService.updateInvoice
+        >[0]["requestBody"],
       })
     },
     onSuccess: async () => {
@@ -357,7 +359,9 @@ function InvoiceDetailPage() {
                     <TableBody>
                       {validItems.map((it, i) => {
                         const lineTotal =
-                          (it.quantity ?? 0) * (it.price ?? 0) * (1 + (it.tax ?? 0) / 100)
+                          (it.quantity ?? 0) *
+                          (it.price ?? 0) *
+                          (1 + (it.tax ?? 0) / 100)
                         return (
                           <TableRow key={i}>
                             <TableCell>
@@ -515,7 +519,9 @@ function InvoiceDetailPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
                 <Badge
-                  variant={statusVariant[invoice.status ?? "unpaid"] ?? "outline"}
+                  variant={
+                    statusVariant[invoice.status ?? "unpaid"] ?? "outline"
+                  }
                   className="capitalize cursor-pointer gap-1"
                   onClick={handleToggleStatus}
                 >

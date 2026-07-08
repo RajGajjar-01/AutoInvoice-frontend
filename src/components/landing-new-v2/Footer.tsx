@@ -1,28 +1,40 @@
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/components/ui/separator"
 
 export function Footer() {
   const footerSections = {
     product: {
       title: "Product",
-      links: ["Features", "Pricing", "Security", "Integrations", "API"]
+      links: ["Features", "Pricing", "Security", "Integrations", "API"],
     },
     company: {
       title: "Company",
-      links: ["About Us", "Careers", "Blog", "Press Kit", "Contact"]
+      links: ["About Us", "Careers", "Blog", "Press Kit", "Contact"],
     },
     resources: {
       title: "Resources",
-      links: ["Help Center", "Guides", "Webinars", "Case Studies", "Community"]
+      links: ["Help Center", "Guides", "Webinars", "Case Studies", "Community"],
     },
     forAccountants: {
       title: "For Accountants",
-      links: ["Partner Program", "Client Management", "GST Tools", "Training", "Support"]
+      links: [
+        "Partner Program",
+        "Client Management",
+        "GST Tools",
+        "Training",
+        "Support",
+      ],
     },
     legal: {
       title: "Legal",
-      links: ["Privacy Policy", "Terms of Service", "Cookie Policy", "Data Security", "Compliance"]
-    }
-  };
+      links: [
+        "Privacy Policy",
+        "Terms of Service",
+        "Cookie Policy",
+        "Data Security",
+        "Compliance",
+      ],
+    },
+  }
 
   return (
     <footer className="bg-[#111111] text-white py-24">
@@ -31,7 +43,9 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-12 mb-16">
           {Object.entries(footerSections).map(([key, section]) => (
             <div key={key}>
-              <h4 className="font-bold text-lg mb-6 text-white">{section.title}</h4>
+              <h4 className="font-bold text-lg mb-6 text-white">
+                {section.title}
+              </h4>
               <ul className="space-y-4">
                 {section.links.map((link, index) => (
                   <li key={index}>
@@ -65,7 +79,11 @@ export function Footer() {
 
             <div className="flex gap-8">
               {["Twitter", "LinkedIn", "YouTube"].map((social) => (
-                <a key={social} href="#" className="text-gray-400 hover:text-white transition-colors text-sm font-medium">
+                <a
+                  key={social}
+                  href="#"
+                  className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                >
                   {social}
                 </a>
               ))}
@@ -74,5 +92,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  );
+  )
 }

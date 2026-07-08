@@ -40,7 +40,8 @@ import {
   User,
   X,
 } from "lucide-react"
-import React, { useCallback, useState } from "react"
+import type React from "react"
+import { useCallback, useState } from "react"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -611,16 +612,30 @@ function CanvasDropZone({ onDrop }: CanvasDropZoneProps) {
       ref={setNodeRef}
       onClick={onDrop}
       className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl py-14 text-center transition-colors ${
-        isOver ? "border-primary bg-primary/5" : "border-border"
+        isOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
       }`}
     >
-      <div className="rounded-full bg-muted p-4 mb-3">
-        <Table2 className="h-7 w-7 text-muted-foreground" />
+      <div className="rounded-full bg-primary/10 p-4 mb-3">
+        <Building2 className="h-7 w-7 text-primary" />
       </div>
-      <p className="font-medium text-sm mb-1">Canvas is empty</p>
-      <p className="text-xs text-muted-foreground">
-        Click a block on the left to add it here
+      <p className="font-medium text-sm mb-1">Start with Company Header</p>
+      <p className="text-xs text-muted-foreground max-w-[200px]">
+        Click <strong>Fields</strong> on the left and add blocks — or use
+        the preset layout
       </p>
+      <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <Plus className="h-3 w-3" /> add
+        </span>
+        <span>→</span>
+        <span className="flex items-center gap-1">
+          <GripVertical className="h-3 w-3" /> reorder
+        </span>
+        <span>→</span>
+        <span className="flex items-center gap-1">
+          <Save className="h-3 w-3" /> save
+        </span>
+      </div>
     </div>
   )
 }
@@ -946,10 +961,17 @@ function TemplateBuilderPage() {
   const serverCustomTemplate =
     serverTemplates.find((t) => t.kind === "custom") ?? null
   const savedTemplate = serverCustomTemplate?.custom_data ?? null
-  const savedData = savedTemplate as { blocks?: Block[]; globalStyle?: GlobalStyle; savedAt?: string } | null
+  const savedData = savedTemplate as {
+    blocks?: Block[]
+    globalStyle?: GlobalStyle
+    savedAt?: string
+  } | null
 
-  const [blocks, setBlocks] = useState<Block[]>(() =>
-    (savedData?.blocks?.length ? savedData.blocks : DEFAULT_BLOCKS) as Block[],
+  const [blocks, setBlocks] = useState<Block[]>(
+    () =>
+      (savedData?.blocks?.length
+        ? savedData.blocks
+        : DEFAULT_BLOCKS) as Block[],
   )
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dragActiveId, setDragActiveId] = useState<string | null>(null)
@@ -1232,8 +1254,33 @@ function TemplateBuilderPage() {
             {/* ── Fields tab ── */}
             {leftTab === "blocks" && (
               <div className="p-2 space-y-1">
+                {/* Preset banner */}
+                <div className="mx-1 mb-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-primary mb-0.5">
+                    Start from preset
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mb-2">
+                    Load all standard invoice blocks in one click
+                  </p>
+                  <button
+                    onClick={() => {
+                      setBlocks(
+                        DEFAULT_BLOCKS.map((b) => ({
+                          ...b,
+                          id: `def-${Date.now()}-${b.id}`,
+                          style: {},
+                        })),
+                      )
+                      setSelectedId(null)
+                      showSuccessToast("Preset layout loaded")
+                    }}
+                    className="w-full text-[10px] font-medium text-primary border border-primary/30 rounded px-2 py-1 hover:bg-primary/10 transition-colors"
+                  >
+                    Load Standard Layout
+                  </button>
+                </div>
                 <p className="text-[10px] text-muted-foreground px-2 pb-1 pt-1 uppercase tracking-wide font-medium">
-                  Available Blocks — Click to add
+                  All Blocks — Click to add
                 </p>
                 {BLOCK_DEFS.map((def) => {
                   const Icon = def.icon
@@ -1296,12 +1343,18 @@ function TemplateBuilderPage() {
                   {blocks.length} block{blocks.length !== 1 && "s"}
                 </Badge>
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <GripVertical className="h-3 w-3" /> drag to reorder
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length === 0 ? "bg-primary/10 text-primary font-medium" : "line-through opacity-40"}`}>
+                  1. Add blocks
                 </span>
-                <span>·</span>
-                <span>click to style</span>
+                <span className="opacity-30">→</span>
+                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length > 0 && !selectedId ? "bg-primary/10 text-primary font-medium" : selectedId ? "line-through opacity-40" : "opacity-40"}`}>
+                  2. Style them
+                </span>
+                <span className="opacity-30">→</span>
+                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length > 0 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium" : "opacity-40"}`}>
+                  3. Save
+                </span>
               </div>
             </div>
           </CardHeader>

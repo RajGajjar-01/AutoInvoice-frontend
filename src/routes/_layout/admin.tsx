@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Suspense, useMemo } from "react"
 import { redirect } from "react-router"
-import { AdminService, UsersService, type UserPublic } from "@/client"
+import { AdminService, type UserPublic, UsersService } from "@/client"
 import AddUser from "@/components/Admin/AddUser"
 import { columns } from "@/components/Admin/columns"
 import { DataTable } from "@/components/Common/DataTable"
@@ -56,7 +56,7 @@ function Admin() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Users</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground">
             Manage user accounts and permissions
           </p>

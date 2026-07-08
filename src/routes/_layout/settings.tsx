@@ -186,14 +186,14 @@ function UserSettings() {
   }
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">User Settings</h1>
+      <div className="animate-in">
+        <h1 className="font-display text-2xl font-bold tracking-tight">User Settings</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Manage your account settings and preferences
         </p>
       </div>
 
-      <Tabs defaultValue="my-profile">
+      <Tabs defaultValue="my-profile" className="animate-in animate-in-delay-1">
         <TabsList>
           {finalTabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>

@@ -53,7 +53,10 @@ function Login() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Login to your account</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight">Welcome back</h1>
+            <p className="text-sm text-muted-foreground">
+              Sign in to your account to continue
+            </p>
           </div>
 
           <div className="grid gap-4">
@@ -68,6 +71,7 @@ function Login() {
                       data-testid="email-input"
                       placeholder="user@example.com"
                       type="email"
+                      autoComplete="email"
                       {...field}
                     />
                   </FormControl>
@@ -85,7 +89,7 @@ function Login() {
                     <FormLabel>Password</FormLabel>
                     <RouterLink
                       to="/recover-password"
-                      className="ml-auto text-sm underline-offset-4 hover:underline"
+                      className="ml-auto text-xs underline-offset-4 hover:underline text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Forgot your password?
                     </RouterLink>
@@ -93,7 +97,8 @@ function Login() {
                   <FormControl>
                     <PasswordInput
                       data-testid="password-input"
-                      placeholder="Password"
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
                       {...field}
                     />
                   </FormControl>
@@ -102,14 +107,21 @@ function Login() {
               )}
             />
 
-            <LoadingButton type="submit" loading={loginMutation.isPending}>
-              Log In
+            <LoadingButton
+              type="submit"
+              className="w-full"
+              loading={loginMutation.isPending}
+            >
+              Sign In
             </LoadingButton>
           </div>
 
-          <div className="text-center text-sm">
+          <div className="text-center text-sm text-muted-foreground">
             Don't have an account yet?{" "}
-            <RouterLink to="/signup" className="underline underline-offset-4">
+            <RouterLink
+              to="/signup"
+              className="underline underline-offset-4 hover:text-foreground transition-colors font-medium"
+            >
               Sign up
             </RouterLink>
           </div>

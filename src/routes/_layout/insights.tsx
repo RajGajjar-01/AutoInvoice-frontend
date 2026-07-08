@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query"
-import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
   BarChart3,
@@ -7,14 +5,9 @@ import {
   CircleX,
   FileText,
   IndianRupee,
-  LineChart as LineChartIcon,
-  TrendingDown,
   TrendingUp,
   Users,
 } from "lucide-react"
-import { useTheme } from "next-themes"
-import { useMemo } from "react"
-import { Link } from "react-router"
 import {
   Area,
   AreaChart,
@@ -31,418 +24,80 @@ import {
   YAxis,
 } from "recharts"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { customersListQueryOptions } from "@/features/customers/queries"
 import {
-  invoicesListQueryOptions,
-  invoicesStatsQueryOptions,
-} from "@/features/invoices/queries"
+  RevenueTooltip,
+  VolumeTooltip,
+} from "@/features/insights/components/ChartTooltips"
+import { EmptyInsights } from "@/features/insights/components/EmptyInsights"
+import { InsightsKpiCard } from "@/features/insights/components/InsightsKpiCard"
+import { InsightsSkeleton } from "@/features/insights/components/InsightsSkeleton"
+import { SectionHeader } from "@/features/insights/components/SectionHeader"
+import {
+  INSIGHT_COLORS,
+  useInsights,
+} from "@/features/insights/hooks/useInsights"
+import { fmtShort } from "@/features/invoices/utils"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getCurrencySymbol(currency?: string): string {
-  if (currency === "INR") return "₹"
-  if (currency === "USD") return "$"
-  if (currency === "EUR") return "€"
-  if (currency === "GBP") return "£"
-  return currency || "₹"
-}
-
-function fmt(num: number | undefined, currency?: string): string {
-  const cs = getCurrencySymbol(currency)
-  return `${cs}${Number(num || 0).toLocaleString("en-IN", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })}`
-}
-
-function pct(a: number, b: number): number | null {
-  if (!b) return null
-  return Math.round(((a - b) / b) * 100)
-}
-
-function monthLabel(date: Date): string {
-  return date.toLocaleString("en-IN", { month: "short" })
-}
-
-interface MonthBucket {
-  label: string
-  start: Date
-  end: Date
-}
-
-function getLastNMonths(n: number): MonthBucket[] {
-  const months: MonthBucket[] = []
-  const now = new Date()
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const start = new Date(d.getFullYear(), d.getMonth(), 1)
-    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
-    months.push({ label: monthLabel(d), start, end })
-  }
-  return months
-}
-
-// ─── Chart colour tokens ───────────────────────────────────────────────────────
-
-const COLORS: Record<string, string> = {
-  paid: "hsl(142 71% 45%)",
-  unpaid: "hsl(43 96% 56%)",
-  overdue: "hsl(0 72% 51%)",
-  revenue: "hsl(217 91% 60%)",
-}
-
-// ─── Custom Tooltips ──────────────────────────────────────────────────────────
-
-interface TooltipPayload {
-  name: string
-  value: number
-  color: string
-}
-
-interface RevenueTooltipProps {
-  active?: boolean
-  payload?: TooltipPayload[]
-  label?: string
-}
-
-function RevenueTooltip({ active, payload, label }: RevenueTooltipProps) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="rounded-lg border bg-popover px-3 py-2 text-sm shadow-md text-popover-foreground">
-      <p className="font-semibold mb-1">{label}</p>
-      {payload.map((p) => (
-        <p key={p.name} style={{ color: p.color }}>
-          {p.name}: {fmt(p.value)}
-        </p>
-      ))}
-    </div>
-  )
-}
-
-interface VolumeTooltipProps {
-  active?: boolean
-  payload?: TooltipPayload[]
-  label?: string
-}
-
-function VolumeTooltip({ active, payload, label }: VolumeTooltipProps) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="rounded-lg border bg-popover px-3 py-2 text-sm shadow-md text-popover-foreground">
-      <p className="font-semibold mb-1">{label}</p>
-      {payload.map((p) => (
-        <p key={p.name} style={{ color: p.color }}>
-          {p.name}: {p.value}
-        </p>
-      ))}
-    </div>
-  )
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-interface KpiCardProps {
-  icon: LucideIcon
-  title: string
-  value: string
-  sub?: string
-  trend?: number | null
-  trendUp?: boolean
-  iconClass: string
-  valueClass?: string
-}
-
-function KpiCard({
-  icon: Icon,
-  title,
-  value,
-  sub,
-  trend,
-  trendUp,
-  iconClass,
-  valueClass,
-}: KpiCardProps) {
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <div className={`rounded-lg p-2 ${iconClass}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-bold ${valueClass ?? ""}`}>{value}</div>
-        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-          {trend !== null && trend !== undefined && (
-            <Badge
-              variant={trendUp ? "default" : "destructive"}
-              className="text-xs font-medium gap-0.5 px-1.5"
-            >
-              {trendUp ? (
-                <TrendingUp className="h-2.5 w-2.5" />
-              ) : (
-                <TrendingDown className="h-2.5 w-2.5" />
-              )}
-              {Math.abs(trend)}%
-            </Badge>
-          )}
-          {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-interface SectionHeaderProps {
-  icon: LucideIcon
-  title: string
-  description?: string
-}
-
-function SectionHeader({ icon: Icon, title, description }: SectionHeaderProps) {
-  return (
-    <div className="flex items-center gap-3 mb-4">
-      <div className="rounded-lg bg-primary/10 p-2 text-primary">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div>
-        <h2 className="text-base font-semibold">{title}</h2>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function EmptyInsights() {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 text-center gap-6">
-      <div className="rounded-full bg-muted p-6">
-        <LineChartIcon className="h-10 w-10 text-muted-foreground" />
-      </div>
-      <div>
-        <h2 className="text-xl font-semibold mb-2">No financial data yet</h2>
-        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-          Create your first invoice to see insights here.
-        </p>
-      </div>
-      <div className="flex gap-3">
-        <Link to="/create-invoice">
-          <Button>
-            <FileText className="mr-2 h-4 w-4" />
-            Create Invoice
-          </Button>
-        </Link>
-      </div>
-    </div>
-  )
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-interface Invoice {
-  id: string
-  grandTotal?: number
-  createdAt?: string
-  invoiceDate?: string
-  status: "paid" | "unpaid" | "overdue"
-  customer?: {
-    name?: string
-  }
-}
-
-interface MonthlyChartData {
-  month: string
-  revenue: number
-  paid: number
-  unpaid: number
-  overdue: number
-}
-
-interface PieDataItem {
-  name: string
-  value: number
-  color: string
-}
-
-interface TopCustomer {
-  name: string
-  revenue: number
-}
 
 function InsightsPage() {
   useDocumentTitle("Insights")
-  const { resolvedTheme } = useTheme()
+  const {
+    invoices,
+    isLoading,
+    kpis,
+    monthlyChartData,
+    pieData,
+    topCustomers,
+    tickColor,
+  } = useInsights()
 
-  // Fetch data from API using React Query
-  const { data: invoicesResponse } = useQuery(invoicesListQueryOptions())
-  useQuery(invoicesStatsQueryOptions())
-  useQuery(customersListQueryOptions())
-
-  const invoices: Invoice[] = (invoicesResponse?.data ?? []).filter(Boolean) as unknown as Invoice[]
-
-  // SVG fill attributes don't resolve CSS custom properties
-  const tickColor = resolvedTheme === "dark" ? "#94a3b8" : "#64748b"
-
-  const now = new Date()
-  const thirtyDaysAgo = new Date(now)
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-  const sixtyDaysAgo = new Date(now)
-  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
-
-  // ── Core KPIs ────────────────────────────────────────────────────────────
-  const kpis = useMemo(() => {
-    const totalRevenue = invoices.reduce(
-      (s, i) => s + (Number(i.grandTotal) || 0),
-      0,
-    )
-
-    const thisMonthInv = invoices.filter(
-      (i) => new Date(i.createdAt || i.invoiceDate || "") >= thirtyDaysAgo,
-    )
-    const prevMonthInv = invoices.filter((i) => {
-      const d = new Date(i.createdAt || i.invoiceDate || "")
-      return d >= sixtyDaysAgo && d < thirtyDaysAgo
-    })
-    const thisRevenue = thisMonthInv.reduce(
-      (s, i) => s + (Number(i.grandTotal) || 0),
-      0,
-    )
-    const prevRevenue = prevMonthInv.reduce(
-      (s, i) => s + (Number(i.grandTotal) || 0),
-      0,
-    )
-
-    const outstanding = invoices
-      .filter((i) => i.status === "unpaid" || i.status === "overdue")
-      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-
-    const overdueAmt = invoices
-      .filter((i) => i.status === "overdue")
-      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-
-    const unpaidAmt = invoices
-      .filter((i) => i.status === "unpaid")
-      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-
-    const overdueCount = invoices.filter((i) => i.status === "overdue").length
-    const unpaidCount = invoices.filter((i) => i.status === "unpaid").length
-    const paidCount = invoices.filter((i) => i.status === "paid").length
-    const avgInvoice = invoices.length > 0 ? totalRevenue / invoices.length : 0
-
-    return {
-      totalRevenue,
-      thisRevenue,
-      prevRevenue,
-      outstanding,
-      overdueAmt,
-      unpaidAmt,
-      overdueCount,
-      unpaidCount,
-      paidCount,
-      avgInvoice,
-      revTrend: pct(thisRevenue, prevRevenue),
-    }
-  }, [invoices, sixtyDaysAgo, thirtyDaysAgo])
-
-  // ── Monthly chart data (last 6 months) ────────────────────────────────────
-  const months = getLastNMonths(6)
-  const monthlyChartData: MonthlyChartData[] = useMemo(() => {
-    return months.map(({ label, start, end }) => {
-      const bucket = invoices.filter((i) => {
-        const d = new Date(i.createdAt || i.invoiceDate || "")
-        return d >= start && d <= end
-      })
-      return {
-        month: label,
-        revenue: bucket.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
-        paid: bucket.filter((i) => i.status === "paid").length,
-        unpaid: bucket.filter((i) => i.status === "unpaid").length,
-        overdue: bucket.filter((i) => i.status === "overdue").length,
-      }
-    })
-  }, [invoices, months])
-
-  // ── Invoice status pie data ───────────────────────────────────────────────
-  const pieData: PieDataItem[] = useMemo(() => {
-    return [
-      { name: "Paid", value: kpis.paidCount, color: COLORS.paid },
-      { name: "Unpaid", value: kpis.unpaidCount, color: COLORS.unpaid },
-      { name: "Overdue", value: kpis.overdueCount, color: COLORS.overdue },
-    ].filter((d) => d.value > 0)
-  }, [kpis])
-
-  // ── Top 5 customers by revenue ────────────────────────────────────────────
-  const topCustomers: TopCustomer[] = useMemo(() => {
-    const map: Record<string, number> = {}
-    for (const inv of invoices) {
-      const name = inv.customer?.name || "Unknown"
-      map[name] = (map[name] || 0) + (Number(inv.grandTotal) || 0)
-    }
-    return Object.entries(map)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, revenue]) => ({
-        name: name.length > 15 ? `${name.slice(0, 13)}…` : name,
-        revenue,
-      }))
-  }, [invoices])
-
+  if (isLoading) return <InsightsSkeleton />
   if (!invoices.length) return <EmptyInsights />
 
-  // Tooltip content style
-  const tooltipContentStyle: React.CSSProperties = {
+  const tooltipStyle: React.CSSProperties = {
     borderRadius: "8px",
     fontSize: "12px",
     border: "1px solid",
-    borderColor:
-      resolvedTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-    background: resolvedTheme === "dark" ? "#1e1e1e" : "#ffffff",
-    color: resolvedTheme === "dark" ? "#f8fafc" : "#0f172a",
+    borderColor: "rgba(0,0,0,0.1)",
+    background: "#ffffff",
+    color: "#0f172a",
     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
   }
 
   return (
     <div className="flex flex-col gap-8">
-      {/* ── Page Header ── */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Insights</h1>
+      <div className="animate-in">
+        <h1 className="font-display text-2xl font-bold tracking-tight">Insights</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Financial overview, revenue trends, and collection analytics.
         </p>
       </div>
 
-      {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in animate-in-delay-1">
+        <InsightsKpiCard
           icon={IndianRupee}
           title="Total Revenue"
-          value={fmt(kpis.totalRevenue)}
+          value={fmtShort(kpis.totalRevenue)}
           sub="all invoices"
           iconClass="bg-emerald-500/10 text-emerald-500"
           valueClass="text-emerald-600 dark:text-emerald-400"
         />
-        <KpiCard
+        <InsightsKpiCard
           icon={TrendingUp}
           title="This Month"
-          value={fmt(kpis.thisRevenue)}
+          value={fmtShort(kpis.thisRevenue)}
           sub={kpis.prevRevenue > 0 ? "vs last 30 days" : "last 30 days"}
           trend={kpis.revTrend}
           trendUp={(kpis.revTrend ?? 0) >= 0}
           iconClass="bg-blue-500/10 text-blue-500"
           valueClass="text-blue-600 dark:text-blue-400"
         />
-        <KpiCard
+        <InsightsKpiCard
           icon={CircleDashed}
           title="Outstanding"
-          value={fmt(kpis.outstanding)}
+          value={fmtShort(kpis.outstanding)}
           sub={`${kpis.unpaidCount + kpis.overdueCount} invoices pending`}
           iconClass={
             kpis.overdueCount > 0
@@ -455,18 +110,16 @@ function InsightsPage() {
               : "text-amber-600 dark:text-amber-400"
           }
         />
-        <KpiCard
+        <InsightsKpiCard
           icon={BarChart3}
           title="Avg Invoice"
-          value={fmt(kpis.avgInvoice)}
+          value={fmtShort(kpis.avgInvoice)}
           sub={`across ${invoices.length} invoice${invoices.length !== 1 ? "s" : ""}`}
           iconClass="bg-violet-500/10 text-violet-500"
         />
       </div>
 
-      {/* ── Revenue Trend + Invoice Status ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-        {/* Area Chart – Revenue Trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start animate-in animate-in-delay-2">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <SectionHeader
@@ -485,12 +138,12 @@ function InsightsPage() {
                   <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="5%"
-                      stopColor={COLORS.revenue}
+                      stopColor={INSIGHT_COLORS.revenue}
                       stopOpacity={0.25}
                     />
                     <stop
                       offset="95%"
-                      stopColor={COLORS.revenue}
+                      stopColor={INSIGHT_COLORS.revenue}
                       stopOpacity={0}
                     />
                   </linearGradient>
@@ -509,7 +162,7 @@ function InsightsPage() {
                   tick={{ fontSize: 11, fill: tickColor }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v: number) => fmt(v)}
+                  tickFormatter={(v: number) => fmtShort(v)}
                   width={70}
                 />
                 <Tooltip content={<RevenueTooltip />} />
@@ -517,10 +170,10 @@ function InsightsPage() {
                   type="monotone"
                   dataKey="revenue"
                   name="Revenue"
-                  stroke={COLORS.revenue}
+                  stroke={INSIGHT_COLORS.revenue}
                   strokeWidth={2}
                   fill="url(#revenueGrad)"
-                  dot={{ r: 3, fill: COLORS.revenue, strokeWidth: 0 }}
+                  dot={{ r: 3, fill: INSIGHT_COLORS.revenue, strokeWidth: 0 }}
                   activeDot={{ r: 5 }}
                 />
               </AreaChart>
@@ -528,7 +181,6 @@ function InsightsPage() {
           </CardContent>
         </Card>
 
-        {/* Donut Chart – Invoice Status */}
         <Card>
           <CardHeader className="pb-2">
             <SectionHeader
@@ -565,7 +217,7 @@ function InsightsPage() {
                           `${value} invoice${value !== 1 ? "s" : ""}`,
                           name,
                         ]}
-                        contentStyle={tooltipContentStyle}
+                        contentStyle={tooltipStyle}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -597,9 +249,8 @@ function InsightsPage() {
         </Card>
       </div>
 
-      {/* ── Receivables Detail ── */}
       {(kpis.unpaidCount > 0 || kpis.overdueCount > 0) && (
-        <Card>
+        <Card className="animate-in animate-in-delay-3">
           <CardHeader className="pb-3">
             <SectionHeader
               icon={CircleDashed}
@@ -609,7 +260,6 @@ function InsightsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Unpaid */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-sm">
                   <CircleDashed className="h-4 w-4 text-amber-500" />
@@ -621,18 +271,15 @@ function InsightsPage() {
                   </Badge>
                 </div>
                 <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                  {fmt(kpis.unpaidAmt)}
+                  {fmtShort(kpis.unpaidAmt)}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   awaiting payment
                 </p>
               </div>
-
               <div className="hidden sm:flex items-center justify-center">
                 <Separator orientation="vertical" className="h-16" />
               </div>
-
-              {/* Overdue */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-sm">
                   <CircleX className="h-4 w-4 text-destructive" />
@@ -644,7 +291,7 @@ function InsightsPage() {
                   </Badge>
                 </div>
                 <p className="text-2xl font-bold text-destructive">
-                  {fmt(kpis.overdueAmt)}
+                  {fmtShort(kpis.overdueAmt)}
                 </p>
                 <p className="text-xs text-muted-foreground">past due date</p>
                 {kpis.overdueCount > 0 && (
@@ -661,16 +308,14 @@ function InsightsPage() {
             <div className="flex items-center justify-between text-sm font-semibold">
               <span>Total Outstanding</span>
               <span className="text-primary text-lg">
-                {fmt(kpis.outstanding)}
+                {fmtShort(kpis.outstanding)}
               </span>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* ── Top Customers + Monthly Volume ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Top Customers – horizontal bar */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-in animate-in-delay-3">
         <Card>
           <CardHeader className="pb-2">
             <SectionHeader
@@ -697,7 +342,7 @@ function InsightsPage() {
                     tick={{ fontSize: 11, fill: tickColor }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(v: number) => fmt(v)}
+                    tickFormatter={(v: number) => fmtShort(v)}
                   />
                   <YAxis
                     type="category"
@@ -711,7 +356,7 @@ function InsightsPage() {
                   <Bar
                     dataKey="revenue"
                     name="Revenue"
-                    fill={COLORS.revenue}
+                    fill={INSIGHT_COLORS.revenue}
                     radius={[0, 4, 4, 0]}
                   />
                 </BarChart>
@@ -724,7 +369,6 @@ function InsightsPage() {
           </CardContent>
         </Card>
 
-        {/* Monthly Invoice Volume – grouped bar */}
         <Card>
           <CardHeader className="pb-2">
             <SectionHeader
@@ -765,19 +409,19 @@ function InsightsPage() {
                 <Bar
                   dataKey="paid"
                   name="Paid"
-                  fill={COLORS.paid}
+                  fill={INSIGHT_COLORS.paid}
                   radius={[2, 2, 0, 0]}
                 />
                 <Bar
                   dataKey="unpaid"
                   name="Unpaid"
-                  fill={COLORS.unpaid}
+                  fill={INSIGHT_COLORS.unpaid}
                   radius={[2, 2, 0, 0]}
                 />
                 <Bar
                   dataKey="overdue"
                   name="Overdue"
-                  fill={COLORS.overdue}
+                  fill={INSIGHT_COLORS.overdue}
                   radius={[2, 2, 0, 0]}
                 />
               </BarChart>

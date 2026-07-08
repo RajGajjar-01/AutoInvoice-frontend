@@ -8,7 +8,7 @@ import {
   Package,
   Users,
 } from "lucide-react"
-import { useLayoutEffect, useRef } from "react"
+import { forwardRef, useLayoutEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 gsap.registerPlugin(ScrollTrigger)
@@ -78,17 +78,13 @@ const features: Feature[] = [
   },
 ]
 
-function FeatureCard({
-  feature,
-  wide,
-  className,
-}: {
-  feature: Feature
-  wide?: boolean
-  className?: string
-}) {
+const FeatureCard = forwardRef<
+  HTMLDivElement,
+  { feature: Feature; wide?: boolean; className?: string }
+>(function FeatureCard({ feature, wide, className }, ref) {
   return (
     <div
+      ref={ref}
       className={cn(
         "feature-card rounded-xl border bg-card p-6 transition-shadow duration-200 hover:shadow-md",
         wide ? "flex gap-5 items-start" : "flex flex-col",
@@ -117,10 +113,14 @@ function FeatureCard({
       </div>
     </div>
   )
-}
+})
+
+const WIDE_BASIS_START = "50%"
+const WIDE_BASIS_END = "66.6667%"
 
 export function Features() {
   const featuresRef = useRef<HTMLDivElement>(null)
+  const wideCardRefs = useRef<(HTMLDivElement | null)[]>([])
 
   useLayoutEffect(() => {
     const prefersReducedMotion = window.matchMedia(
@@ -135,12 +135,12 @@ export function Features() {
         gsap.from(card as Element, {
           opacity: 0,
           y: 24,
-          duration: 0.25,
-          delay: i * 0.05,
+          duration: 0.18,
+          delay: i * 0.03,
           ease: "power2.out",
           scrollTrigger: {
             trigger: card as Element,
-            start: "top 90%",
+            start: "top 95%",
             toggleActions: "play none none none",
           },
         })
@@ -157,13 +157,35 @@ export function Features() {
           toggleActions: "play none none none",
         },
       })
+
+      ScrollTrigger.matchMedia({
+        "(min-width: 768px)": () => {
+          for (const card of wideCardRefs.current) {
+            if (!card) continue
+            gsap.fromTo(
+              card,
+              { flexBasis: WIDE_BASIS_START },
+              {
+                flexBasis: WIDE_BASIS_END,
+                duration: 1.2,
+                ease: "elastic.out(1, 0.65)",
+                scrollTrigger: {
+                  trigger: card.parentElement ?? card,
+                  start: "top 90%",
+                  toggleActions: "play none none none",
+                },
+              },
+            )
+          }
+        },
+      })
     }, featuresRef)
 
     return () => ctx.revert()
   }, [])
 
   return (
-    <section ref={featuresRef} className="py-20">
+    <section ref={featuresRef} className="py-20 bg-muted/50">
       <div className="mx-auto max-w-6xl px-6">
         <div className="features-heading text-center mb-12">
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
@@ -175,19 +197,45 @@ export function Features() {
           </p>
         </div>
 
-        {/* Alternating bento grid: wide-narrow, narrow-wide, narrow-wide */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5">
-          {/* Row 1: wide left, narrow right */}
-          <FeatureCard feature={features[0]} wide className="md:col-span-2" />
-          <FeatureCard feature={features[1]} />
+        {/* Alternating bento rows: wide-narrow, narrow-wide, narrow-wide.
+            Wide cards grow from half-width to their final two-thirds width
+            as each row scrolls into view. */}
+        <div className="space-y-4 lg:space-y-5">
+          <div className="flex flex-col gap-4 md:flex-row lg:gap-5">
+            <FeatureCard
+              ref={(el) => {
+                wideCardRefs.current[0] = el
+              }}
+              feature={features[0]}
+              wide
+              className="md:shrink-0 md:grow-0 md:basis-2/3"
+            />
+            <FeatureCard feature={features[1]} className="md:min-w-0 md:flex-1" />
+          </div>
 
-          {/* Row 2: narrow left, wide right */}
-          <FeatureCard feature={features[2]} />
-          <FeatureCard feature={features[3]} wide className="md:col-span-2" />
+          <div className="flex flex-col gap-4 md:flex-row lg:gap-5">
+            <FeatureCard feature={features[2]} className="md:min-w-0 md:flex-1" />
+            <FeatureCard
+              ref={(el) => {
+                wideCardRefs.current[1] = el
+              }}
+              feature={features[3]}
+              wide
+              className="md:shrink-0 md:grow-0 md:basis-2/3"
+            />
+          </div>
 
-          {/* Row 3: narrow left, wide right */}
-          <FeatureCard feature={features[4]} />
-          <FeatureCard feature={features[5]} wide className="md:col-span-2" />
+          <div className="flex flex-col gap-4 md:flex-row lg:gap-5">
+            <FeatureCard feature={features[4]} className="md:min-w-0 md:flex-1" />
+            <FeatureCard
+              ref={(el) => {
+                wideCardRefs.current[2] = el
+              }}
+              feature={features[5]}
+              wide
+              className="md:shrink-0 md:grow-0 md:basis-2/3"
+            />
+          </div>
         </div>
       </div>
     </section>

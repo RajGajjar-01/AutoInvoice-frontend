@@ -10,6 +10,7 @@ import { Features } from "@/components/Landing/Features"
 import { Hero } from "@/components/Landing/Hero"
 import { HowItWorks } from "@/components/Landing/HowItWorks"
 import { Pricing } from "@/components/Landing/Pricing"
+import { ScrollTextReveal } from "@/components/Landing/ScrollTextReveal"
 import { TechnologyShowcase } from "@/components/Landing/TechnologyShowcase"
 import { Button } from "@/components/ui/button"
 import useAuth from "@/hooks/useAuth"
@@ -49,6 +50,7 @@ function LandingPage() {
       <main className="flex-1 animate-in">
         <Hero />
         <HowItWorks />
+        <ScrollTextReveal />
         <Features />
         <BusinessesAcrossIndia />
         <TechnologyShowcase />

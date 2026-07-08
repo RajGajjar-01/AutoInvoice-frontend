@@ -1,25 +1,25 @@
-import { useQuery } from "@tanstack/react-query"
-import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
   ArrowUpRight,
   BarChart3,
-  CheckCircle2,
-  ChevronRight,
   CircleDashed,
   CircleX,
   FilePlus,
   FileText,
-  History,
-  IndianRupee,
   Package,
   PackagePlus,
-  TrendingDown,
   TrendingUp,
   UserPlus,
   Users,
 } from "lucide-react"
 import { useMemo } from "react"
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+} from "recharts"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,265 +39,81 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { customersListQueryOptions } from "@/features/customers/queries"
-import {
-  invoicesListQueryOptions,
-  invoicesStatsQueryOptions,
-} from "@/features/invoices/queries"
-import useAuth from "@/hooks/useAuth"
+import { DashboardSkeleton } from "@/features/dashboard/components/DashboardSkeleton"
+import { KpiCard } from "@/features/dashboard/components/KpiCard"
+import { useDashboard } from "@/features/dashboard/hooks/useDashboard"
+import { QuickActionRow } from "@/features/invoices/components/QuickActionRow"
+import { StatusBadge } from "@/features/invoices/components/StatusBadge"
+import { fmtShort } from "@/features/invoices/utils"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import useLocalStorage from "@/hooks/useLocalStorage"
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getCurrencySymbol(currency?: string): string {
-  if (currency === "INR") return "₹"
-  if (currency === "USD") return "$"
-  if (currency === "EUR") return "€"
-  if (currency === "GBP") return "£"
-  return currency || "₹"
-}
-
-function fmt(num: number | string, currency?: string): string {
-  const cs = getCurrencySymbol(currency)
-  return `${cs}${Number(num || 0).toLocaleString("en-IN", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })}`
-}
-
-const statusVariant: Record<
-  string,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  paid: "default",
-  unpaid: "secondary",
-  overdue: "destructive",
-}
-
-const statusIcon: Record<string, LucideIcon> = {
-  paid: CheckCircle2,
-  unpaid: CircleDashed,
-  overdue: CircleX,
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-interface KpiCardProps {
-  icon: LucideIcon
-  title: string
-  value: string | number
-  sub?: string
-  trend?: number
-  trendUp?: boolean
-  iconClass?: string
-  valueClass?: string
-}
-
-function KpiCard({
-  icon: Icon,
-  title,
-  value,
-  sub,
-  trend,
-  trendUp,
-  iconClass,
-  valueClass,
-}: KpiCardProps) {
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <div className={`rounded-lg p-2 ${iconClass}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-bold ${valueClass ?? ""}`}>{value}</div>
-        <div className="flex items-center gap-1.5 mt-1.5">
-          {trend !== undefined && (
-            <Badge
-              variant={trendUp ? "default" : "destructive"}
-              className="text-xs font-medium gap-0.5 px-1.5"
-            >
-              {trendUp ? (
-                <TrendingUp className="h-2.5 w-2.5" />
-              ) : (
-                <TrendingDown className="h-2.5 w-2.5" />
-              )}
-              {Math.abs(trend)}%
-            </Badge>
-          )}
-          {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-interface QuickActionRowProps {
-  icon: LucideIcon
-  iconClass?: string
-  title: string
-  description: string
-  to: string
-}
-
-function QuickActionRow({
-  icon: Icon,
-  iconClass,
-  title,
-  description,
-  to,
-}: QuickActionRowProps) {
-  return (
-    <Link to={to} className="group">
-      <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors cursor-pointer">
-        <div className={`rounded-lg p-2 shrink-0 ${iconClass}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">{title}</p>
-          <p className="text-xs text-muted-foreground truncate">
-            {description}
-          </p>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
-      </div>
-    </Link>
-  )
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-interface Item {
-  id: string
-  name: string
-  stock?: number
-  lowStockThreshold?: number
-}
-
-interface Invoice {
-  id: string
-  invoiceNumber: string
-  invoiceDate?: string
-  status: string
-  grandTotal: number | string
-  currency?: string
-  createdAt?: string
-  customer?: {
-    name?: string
+function build30DayData(
+  invoices: { invoiceDate?: string; grandTotal: number | string; status: string }[],
+) {
+  const days: { label: string; revenue: number }[] = []
+  const now = new Date()
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now)
+    d.setDate(d.getDate() - i)
+    const key = d.toISOString().slice(0, 10)
+    const label = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+    const revenue = invoices
+      .filter(
+        (inv) =>
+          inv.invoiceDate === key && inv.status === "paid",
+      )
+      .reduce((s, inv) => s + (Number(inv.grandTotal) || 0), 0)
+    days.push({ label, revenue })
   }
+  return days
 }
 
 function Dashboard() {
   useDocumentTitle("Dashboard")
-  const { user: currentUser } = useAuth()
-  const [items] = useLocalStorage<Item[]>("items", [])
+  const {
+    stats,
+    recent,
+    invoices,
+    items,
+    greeting,
+    firstName,
+    hasData,
+    isLoading,
+  } = useDashboard()
 
-  const { data: statsRes } = useQuery(invoicesStatsQueryOptions())
-  const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
-  const { data: customersRes } = useQuery(customersListQueryOptions())
-  const invoices: Invoice[] = (invoicesRes?.data ?? []).filter(Boolean) as unknown as Invoice[]
-  const customers = customersRes?.data ?? []
+  const chartData = useMemo(() => build30DayData(invoices), [invoices])
+  const hasChartData = chartData.some((d) => d.revenue > 0)
 
-  // ── Date helpers ────────────────────────────────────────────────────────
-  const now = new Date()
-  const thirtyDaysAgo = new Date(now)
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-  const sixtyDaysAgo = new Date(now)
-  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
-
-  // ── Computed KPIs ───────────────────────────────────────────────────────
-  const stats = useMemo(() => {
-    const overdueCount = invoices.filter((i) => i.status === "overdue").length
-    const unpaidCount = invoices.filter((i) => i.status === "unpaid").length
-
-    const inStockItems = items.filter(
-      (it) => (it.stock ?? 0) > (it.lowStockThreshold ?? 5),
-    ).length
-    const lowStockItems = items.filter((it) => {
-      const s = it.stock ?? 0
-      return s > 0 && s <= (it.lowStockThreshold ?? 5)
-    }).length
-    const outItems = items.filter((it) => (it.stock ?? 0) === 0).length
-
-    return {
-      totalRevenue: Number(statsRes?.total_revenue ?? 0),
-      totalInvoices: Number(statsRes?.total_invoices ?? 0),
-      paidCount: Number(statsRes?.paid_count ?? 0),
-      unpaidCount: Number(statsRes?.unpaid_count ?? unpaidCount),
-      overdueCount: Number(statsRes?.overdue_count ?? overdueCount),
-      totalCustomers: Number(statsRes?.total_customers ?? 0),
-      outstanding: invoices
-        .filter((i) => i.status === "unpaid" || i.status === "overdue")
-        .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
-      inStockItems,
-      lowStockItems,
-      outItems,
-      prevRevenue: 0,
-      prevMonthCount: 0,
-    }
-  }, [invoices, items, statsRes])
-
-  // ── Recent invoices (last 5) ────────────────────────────────────────────
-  const recent = useMemo(
-    () =>
-      [...invoices]
-        .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
-        .slice(0, 5),
-    [invoices],
-  )
-
-  // ── Revenue trend ────────────────────────────────────────────────────────
-  const revTrend: number | undefined = undefined
-  const countTrend: number | undefined = undefined
-
-  // ── Greeting ─────────────────────────────────────────────────────────────
-  const hour = now.getHours()
-  const greeting =
-    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
-  const firstName =
-    currentUser?.full_name?.split(" ")[0] || currentUser?.email || "there"
-
-  const hasData =
-    invoices.length > 0 ||
-    Number(statsRes?.total_customers ?? 0) > 0 ||
-    items.length > 0
+  if (isLoading) return <DashboardSkeleton />
 
   return (
     <div className="flex flex-col gap-6">
-      {/* ── Header ── */}
-      <div className="flex items-start justify-between">
+      {/* Header */}
+      <div className="flex items-start justify-between animate-in">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="font-display text-2xl font-bold tracking-tight">
             {greeting}, {firstName}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             {hasData
-              ? "Here's what's happening with your business today."
+              ? "Here's your business overview for today."
               : "Welcome to AutoInvoice. Load demo data from Settings → Demo Data to get started."}
           </p>
         </div>
         <Link to="/create-invoice">
           <Button>
-            <FilePlus className="mr-2 h-4 w-4" />
-            New Invoice
+            <FilePlus className="mr-2 h-4 w-4" /> New Invoice
           </Button>
         </Link>
       </div>
 
-      {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in animate-in-delay-1">
         <KpiCard
-          icon={IndianRupee}
+          icon={TrendingUp}
           title="Total Revenue"
-          value={fmt(stats.totalRevenue)}
-          sub={stats.prevRevenue > 0 ? "vs last 30 days" : "all time"}
-          trend={stats.prevRevenue > 0 ? revTrend : undefined}
-          trendUp={revTrend !== undefined ? revTrend >= 0 : undefined}
+          value={fmtShort(stats.totalRevenue)}
+          sub="all invoices"
           iconClass="bg-emerald-500/10 text-emerald-500"
           valueClass="text-emerald-600 dark:text-emerald-400"
         />
@@ -305,16 +121,14 @@ function Dashboard() {
           icon={FileText}
           title="Total Invoices"
           value={stats.totalInvoices}
-          sub={stats.prevMonthCount > 0 ? "vs last 30 days" : "all time"}
-          trend={stats.prevMonthCount > 0 ? countTrend : undefined}
-          trendUp={countTrend !== undefined ? countTrend >= 0 : undefined}
+          sub={`${stats.paidCount} paid`}
           iconClass="bg-primary/10 text-primary"
         />
         <KpiCard
           icon={Users}
-          title="Active Customers"
+          title="Customers"
           value={stats.totalCustomers}
-          sub={`${customers.length || stats.totalCustomers} total parties`}
+          sub="active"
           iconClass="bg-blue-500/10 text-blue-500"
         />
         <KpiCard
@@ -326,16 +140,70 @@ function Dashboard() {
               ? `${stats.outItems} out of stock`
               : stats.lowStockItems > 0
                 ? `${stats.lowStockItems} running low`
-                : `of ${items.length} total items`
+                : `of ${items.length} total`
           }
           iconClass="bg-violet-500/10 text-violet-500"
           valueClass={stats.outItems > 0 ? "text-destructive" : ""}
         />
       </div>
 
-      {/* ── Body ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-        {/* Recent Invoices */}
+      {/* Revenue sparkline */}
+      <Card className="animate-in animate-in-delay-1">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Revenue — Last 30 Days</CardTitle>
+              <CardDescription className="text-xs">
+                Paid invoices only
+              </CardDescription>
+            </div>
+            <Link to="/insights">
+              <Button variant="ghost" size="sm" className="text-primary gap-1 text-xs">
+                Full Insights <ArrowUpRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {hasChartData ? (
+            <ResponsiveContainer width="100%" height={100}>
+              <BarChart data={chartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={6}
+                />
+                <Tooltip
+                  formatter={(v: number) => [fmtShort(v), "Revenue"]}
+                  contentStyle={{
+                    fontSize: 12,
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
+                    color: "var(--foreground)",
+                  }}
+                  cursor={{ fill: "var(--muted)", opacity: 0.4 }}
+                />
+                <Bar
+                  dataKey="revenue"
+                  fill="var(--primary)"
+                  radius={[3, 3, 0, 0]}
+                  maxBarSize={24}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[100px] text-xs text-muted-foreground">
+              No paid invoices in the last 30 days
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent invoices + right col */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start animate-in animate-in-delay-2">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
@@ -350,8 +218,7 @@ function Dashboard() {
                 size="sm"
                 className="text-primary gap-1 text-xs"
               >
-                View All
-                <ArrowUpRight className="h-3.5 w-3.5" />
+                Manage All <ArrowUpRight className="h-3.5 w-3.5" />
               </Button>
             </Link>
           </CardHeader>
@@ -367,8 +234,7 @@ function Dashboard() {
                 </p>
                 <Link to="/create-invoice">
                   <Button size="sm">
-                    <FilePlus className="mr-2 h-3.5 w-3.5" />
-                    Create Invoice
+                    <FilePlus className="mr-2 h-3.5 w-3.5" /> Create Invoice
                   </Button>
                 </Link>
               </div>
@@ -383,61 +249,50 @@ function Dashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recent.map((inv) => {
-                    const StatusIcon = statusIcon[inv.status] ?? CircleDashed
-                    return (
-                      <TableRow
-                        key={inv.id}
-                        className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      >
-                        <TableCell className="font-mono text-sm font-medium">
-                          <Link
-                            to={`/invoice-history/${inv.id}`}
-                            className="hover:text-primary transition-colors"
-                          >
-                            {inv.invoiceNumber}
-                            <p className="text-xs text-muted-foreground font-sans font-normal mt-0.5">
-                              {inv.invoiceDate || "—"}
-                            </p>
-                          </Link>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <Link
-                            to={`/invoice-history/${inv.id}`}
-                            className="block hover:text-primary transition-colors"
-                          >
-                            {inv.customer?.name || "—"}
-                          </Link>
-                        </TableCell>
-                        <TableCell className="text-right font-medium text-sm">
-                          <Link
-                            to={`/invoice-history/${inv.id}`}
-                            className="block hover:text-primary transition-colors"
-                          >
-                            {fmt(inv.grandTotal, inv.currency)}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={statusVariant[inv.status] ?? "outline"}
-                            className="capitalize gap-1 text-xs"
-                          >
-                            <StatusIcon className="h-3 w-3" />
-                            {inv.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
+                  {recent.map((inv) => (
+                    <TableRow
+                      key={inv.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    >
+                      <TableCell className="font-mono text-sm font-medium">
+                        <Link
+                          to={`/invoice-history/${inv.id}`}
+                          className="hover:text-primary transition-colors"
+                        >
+                          {inv.invoiceNumber}
+                          <p className="text-xs text-muted-foreground font-sans font-normal mt-0.5">
+                            {inv.invoiceDate || "—"}
+                          </p>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <Link
+                          to={`/invoice-history/${inv.id}`}
+                          className="block hover:text-primary transition-colors"
+                        >
+                          {inv.customer?.name || "—"}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-sm">
+                        <Link
+                          to={`/invoice-history/${inv.id}`}
+                          className="block hover:text-primary transition-colors"
+                        >
+                          {fmtShort(inv.grandTotal, inv.currency)}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={inv.status} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             )}
           </CardContent>
         </Card>
 
-        {/* Right sidebar */}
         <div className="flex flex-col gap-4">
-          {/* Outstanding + Overdue summary */}
           {hasData && (
             <Card>
               <CardHeader className="pb-3">
@@ -456,7 +311,7 @@ function Dashboard() {
                     </Badge>
                   </div>
                   <span className="font-medium">
-                    {fmt(
+                    {fmtShort(
                       invoices
                         .filter((i) => i.status === "unpaid")
                         .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
@@ -472,7 +327,7 @@ function Dashboard() {
                     </Badge>
                   </div>
                   <span className="font-medium text-destructive">
-                    {fmt(
+                    {fmtShort(
                       invoices
                         .filter((i) => i.status === "overdue")
                         .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
@@ -482,16 +337,16 @@ function Dashboard() {
                 <Separator />
                 <div className="flex items-center justify-between text-sm font-bold">
                   <span>Total Outstanding</span>
-                  <span className="text-primary">{fmt(stats.outstanding)}</span>
+                  <span className="text-primary">
+                    {fmtShort(stats.outstanding)}
+                  </span>
                 </div>
-
                 {stats.overdueCount > 0 && (
                   <div className="flex items-center gap-2 rounded-lg bg-destructive/5 border border-destructive/20 px-3 py-2 mt-1">
                     <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
                     <p className="text-xs text-destructive">
                       {stats.overdueCount} invoice
-                      {stats.overdueCount !== 1 ? "s" : ""} past due — follow up
-                      required
+                      {stats.overdueCount !== 1 ? "s" : ""} past due
                     </p>
                   </div>
                 )}
@@ -499,7 +354,6 @@ function Dashboard() {
             </Card>
           )}
 
-          {/* Quick Actions */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Quick Actions</CardTitle>
@@ -526,17 +380,9 @@ function Dashboard() {
                 description="Add a product or service to inventory"
                 to="/items"
               />
-              <QuickActionRow
-                icon={History}
-                iconClass="bg-emerald-500/10 text-emerald-500"
-                title="Invoice History"
-                description="Search and manage all invoices"
-                to="/invoices"
-              />
             </CardContent>
           </Card>
 
-          {/* Inventory Alert */}
           {(stats.lowStockItems > 0 || stats.outItems > 0) && (
             <Card className="border-amber-500/30">
               <CardHeader className="pb-3">
@@ -569,8 +415,7 @@ function Dashboard() {
                 )}
                 <Link to="/items">
                   <Button variant="outline" size="sm" className="w-full mt-2">
-                    <BarChart3 className="mr-2 h-3.5 w-3.5" />
-                    View Inventory
+                    <BarChart3 className="mr-2 h-3.5 w-3.5" /> View Inventory
                   </Button>
                 </Link>
               </CardContent>

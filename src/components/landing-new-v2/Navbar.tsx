@@ -1,17 +1,17 @@
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router";
-import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react"
+import { useState } from "react"
+import { Link } from "react-router"
+import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "@/components/ui/sheet"
 
 export function Navbar() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   const navLinks = [
     { name: "Features", href: "#features" },
@@ -19,7 +19,7 @@ export function Navbar() {
     { name: "Pricing", href: "#pricing" },
     { name: "About", href: "#about" },
     { name: "Contact", href: "#contact" },
-  ];
+  ]
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -51,7 +51,12 @@ export function Navbar() {
           <Button variant="ghost" asChild size="sm">
             <Link to="/login">Login</Link>
           </Button>
-          <Button asChild size="sm" variant="default" className="bg-[#0a4a5c] hover:bg-[#083a48]">
+          <Button
+            asChild
+            size="sm"
+            variant="default"
+            className="bg-[#0a4a5c] hover:bg-[#083a48]"
+          >
             <Link to="/signup">Start Free</Link>
           </Button>
         </div>
@@ -83,12 +88,22 @@ export function Navbar() {
                   </a>
                 ))}
                 <div className="flex flex-col gap-2 pt-4">
-                  <Button variant="outline" asChild size="default" className="w-full">
+                  <Button
+                    variant="outline"
+                    asChild
+                    size="default"
+                    className="w-full"
+                  >
                     <Link to="/login" onClick={() => setOpen(false)}>
                       Login
                     </Link>
                   </Button>
-                  <Button asChild variant="default" size="default" className="w-full bg-[#0a4a5c] hover:bg-[#083a48]">
+                  <Button
+                    asChild
+                    variant="default"
+                    size="default"
+                    className="w-full bg-[#0a4a5c] hover:bg-[#083a48]"
+                  >
                     <Link to="/signup" onClick={() => setOpen(false)}>
                       Start Free
                     </Link>
@@ -100,5 +115,5 @@ export function Navbar() {
         </div>
       </div>
     </nav>
-  );
+  )
 }

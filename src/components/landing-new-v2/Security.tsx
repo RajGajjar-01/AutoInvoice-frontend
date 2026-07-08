@@ -1,29 +1,33 @@
-import { Lock, ShieldCheck, FileText, Cloud } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Cloud, FileText, Lock, ShieldCheck } from "lucide-react"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export function Security() {
   const features = [
     {
       icon: Lock,
       title: "End-to-End Encryption",
-      description: "Your business data is encrypted in transit and at rest. Bank-grade security for all your information."
+      description:
+        "Your business data is encrypted in transit and at rest. Bank-grade security for all your information.",
     },
     {
       icon: ShieldCheck,
       title: "Role-Based Access",
-      description: "Control who sees what. Give staff limited access while maintaining full oversight as the owner."
+      description:
+        "Control who sees what. Give staff limited access while maintaining full oversight as the owner.",
     },
     {
       icon: FileText,
       title: "Audit Logs",
-      description: "Complete activity history. Track every change, who made it, and when—essential for compliance."
+      description:
+        "Complete activity history. Track every change, who made it, and when—essential for compliance.",
     },
     {
       icon: Cloud,
       title: "Secure Cloud Storage",
-      description: "Auto-backup to secure cloud servers. Your data is safe even if your device fails or is lost."
-    }
-  ];
+      description:
+        "Auto-backup to secure cloud servers. Your data is safe even if your device fails or is lost.",
+    },
+  ]
 
   return (
     <section className="bg-gray-50 py-20">
@@ -39,12 +43,18 @@ export function Security() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => {
-            const Icon = feature.icon;
+            const Icon = feature.icon
             return (
-              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-gray-200 group">
+              <Card
+                key={index}
+                className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-gray-200 group"
+              >
                 <CardHeader className="pb-4">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#0a4a5c]/10 to-[#0d6580]/10 rounded-2xl mx-auto group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-8 h-8 text-[#0a4a5c] group-hover:text-[#0d6580] transition-colors" strokeWidth={1.5} />
+                    <Icon
+                      className="w-8 h-8 text-[#0a4a5c] group-hover:text-[#0d6580] transition-colors"
+                      strokeWidth={1.5}
+                    />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -56,10 +66,10 @@ export function Security() {
                   </p>
                 </CardContent>
               </Card>
-            );
+            )
           })}
         </div>
       </div>
     </section>
-  );
+  )
 }

@@ -1,3 +1,4 @@
+import { Home, Search } from "lucide-react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 
@@ -7,22 +8,26 @@ const NotFound = () => {
       className="flex min-h-screen items-center justify-center flex-col p-4"
       data-testid="not-found"
     >
-      <div className="flex items-center z-10">
-        <div className="flex flex-col ml-4 items-center justify-center p-4">
-          <span className="text-6xl md:text-8xl font-bold leading-none mb-4">
-            404
-          </span>
-          <span className="text-2xl font-bold mb-2">Oops!</span>
+      <div className="flex flex-col items-center text-center max-w-md animate-in">
+        <div className="rounded-full bg-muted p-5 mb-6">
+          <Search className="h-10 w-10 text-muted-foreground" />
         </div>
-      </div>
-
-      <p className="text-lg text-muted-foreground mb-4 text-center z-10">
-        The page you are looking for was not found.
-      </p>
-      <div className="z-10">
-        <Link to="/">
-          <Button className="mt-4">Go Back</Button>
-        </Link>
+        <h1 className="text-7xl font-bold tracking-tight mb-1">404</h1>
+        <p className="text-xl font-semibold mb-2">Page not found</p>
+        <p className="text-sm text-muted-foreground mb-8 max-w-xs">
+          The page you're looking for doesn't exist or has been moved.
+        </p>
+        <div className="flex gap-3">
+          <Link to="/">
+            <Button>
+              <Home className="mr-2 h-4 w-4" />
+              Go Home
+            </Button>
+          </Link>
+          <Button variant="outline" onClick={() => window.history.back()}>
+            Go Back
+          </Button>
+        </div>
       </div>
     </div>
   )

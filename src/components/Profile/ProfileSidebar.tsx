@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
 import { AlertCircle, Building2, CheckCircle2, Circle } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export type SectionStatus = "complete" | "incomplete" | "empty"
 
@@ -80,7 +80,7 @@ export function ProfileSidebar({
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-left w-full",
                 isActive
                   ? "bg-accent text-accent-foreground font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />

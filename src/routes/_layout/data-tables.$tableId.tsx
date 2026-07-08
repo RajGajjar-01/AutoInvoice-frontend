@@ -1,7 +1,18 @@
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowLeft, Bell, Filter, Plus, Trash2 } from "lucide-react"
-import { useDeferredValue, useEffect, useMemo, useRef } from "react"
-import { useNavigate, useParams, type LoaderFunctionArgs } from "react-router"
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
+import {
+  type LoaderFunctionArgs,
+  useLoaderData,
+  useNavigate,
+  useParams,
+  useRevalidator,
+} from "react-router"
 import { toast } from "sonner"
 import { TablesService } from "@/client"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
@@ -34,10 +45,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  tableDetailQueryOptions,
-  tablesQueryKeys,
-} from "@/features/data-tables/queries"
+import { adaptTableDetailToUi } from "@/features/data-tables/queries"
 import {
   type CellSelection,
   type TableColumn,
@@ -48,10 +56,9 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useIsMobile } from "@/hooks/useMobile"
 import { evaluateFormula } from "@/lib/formula-engine"
 import { cn } from "@/lib/utils"
-import { queryClient } from "@/queryClient"
-
-export function loader({ params }: LoaderFunctionArgs) {
-  return queryClient.ensureQueryData(tableDetailQueryOptions(params.tableId))
+export async function loader({ params }: LoaderFunctionArgs) {
+  const table = await TablesService.getTable({ tableId: params.tableId! })
+  return adaptTableDetailToUi(table)
 }
 
 const OPTION_FILTER_TYPES = new Set([
@@ -68,13 +75,6 @@ interface TableDataRow {
   [key: string]: unknown
 }
 
-interface TableData {
-  id: string
-  name: string
-  columns: TableColumn[]
-  rows: TableDataRow[]
-  reminders?: { rowId: string }[]
-}
 
 const SELECT_COLUMN_WIDTH = 40
 const INDEX_COLUMN_WIDTH = 40
@@ -341,9 +341,19 @@ function TableViewPage() {
     }
   }, [setActiveColumnName, setCellDragRef, setCellSelection])
 
-  const { data: currentTable } = useSuspenseQuery(
-    tableDetailQueryOptions(tableId),
+  const loaderData = useLoaderData() as ReturnType<typeof adaptTableDetailToUi>
+  const { revalidate } = useRevalidator()
+  const [localRows, setLocalRows] = useState(loaderData.rows)
+
+  useEffect(() => {
+    setLocalRows(loaderData.rows)
+  }, [loaderData])
+
+  const currentTable = useMemo(
+    () => ({ ...loaderData, rows: localRows }),
+    [loaderData, localRows],
   )
+
   const cols = (currentTable?.columns ?? []) as unknown as TableColumn[]
   const allRows: TableDataRow[] = currentTable?.rows ?? []
   const rowById = useMemo(
@@ -380,112 +390,37 @@ function TableViewPage() {
     return data
   }
 
-  const createRowMutation = useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
-      return TablesService.createTableRow({
-        tableId: tableId!,
-        requestBody: {
-          data,
-        },
-      })
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId!),
-      })
-    },
-    onError: () => {
-      toast.error("Failed to add row")
-    },
-  })
+  const createRow = (data: Record<string, unknown>) => {
+    TablesService.createTableRow({
+      tableId: tableId!,
+      requestBody: { data },
+    })
+      .then(() => revalidate())
+      .catch(() => toast.error("Failed to add row"))
+  }
 
-  const updateRowMutation = useMutation({
-    mutationFn: async ({
-      rowId,
-      apiData,
-    }: {
-      rowId: string
-      apiData: Record<string, unknown>
-      uiPatch?: Record<string, unknown>
-    }) => {
-      return TablesService.updateTableRow({
-        tableId: tableId!,
-        rowId,
-        requestBody: {
-          data: apiData,
-        },
-      })
-    },
-    onMutate: async ({ rowId, uiPatch }) => {
-      await queryClient.cancelQueries({
-        queryKey: tablesQueryKeys.detail(tableId!),
-      })
-      const previous = queryClient.getQueryData(tablesQueryKeys.detail(tableId!))
-      queryClient.setQueryData(
-        tablesQueryKeys.detail(tableId!),
-        (old: TableData | undefined) => {
-          if (!old) return old
-          const patch = uiPatch ?? {}
-          const nextRows = (old.rows ?? []).map((r) => {
-            if (r.id !== rowId) return r
-            return {
-              ...r,
-              ...patch,
-            }
-          })
-          return {
-            ...old,
-            rows: nextRows,
-          }
-        },
-      )
-      return { previous }
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous) {
-        queryClient.setQueryData(tablesQueryKeys.detail(tableId!), ctx.previous)
-      }
-      toast.error("Failed to update row")
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId!),
-      })
-    },
-  })
-
-  const deleteRowMutation = useMutation({
-    mutationFn: async (rowId: string) => {
-      return TablesService.deleteTableRow({ tableId: tableId!, rowId })
-    },
-    onSuccess: async (_res, rowId) => {
+  const deleteRow = async (rowId: string) => {
+    try {
+      await TablesService.deleteTableRow({ tableId: tableId!, rowId })
       removeSelectedRow(rowId)
-      await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId!),
-      })
-    },
-    onError: () => {
+      revalidate()
+    } catch {
       toast.error("Failed to delete row")
-    },
-  })
+    }
+  }
 
-  const bulkDeleteMutation = useMutation({
-    mutationFn: async (rowIds: string[]) => {
-      return TablesService.bulkDeleteTableRows({
+  const bulkDeleteRows = async (rowIds: string[]) => {
+    try {
+      await TablesService.bulkDeleteTableRows({
         tableId: tableId!,
         requestBody: rowIds,
       })
-    },
-    onSuccess: async () => {
       clearSelectedRows()
-      await queryClient.invalidateQueries({
-        queryKey: tablesQueryKeys.detail(tableId!),
-      })
-    },
-    onError: () => {
+      revalidate()
+    } catch {
       toast.error("Failed to bulk delete rows")
-    },
-  })
+    }
+  }
 
   useEffect(() => {
     if (!focusedCell) {
@@ -503,13 +438,27 @@ function TableViewPage() {
     const row = rowById.get(rowId)
     const currentValue = row?.[colName]
 
-    if (String(currentValue ?? "") === String(value ?? "")) {
-      return
-    }
+    if (String(currentValue ?? "") === String(value ?? "")) return
 
     const uiPatch = { [colName]: value }
+    const previousRows = localRows
+
+    // Optimistic update
+    setLocalRows((prev) =>
+      prev.map((r) => (r.id === rowId ? { ...r, ...uiPatch } : r)),
+    )
+
     const apiData = uiRowToApiData(row, cols, uiPatch)
-    updateRowMutation.mutate({ rowId, apiData, uiPatch })
+    TablesService.updateTableRow({
+      tableId: tableId!,
+      rowId,
+      requestBody: { data: apiData },
+    })
+      .then(() => revalidate())
+      .catch(() => {
+        setLocalRows(previousRows)
+        toast.error("Failed to update row")
+      })
   }
 
   const commitFormulaBarChange = () => {
@@ -526,20 +475,19 @@ function TableViewPage() {
   }
 
   const handleAddRow = () => {
-    createRowMutation.mutate(buildMandatoryDefaultRow(cols))
+    createRow(buildMandatoryDefaultRow(cols))
   }
 
   const handleAddRowWithData = (rowLike: Record<string, unknown>) => {
-    const nextData = uiRowToApiData(rowLike as TableDataRow, cols)
-    createRowMutation.mutate(nextData)
+    createRow(uiRowToApiData(rowLike as TableDataRow, cols))
   }
 
   const handleDeleteRow = (rowId: string) => {
-    deleteRowMutation.mutate(rowId)
+    deleteRow(rowId)
   }
 
   const handleBulkDelete = () => {
-    bulkDeleteMutation.mutate([...selectedRows])
+    bulkDeleteRows([...selectedRows])
   }
 
   const handleNavigate = (
@@ -765,7 +713,15 @@ function TableViewPage() {
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <ExportMenu table={currentTable as unknown as { name: string; columns: { name: string; type: string }[] }} rows={filteredRows} />
+            <ExportMenu
+              table={
+                currentTable as unknown as {
+                  name: string
+                  columns: { name: string; type: string }[]
+                }
+              }
+              rows={filteredRows}
+            />
             <Button
               size="sm"
               className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
@@ -839,9 +795,27 @@ function TableViewPage() {
         {isMobile ? (
           <MobileEntryView
             tableId={tableId!}
-            table={currentTable as unknown as { id: string; name: string; columns: { name: string; type: string; mandatory: boolean; options: string[] }[] }}
+            table={
+              currentTable as unknown as {
+                id: string
+                name: string
+                columns: {
+                  name: string
+                  type: string
+                  mandatory: boolean
+                  options: string[]
+                }[]
+              }
+            }
             rows={filteredRows}
-            cols={cols as unknown as { name: string; type: string; mandatory: boolean; options: string[] }[]}
+            cols={
+              cols as unknown as {
+                name: string
+                type: string
+                mandatory: boolean
+                options: string[]
+              }[]
+            }
             onDeleteRow={handleDeleteRow}
             onAddRowWithData={handleAddRowWithData}
             onUpdateCell={handleCellChange}

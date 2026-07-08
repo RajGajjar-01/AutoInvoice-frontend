@@ -1,4 +1,3 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   Calendar,
   Check,
@@ -59,7 +58,6 @@ interface CreateTablePageProps {
 // ─── CreateTablePage ──────────────────────────────────────────────────────────
 export function CreateTablePage({ templateId }: CreateTablePageProps) {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const tableNameRef = useRef<HTMLInputElement>(null)
 
   const [tableName, setTableName] = useState("")
@@ -74,6 +72,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
       _id: randomUUID(),
     },
   ])
+  const [isCreating, setIsCreating] = useState(false)
   // Maps quick-add label → column _id so we can detect when it's deleted
   const [quickAddIds, setQuickAddIds] = useState<Record<string, string>>({})
 
@@ -168,44 +167,27 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
     return true
   }
 
-  const createTableMutation = useMutation({
-    mutationFn: async ({
-      name,
-      description,
-      columns,
-    }: {
-      name: string
-      description: string
-      columns: Omit<Column, "_id" | "_isBlank" | "_isDuplicate">[]
-    }) => {
-      return TablesService.createTable({
-        requestBody: {
-          name,
-          description: description || undefined,
-          columns,
-        },
-      })
-    },
-    onSuccess: async (createdTable) => {
-      await queryClient.invalidateQueries({ queryKey: ["tables"] })
-      toast.success(`Table "${createdTable.name}" created successfully!`)
-      navigate(`/data-tables/${createdTable.id}`)
-    },
-    onError: () => {
-      toast.error("Failed to create table")
-    },
-  })
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return
     const cleanedColumns = columns.map(
       ({ _id, _isBlank, _isDuplicate, ...rest }) => rest,
     )
-    createTableMutation.mutate({
-      name: tableName.trim(),
-      description: description.trim(),
-      columns: cleanedColumns,
-    })
+    setIsCreating(true)
+    try {
+      const createdTable = await TablesService.createTable({
+        requestBody: {
+          name: tableName.trim(),
+          description: description.trim() || undefined,
+          columns: cleanedColumns,
+        },
+      })
+      toast.success(`Table "${createdTable.name}" created successfully!`)
+      navigate(`/data-tables/${createdTable.id}`)
+    } catch {
+      toast.error("Failed to create table")
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   const handleCancel = () => navigate("/data-tables")
@@ -243,8 +225,9 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
               size="sm"
               className="h-9 px-5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all active:scale-[0.98]"
               onClick={handleSave}
+              disabled={isCreating}
             >
-              Save Table
+              {isCreating ? "Creating…" : "Save Table"}
             </Button>
           </div>
         </div>

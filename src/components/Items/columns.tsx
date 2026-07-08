@@ -119,7 +119,9 @@ export const columns = [
   {
     accessorKey: "stock",
     header: "Stock",
-    cell: ({ row }: CellContext<Item, unknown>) => <StockPill item={row.original} />,
+    cell: ({ row }: CellContext<Item, unknown>) => (
+      <StockPill item={row.original} />
+    ),
   },
   {
     id: "actions",

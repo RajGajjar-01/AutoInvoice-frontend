@@ -50,7 +50,11 @@ export function ModernExcelTable({
   const tableRef = useRef<HTMLTableElement>(null)
 
   // Handle keyboard navigation between cells
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number, field: string) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+    field: string,
+  ) => {
     const target = e.currentTarget
     const fields = [
       "itemId",
@@ -69,7 +73,9 @@ export function ModernExcelTable({
       const nextRow = tableRef.current?.querySelector(
         `tr[data-index="${index + 1}"]`,
       )
-      const nextInput = nextRow?.querySelector<HTMLInputElement>(`[data-field="${field}"]`)
+      const nextInput = nextRow?.querySelector<HTMLInputElement>(
+        `[data-field="${field}"]`,
+      )
       if (nextInput) {
         nextInput.focus()
         nextInput.select()
@@ -81,7 +87,9 @@ export function ModernExcelTable({
       const prevRow = tableRef.current?.querySelector(
         `tr[data-index="${index - 1}"]`,
       )
-      const prevInput = prevRow?.querySelector<HTMLInputElement>(`[data-field="${field}"]`)
+      const prevInput = prevRow?.querySelector<HTMLInputElement>(
+        `[data-field="${field}"]`,
+      )
       if (prevInput) {
         prevInput.focus()
         prevInput.select()
@@ -182,9 +190,7 @@ export function ModernExcelTable({
                           if (val) handleItemSelect(index, val)
                         }}
                       >
-                        <SelectTrigger
-                          className="h-9 w-8 p-0 border-0 bg-transparent hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 transition-colors shrink-0 rounded-none flex items-center justify-center"
-                        >
+                        <SelectTrigger className="h-9 w-8 p-0 border-0 bg-transparent hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 transition-colors shrink-0 rounded-none flex items-center justify-center">
                           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/50 group-hover/itembox:text-primary transition-colors" />
                         </SelectTrigger>
                         <SelectContent align="end" className="w-[220px]">

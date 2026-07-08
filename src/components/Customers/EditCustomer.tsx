@@ -124,7 +124,8 @@ const EditCustomer = ({
     criteriaMode: "all",
     defaultValues: {
       name: customer?.name ?? "",
-      partyType: (customer?.party_type ?? "customer") as FormValues["partyType"],
+      partyType: (customer?.party_type ??
+        "customer") as FormValues["partyType"],
       phone: customer?.phone ?? "",
       whatsapp: customer?.whatsapp ?? "",
       email: customer?.email ?? "",
