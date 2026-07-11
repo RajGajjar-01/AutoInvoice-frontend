@@ -135,7 +135,9 @@ function ItemsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight">Items</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight">
+              Items
+            </h1>
             <p className="text-muted-foreground text-sm mt-1">
               Manage your product catalogue and track stock
             </p>
@@ -150,7 +152,9 @@ function ItemsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between animate-in">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">Items</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">
+            Items
+          </h1>
           <p className="text-muted-foreground text-sm mt-1">
             Manage your product catalogue and track stock
           </p>

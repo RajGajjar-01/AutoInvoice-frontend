@@ -612,7 +612,9 @@ function CanvasDropZone({ onDrop }: CanvasDropZoneProps) {
       ref={setNodeRef}
       onClick={onDrop}
       className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl py-14 text-center transition-colors ${
-        isOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+        isOver
+          ? "border-primary bg-primary/5"
+          : "border-border hover:border-primary/40"
       }`}
     >
       <div className="rounded-full bg-primary/10 p-4 mb-3">
@@ -620,8 +622,8 @@ function CanvasDropZone({ onDrop }: CanvasDropZoneProps) {
       </div>
       <p className="font-medium text-sm mb-1">Start with Company Header</p>
       <p className="text-xs text-muted-foreground max-w-[200px]">
-        Click <strong>Fields</strong> on the left and add blocks — or use
-        the preset layout
+        Click <strong>Fields</strong> on the left and add blocks — or use the
+        preset layout
       </p>
       <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
@@ -1344,15 +1346,21 @@ function TemplateBuilderPage() {
                 </Badge>
               </div>
               <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length === 0 ? "bg-primary/10 text-primary font-medium" : "line-through opacity-40"}`}>
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length === 0 ? "bg-primary/10 text-primary font-medium" : "line-through opacity-40"}`}
+                >
                   1. Add blocks
                 </span>
                 <span className="opacity-30">→</span>
-                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length > 0 && !selectedId ? "bg-primary/10 text-primary font-medium" : selectedId ? "line-through opacity-40" : "opacity-40"}`}>
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length > 0 && !selectedId ? "bg-primary/10 text-primary font-medium" : selectedId ? "line-through opacity-40" : "opacity-40"}`}
+                >
                   2. Style them
                 </span>
                 <span className="opacity-30">→</span>
-                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length > 0 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium" : "opacity-40"}`}>
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${blocks.length > 0 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium" : "opacity-40"}`}
+                >
                   3. Save
                 </span>
               </div>

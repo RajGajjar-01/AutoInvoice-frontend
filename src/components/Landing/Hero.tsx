@@ -17,40 +17,33 @@ export function Hero() {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline()
 
-      tl.from(".hero-badge", {
-        y: 16,
-        opacity: 0,
-        duration: 0.25,
-        ease: "power2.out",
-      })
-      tl.from(
+      tl.fromTo(
+        ".hero-badge",
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.25, ease: "power2.out" },
+      )
+      tl.fromTo(
         ".hero-title",
-        {
-          y: 32,
-          opacity: 0,
-          duration: 0.3,
-          ease: "power3.out",
-        },
+        { y: 32, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" },
         "-=0.1",
       )
-      tl.from(
+      tl.fromTo(
+        ".hero-title .text-primary",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25, ease: "power2.out" },
+        "-=0.15",
+      )
+      tl.fromTo(
         ".hero-subtitle",
-        {
-          y: 16,
-          opacity: 0,
-          duration: 0.25,
-          ease: "power2.out",
-        },
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.25, ease: "power2.out" },
         "-=0.1",
       )
-      tl.from(
+      tl.fromTo(
         ".hero-buttons",
-        {
-          y: 12,
-          opacity: 0,
-          duration: 0.2,
-          ease: "power2.out",
-        },
+        { y: 12, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.2, ease: "power2.out" },
         "-=0.05",
       )
     }, heroRef)
@@ -66,7 +59,7 @@ export function Hero() {
       <InteractiveDotGrid />
       <div className="absolute top-0 left-1/2 -z-10 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-primary/6 blur-3xl" />
 
-      <div className="mx-auto max-w-4xl px-6 py-20">
+      <div className="mx-auto max-w-4xl px-6 pt-12 pb-16 md:pt-16 md:pb-24 lg:pt-20 lg:pb-28">
         <div className="flex flex-col items-center text-center">
           <div className="hero-badge inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-1.5 text-sm mb-6">
             <CheckCircle2 className="h-4 w-4 text-primary" />

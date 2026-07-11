@@ -6,21 +6,15 @@ import {
   CircleX,
   FilePlus,
   FileText,
+  History,
   Package,
   PackagePlus,
   TrendingUp,
   UserPlus,
   Users,
 } from "lucide-react"
-import { useMemo } from "react"
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-} from "recharts"
 import { Link } from "react-router"
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -40,15 +34,19 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { DashboardSkeleton } from "@/features/dashboard/components/DashboardSkeleton"
+import { EmptyDashboard } from "@/features/dashboard/components/EmptyDashboard"
 import { KpiCard } from "@/features/dashboard/components/KpiCard"
 import { useDashboard } from "@/features/dashboard/hooks/useDashboard"
-import { QuickActionRow } from "@/features/invoices/components/QuickActionRow"
 import { StatusBadge } from "@/features/invoices/components/StatusBadge"
 import { fmtShort } from "@/features/invoices/utils"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function build30DayData(
-  invoices: { invoiceDate?: string; grandTotal: number | string; status: string }[],
+  invoices: {
+    invoiceDate?: string
+    grandTotal: number | string
+    status: string
+  }[],
 ) {
   const days: { label: string; revenue: number }[] = []
   const now = new Date()
@@ -56,12 +54,12 @@ function build30DayData(
     const d = new Date(now)
     d.setDate(d.getDate() - i)
     const key = d.toISOString().slice(0, 10)
-    const label = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+    const label = d.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+    })
     const revenue = invoices
-      .filter(
-        (inv) =>
-          inv.invoiceDate === key && inv.status === "paid",
-      )
+      .filter((inv) => inv.invoiceDate === key && inv.status === "paid")
       .reduce((s, inv) => s + (Number(inv.grandTotal) || 0), 0)
     days.push({ label, revenue })
   }
@@ -81,33 +79,76 @@ function Dashboard() {
     isLoading,
   } = useDashboard()
 
-  const chartData = useMemo(() => build30DayData(invoices), [invoices])
-  const hasChartData = chartData.some((d) => d.revenue > 0)
+  const chartData = build30DayData(invoices)
+  const hasChartData = chartData.length > 0
 
   if (isLoading) return <DashboardSkeleton />
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-start justify-between animate-in">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">
-            {greeting}, {firstName}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {hasData
-              ? "Here's your business overview for today."
-              : "Welcome to AutoInvoice. Load demo data from Settings → Demo Data to get started."}
-          </p>
-        </div>
-        <Link to="/create-invoice">
-          <Button>
-            <FilePlus className="mr-2 h-4 w-4" /> New Invoice
-          </Button>
-        </Link>
-      </div>
+      {/* ── Welcome & Quick Start Banner ── */}
+      <Card className="relative overflow-hidden border border-primary/10 bg-gradient-to-br from-primary/[0.04] via-transparent to-transparent shadow-xs">
+        <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/5 blur-3xl" />
+        <CardContent className="p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Workspace Dashboard
+            </span>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              {greeting}, {firstName}
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-md">
+              Here's a quick overview of your business performance and pending
+              actions today.
+            </p>
+          </div>
 
-      {/* KPI cards */}
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Link to="/create-invoice">
+              <Button size="default" className="shadow-sm">
+                <FilePlus className="mr-2 h-4 w-4" />
+                Create Invoice
+              </Button>
+            </Link>
+            <Link to="/customers">
+              <Button
+                variant="outline"
+                size="default"
+                className="shadow-xs bg-background/50 border-border/40 hover:bg-muted"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Customer
+              </Button>
+            </Link>
+            <Link to="/items">
+              <Button
+                variant="outline"
+                size="default"
+                className="shadow-xs bg-background/50 border-border/40 hover:bg-muted"
+              >
+                <PackagePlus className="mr-2 h-4 w-4" />
+                Add Item
+              </Button>
+            </Link>
+            <Link to="/invoices">
+              <Button
+                variant="outline"
+                size="default"
+                className="shadow-xs bg-background/50 border-border/40 hover:bg-muted"
+              >
+                <History className="mr-2 h-4 w-4" />
+                History
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Empty state – show illustrated onboarding when no data exists */}
+      {!hasData && <EmptyDashboard />}
+
+      {/* KPI cards – only when data exists */}
+      {hasData && (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in animate-in-delay-1">
         <KpiCard
           icon={TrendingUp}
@@ -146,19 +187,27 @@ function Dashboard() {
           valueClass={stats.outItems > 0 ? "text-destructive" : ""}
         />
       </div>
+      )}
 
-      {/* Revenue sparkline */}
+      {/* Revenue sparkline – only when data exists */}
+      {hasData && (
       <Card className="animate-in animate-in-delay-1">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base">Revenue — Last 30 Days</CardTitle>
+              <CardTitle className="text-base">
+                Revenue — Last 30 Days
+              </CardTitle>
               <CardDescription className="text-xs">
                 Paid invoices only
               </CardDescription>
             </div>
             <Link to="/insights">
-              <Button variant="ghost" size="sm" className="text-primary gap-1 text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary gap-1 text-xs"
+              >
                 Full Insights <ArrowUpRight className="h-3.5 w-3.5" />
               </Button>
             </Link>
@@ -167,7 +216,10 @@ function Dashboard() {
         <CardContent className="pt-0">
           {hasChartData ? (
             <ResponsiveContainer width="100%" height={100}>
-              <BarChart data={chartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 4, right: 0, left: 0, bottom: 0 }}
+              >
                 <XAxis
                   dataKey="label"
                   tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
@@ -201,8 +253,10 @@ function Dashboard() {
           )}
         </CardContent>
       </Card>
+      )}
 
-      {/* Recent invoices + right col */}
+      {/* Recent invoices + right col – only when data exists */}
+      {hasData && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start animate-in animate-in-delay-2">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -293,96 +347,66 @@ function Dashboard() {
         </Card>
 
         <div className="flex flex-col gap-4">
-          {hasData && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Receivables</CardTitle>
-                <CardDescription className="text-xs">
-                  Pending amounts
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <CircleDashed className="h-3.5 w-3.5 text-amber-500" />
-                    <span className="text-muted-foreground">Unpaid</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {stats.unpaidCount}
-                    </Badge>
-                  </div>
-                  <span className="font-medium">
-                    {fmtShort(
-                      invoices
-                        .filter((i) => i.status === "unpaid")
-                        .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
-                    )}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <CircleX className="h-3.5 w-3.5 text-destructive" />
-                    <span className="text-muted-foreground">Overdue</span>
-                    <Badge variant="destructive" className="text-xs">
-                      {stats.overdueCount}
-                    </Badge>
-                  </div>
-                  <span className="font-medium text-destructive">
-                    {fmtShort(
-                      invoices
-                        .filter((i) => i.status === "overdue")
-                        .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
-                    )}
-                  </span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between text-sm font-bold">
-                  <span>Total Outstanding</span>
-                  <span className="text-primary">
-                    {fmtShort(stats.outstanding)}
-                  </span>
-                </div>
-                {stats.overdueCount > 0 && (
-                  <div className="flex items-center gap-2 rounded-lg bg-destructive/5 border border-destructive/20 px-3 py-2 mt-1">
-                    <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                    <p className="text-xs text-destructive">
-                      {stats.overdueCount} invoice
-                      {stats.overdueCount !== 1 ? "s" : ""} past due
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Quick Actions</CardTitle>
+              <CardTitle className="text-base">Receivables</CardTitle>
+              <CardDescription className="text-xs">
+                Pending amounts
+              </CardDescription>
             </CardHeader>
-            <CardContent className="px-3 pb-3 space-y-1">
-              <QuickActionRow
-                icon={FilePlus}
-                iconClass="bg-primary/10 text-primary"
-                title="Create Invoice"
-                description="Generate a new professional invoice"
-                to="/create-invoice"
-              />
-              <QuickActionRow
-                icon={UserPlus}
-                iconClass="bg-blue-500/10 text-blue-500"
-                title="Add Customer"
-                description="Register a new customer or supplier"
-                to="/customers"
-              />
-              <QuickActionRow
-                icon={PackagePlus}
-                iconClass="bg-violet-500/10 text-violet-500"
-                title="Add Item"
-                description="Add a product or service to inventory"
-                to="/items"
-              />
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <CircleDashed className="h-3.5 w-3.5 text-amber-500" />
+                  <span className="text-muted-foreground">Unpaid</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {stats.unpaidCount}
+                  </Badge>
+                </div>
+                <span className="font-medium">
+                  {fmtShort(
+                    invoices
+                      .filter((i) => i.status === "unpaid")
+                      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <CircleX className="h-3.5 w-3.5 text-destructive" />
+                  <span className="text-muted-foreground">Overdue</span>
+                  <Badge variant="destructive" className="text-xs">
+                    {stats.overdueCount}
+                  </Badge>
+                </div>
+                <span className="font-medium text-destructive">
+                  {fmtShort(
+                    invoices
+                      .filter((i) => i.status === "overdue")
+                      .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0),
+                  )}
+                </span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between text-sm font-bold">
+                <span>Total Outstanding</span>
+                <span className="text-primary">
+                  {fmtShort(stats.outstanding)}
+                </span>
+              </div>
+              {stats.overdueCount > 0 && (
+                <div className="flex items-center gap-2 rounded-lg bg-destructive/5 border border-destructive/20 px-3 py-2 mt-1">
+                  <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                  <p className="text-xs text-destructive">
+                    {stats.overdueCount} invoice
+                    {stats.overdueCount !== 1 ? "s" : ""} past due
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
+          {/* Inventory Alert */}
           {(stats.lowStockItems > 0 || stats.outItems > 0) && (
             <Card className="border-amber-500/30">
               <CardHeader className="pb-3">
@@ -423,6 +447,7 @@ function Dashboard() {
           )}
         </div>
       </div>
+      )}
     </div>
   )
 }

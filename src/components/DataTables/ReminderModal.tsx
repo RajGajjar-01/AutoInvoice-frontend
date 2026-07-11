@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Bell, MessageSquare, Phone } from "lucide-react"
+import { Bell, Mail, Phone } from "lucide-react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useRevalidator } from "react-router"
@@ -27,13 +27,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import useAuth from "@/hooks/useAuth"
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 const reminderSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  date: z.string().min(1, "Date is required"),
-  notificationType: z.enum(["App", "SMS", "WhatsApp"]),
+  date: z.string().min(1, "Date and time is required"),
+  notificationType: z.enum(["App", "Email", "WhatsApp"]),
 })
 
 type FormValues = z.infer<typeof reminderSchema>
@@ -85,6 +86,8 @@ export function ReminderModal({
 
   const { isSubmitting } = form.formState
   const { revalidate } = useRevalidator()
+  const { user } = useAuth()
+  const gmailConnected = user?.google_connected ?? false
 
   const onSubmit = async (data: FormValues) => {
     if (!rowId) return
@@ -161,17 +164,18 @@ export function ReminderModal({
               )}
             />
 
-            {/* Date */}
+            {/* Date & Time */}
             <FormField
               control={form.control}
               name="date"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Reminder Date <span className="text-destructive">*</span>
+                    Reminder Date &amp; Time{" "}
+                    <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="datetime-local" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -186,15 +190,27 @@ export function ReminderModal({
                 <FormItem>
                   <FormLabel>Notify via</FormLabel>
                   <FormControl>
-                    <Tabs value={field.value} onValueChange={field.onChange}>
+                    <Tabs
+                      value={field.value}
+                      onValueChange={(value) => {
+                        if (value === "Email" && !gmailConnected) {
+                          toast.error("Connect Gmail to send email reminders", {
+                            description:
+                              "Go to Settings and connect your Google account first.",
+                          })
+                          return
+                        }
+                        field.onChange(value)
+                      }}
+                    >
                       <TabsList className="w-full">
                         <TabsTrigger value="App" className="flex-1 gap-1.5">
                           <Bell className="h-3.5 w-3.5" />
                           App
                         </TabsTrigger>
-                        <TabsTrigger value="SMS" className="flex-1 gap-1.5">
-                          <MessageSquare className="h-3.5 w-3.5" />
-                          SMS
+                        <TabsTrigger value="Email" className="flex-1 gap-1.5">
+                          <Mail className="h-3.5 w-3.5" />
+                          Email
                         </TabsTrigger>
                         <TabsTrigger
                           value="WhatsApp"

@@ -405,7 +405,7 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
             </CardContent>
           </Card>
 
-          <CustomerTimeline customer={customer} />
+          <CustomerTimeline customer={customer} invoices={invoices} />
         </div>
       </div>
     </div>

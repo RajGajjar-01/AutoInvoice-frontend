@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router"
 import { AuthService } from "@/client/sdk.gen"
+import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
 interface SignUpFormData {
@@ -17,7 +18,7 @@ interface LoginFormData {
 const useAuth = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { showErrorToast } = useCustomToast()
+  const { showErrorToast, showSuccessToast } = useCustomToast()
 
   const {
     data: user,
@@ -59,7 +60,7 @@ const useAuth = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["currentUser"] })
       await queryClient.refetchQueries({ queryKey: ["currentUser"] })
-      navigate("/dashboard")
+      navigate("/verify-email")
     },
     onError: (error) => {
       const message =
@@ -69,6 +70,32 @@ const useAuth = () => {
         "Signup failed"
       showErrorToast(message)
     },
+  })
+
+  const verifyEmailMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const response = await AuthService.verifyEmail({
+        requestBody: { code },
+      })
+      return response
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["currentUser"] })
+      await queryClient.refetchQueries({ queryKey: ["currentUser"] })
+      navigate("/dashboard")
+    },
+    onError: (error) => handleError.call(showErrorToast, error),
+  })
+
+  const resendVerificationEmailMutation = useMutation({
+    mutationFn: async () => {
+      const response = await AuthService.resendVerificationEmail()
+      return response
+    },
+    onSuccess: () => {
+      showSuccessToast("A new verification code has been sent")
+    },
+    onError: (error) => handleError.call(showErrorToast, error),
   })
 
   const loginMutation = useMutation({
@@ -109,6 +136,8 @@ const useAuth = () => {
   return {
     signUpMutation,
     loginMutation,
+    verifyEmailMutation,
+    resendVerificationEmailMutation,
     logout,
     user,
     isLoading,

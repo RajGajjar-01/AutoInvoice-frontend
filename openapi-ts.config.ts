@@ -26,4 +26,5 @@ var openapi_ts_config_default = defineConfig({
     },
   ],
 })
+
 export { openapi_ts_config_default as default }

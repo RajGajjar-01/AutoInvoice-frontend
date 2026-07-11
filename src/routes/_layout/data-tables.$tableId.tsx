@@ -1,11 +1,5 @@
 import { ArrowLeft, Bell, Filter, Plus, Trash2 } from "lucide-react"
-import {
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
 import {
   type LoaderFunctionArgs,
   useLoaderData,
@@ -14,6 +8,7 @@ import {
   useRevalidator,
 } from "react-router"
 import { toast } from "sonner"
+import { useShallow } from "zustand/react/shallow"
 import { TablesService } from "@/client"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
 import { MobileEntryView } from "@/components/DataTables/MobileEntryView"
@@ -74,7 +69,6 @@ interface TableDataRow {
   id: string
   [key: string]: unknown
 }
-
 
 const SELECT_COLUMN_WIDTH = 40
 const INDEX_COLUMN_WIDTH = 40
@@ -247,7 +241,6 @@ function TableViewPage() {
     applyFilters,
     cellSelection,
     clearFilters,
-    clearSelectedRows,
     filterOpen,
     filters,
     focusedCell,
@@ -272,37 +265,38 @@ function TableViewPage() {
     toggleOptionFilter,
     toggleRow,
     toggleSelectAll,
-  } = useTableUiStore((state) => ({
-    activeColumnName: state.activeColumnName,
-    applyFilters: state.applyFilters,
-    cellSelection: state.cellSelection,
-    clearFilters: state.clearFilters,
-    clearSelectedRows: state.clearSelectedRows,
-    filterOpen: state.filterOpen,
-    filters: state.filters,
-    focusedCell: state.focusedCell,
-    formulaBarValue: state.formulaBarValue,
-    openFilterPanel: state.openFilterPanel,
-    pendingFilters: state.pendingFilters,
-    reminderState: state.reminderState,
-    removeSelectedRow: state.removeSelectedRow,
-    reset: state.reset,
-    search: state.search,
-    selectedRows: state.selectedRows,
-    setActiveColumnName: state.setActiveColumnName,
-    setBoolFilter: state.setBoolFilter,
-    setCellDragRef: state.setCellDragRef,
-    setCellSelection: state.setCellSelection,
-    setDateFilter: state.setDateFilter,
-    setFilterOpen: state.setFilterOpen,
-    setFocusedCell: state.setFocusedCell,
-    setFormulaBarValue: state.setFormulaBarValue,
-    setReminderState: state.setReminderState,
-    setSearch: state.setSearch,
-    toggleOptionFilter: state.toggleOptionFilter,
-    toggleRow: state.toggleRow,
-    toggleSelectAll: state.toggleSelectAll,
-  }))
+  } = useTableUiStore(
+    useShallow((state) => ({
+      activeColumnName: state.activeColumnName,
+      applyFilters: state.applyFilters,
+      cellSelection: state.cellSelection,
+      clearFilters: state.clearFilters,
+      filterOpen: state.filterOpen,
+      filters: state.filters,
+      focusedCell: state.focusedCell,
+      formulaBarValue: state.formulaBarValue,
+      openFilterPanel: state.openFilterPanel,
+      pendingFilters: state.pendingFilters,
+      reminderState: state.reminderState,
+      removeSelectedRow: state.removeSelectedRow,
+      reset: state.reset,
+      search: state.search,
+      selectedRows: state.selectedRows,
+      setActiveColumnName: state.setActiveColumnName,
+      setBoolFilter: state.setBoolFilter,
+      setCellDragRef: state.setCellDragRef,
+      setCellSelection: state.setCellSelection,
+      setDateFilter: state.setDateFilter,
+      setFilterOpen: state.setFilterOpen,
+      setFocusedCell: state.setFocusedCell,
+      setFormulaBarValue: state.setFormulaBarValue,
+      setReminderState: state.setReminderState,
+      setSearch: state.setSearch,
+      toggleOptionFilter: state.toggleOptionFilter,
+      toggleRow: state.toggleRow,
+      toggleSelectAll: state.toggleSelectAll,
+    })),
+  )
   const deferredSearch = useDeferredValue(search)
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
@@ -409,19 +403,6 @@ function TableViewPage() {
     }
   }
 
-  const bulkDeleteRows = async (rowIds: string[]) => {
-    try {
-      await TablesService.bulkDeleteTableRows({
-        tableId: tableId!,
-        requestBody: rowIds,
-      })
-      clearSelectedRows()
-      revalidate()
-    } catch {
-      toast.error("Failed to bulk delete rows")
-    }
-  }
-
   useEffect(() => {
     if (!focusedCell) {
       setFormulaBarValue("")
@@ -484,10 +465,6 @@ function TableViewPage() {
 
   const handleDeleteRow = (rowId: string) => {
     deleteRow(rowId)
-  }
-
-  const handleBulkDelete = () => {
-    bulkDeleteRows([...selectedRows])
   }
 
   const handleNavigate = (
@@ -760,34 +737,6 @@ function TableViewPage() {
                 }
               }}
             />
-          </div>
-        )}
-
-        {/* ── Bulk selection bar ────────────────────────────────────────── */}
-        {selectedRows.size > 0 && (
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-accent px-4 py-2.5 mb-4 shadow-sm">
-            <span className="text-sm font-medium text-foreground">
-              {selectedRows.size} row{selectedRows.size !== 1 ? "s" : ""}{" "}
-              selected
-            </span>
-            <div className="ml-auto flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground hover:bg-background/60"
-                onClick={clearSelectedRows}
-              >
-                Clear Selection
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleBulkDelete}
-              >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                Delete Selected
-              </Button>
-            </div>
           </div>
         )}
 
@@ -1095,43 +1044,45 @@ function TableViewPage() {
                         })}
                         <ShadTableCell className="border-l border-border p-0">
                           <div className="relative flex h-full items-center justify-center px-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                "h-7 w-7 transition-opacity hover:bg-primary/10",
-                                rowsWithReminders.has(row.id)
-                                  ? "text-primary"
-                                  : "text-muted-foreground hover:text-primary",
-                                "group-hover:opacity-0",
-                              )}
-                              onClick={() =>
-                                setReminderState({
-                                  open: true,
-                                  rowId: row.id,
-                                  rowLabel: getRowLabel(row, rowIndex),
-                                })
-                              }
-                              aria-label="Set reminder"
-                            >
-                              <Bell
-                                className="h-3.5 w-3.5"
-                                fill={
+                            {selectedRows.has(row.id) ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDeleteRow(row.id)}
+                                aria-label="Delete row"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                  "h-7 w-7 hover:bg-primary/10",
                                   rowsWithReminders.has(row.id)
-                                    ? "currentColor"
-                                    : "none"
+                                    ? "text-primary"
+                                    : "text-muted-foreground hover:text-primary",
+                                )}
+                                onClick={() =>
+                                  setReminderState({
+                                    open: true,
+                                    rowId: row.id,
+                                    rowLabel: getRowLabel(row, rowIndex),
+                                  })
                                 }
-                              />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="absolute inset-0 m-auto h-7 w-7 opacity-0 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10 group-hover:opacity-100"
-                              onClick={() => handleDeleteRow(row.id)}
-                              aria-label="Delete row"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                                aria-label="Set reminder"
+                              >
+                                <Bell
+                                  className="h-3.5 w-3.5"
+                                  fill={
+                                    rowsWithReminders.has(row.id)
+                                      ? "currentColor"
+                                      : "none"
+                                  }
+                                />
+                              </Button>
+                            )}
                           </div>
                         </ShadTableCell>
                       </TableRow>

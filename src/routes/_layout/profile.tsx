@@ -23,6 +23,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function AccountPage() {
   useDocumentTitle("My Account")
+
   const {
     company,
     draft,
@@ -59,14 +60,15 @@ function AccountPage() {
   } = useProfileForm()
 
   return (
-    <div className="flex flex-col gap-4 animate-in">
+    <div className="flex flex-col gap-4">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">My Account</h1>
+        <h1 className="text-2xl font-bold tracking-tight">My Account</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Company details that appear on every invoice you create.
         </p>
       </div>
 
+      {/* 1 ── Business Identity */}
       <ProfileSection
         id="business"
         icon={Building2}
@@ -146,6 +148,7 @@ function AccountPage() {
         }
       />
 
+      {/* 2 ── Contact Details */}
       <ProfileSection
         id="contact"
         icon={Mail}
@@ -191,6 +194,7 @@ function AccountPage() {
         }
       />
 
+      {/* 3 ── Business Address */}
       <ProfileSection
         id="address"
         icon={MapPin}
@@ -256,6 +260,7 @@ function AccountPage() {
         }
       />
 
+      {/* 4 ── Tax & Registration */}
       <ProfileSection
         id="tax"
         icon={BadgeCheck}
@@ -292,6 +297,7 @@ function AccountPage() {
         }
       />
 
+      {/* 5 ── Bank & Payment */}
       <ProfileSection
         id="bank"
         icon={CreditCard}
@@ -364,6 +370,7 @@ function AccountPage() {
         }
       />
 
+      {/* 6 ── Communication */}
       <ProfileSection
         id="communication"
         icon={MessageSquare}
@@ -525,6 +532,7 @@ function AccountPage() {
         }
       />
 
+      {/* 7 ── Invoice Preferences */}
       <ProfileSection
         id="invoicePrefs"
         icon={FileText}
@@ -568,9 +576,7 @@ function AccountPage() {
                 <p className="text-[11px] text-muted-foreground mb-0.5">
                   Footer Note
                 </p>
-                <p className="text-sm italic">
-                  &quot;{company.invoiceFooter}&quot;
-                </p>
+                <p className="text-sm italic">"{company.invoiceFooter}"</p>
               </div>
             )}
           </div>

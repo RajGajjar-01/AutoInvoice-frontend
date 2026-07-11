@@ -1,6 +1,5 @@
-import type { Notification, TypeConfig } from "./types"
-import type { GroupedItem } from "./types"
 import { TYPE_CONFIG } from "./constants"
+import type { GroupedItem, Notification, TypeConfig } from "./types"
 
 export function getType(t: string): TypeConfig {
   return TYPE_CONFIG[t] ?? TYPE_CONFIG.info

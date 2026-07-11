@@ -43,6 +43,7 @@ import ResetPassword, {
   loader as resetPasswordLoader,
 } from "@/routes/reset-password"
 import SignUp from "@/routes/signup"
+import VerifyEmail from "@/routes/verify-email"
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "privacy-policy", element: <PrivacyPolicy /> },
       { path: "signup", element: <SignUp /> },
+      { path: "verify-email", element: <VerifyEmail /> },
       { path: "recover-password", element: <RecoverPassword /> },
       {
         path: "reset-password",

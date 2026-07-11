@@ -65,7 +65,9 @@ function SignUp() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="font-display text-2xl font-bold tracking-tight">Create an account</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight">
+              Create an account
+            </h1>
             <p className="text-sm text-muted-foreground">
               Get started with AutoInvoice
             </p>

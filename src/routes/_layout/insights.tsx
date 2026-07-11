@@ -69,7 +69,9 @@ function InsightsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="animate-in">
-        <h1 className="font-display text-2xl font-bold tracking-tight">Insights</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">
+          Insights
+        </h1>
         <p className="text-muted-foreground text-sm mt-1">
           Financial overview, revenue trends, and collection analytics.
         </p>

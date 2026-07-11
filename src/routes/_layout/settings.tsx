@@ -1,6 +1,9 @@
 import { FlaskConical, RotateCcw, Trash2 } from "lucide-react"
+import { useEffect } from "react"
+import { useSearchParams } from "react-router"
 import ChangePassword from "@/components/UserSettings/ChangePassword"
 import DeleteAccount from "@/components/UserSettings/DeleteAccount"
+import GoogleIntegration from "@/components/UserSettings/GoogleIntegration"
 import UserInformation from "@/components/UserSettings/UserInformation"
 import { Button } from "@/components/ui/button"
 import {
@@ -170,6 +173,11 @@ interface TabConfig {
 
 const tabsConfig: TabConfig[] = [
   { value: "my-profile", title: "My profile", component: UserInformation },
+  {
+    value: "integrations",
+    title: "Integrations",
+    component: GoogleIntegration,
+  },
   { value: "password", title: "Password", component: ChangePassword },
   { value: "danger-zone", title: "Danger zone", component: DeleteAccount },
   { value: "demo-data", title: "Demo Data", component: DemoDataTab },
@@ -178,16 +186,38 @@ const tabsConfig: TabConfig[] = [
 function UserSettings() {
   useDocumentTitle("Settings")
   const { user: currentUser } = useAuth()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const [searchParams, setSearchParams] = useSearchParams()
   const finalTabs = currentUser?.is_superuser
-    ? tabsConfig.slice(0, 3)
+    ? tabsConfig.slice(0, 4)
     : tabsConfig
+
+  useEffect(() => {
+    const googleStatus = searchParams.get("google")
+    if (!googleStatus) return
+    if (googleStatus === "connected") {
+      showSuccessToast("Google account connected")
+    } else if (googleStatus === "error") {
+      showErrorToast("Could not connect your Google account. Please try again.")
+    }
+    setSearchParams(
+      (prev) => {
+        prev.delete("google")
+        return prev
+      },
+      { replace: true },
+    )
+  }, [searchParams, setSearchParams, showSuccessToast, showErrorToast])
+
   if (!currentUser) {
     return null
   }
   return (
     <div className="flex flex-col gap-6">
       <div className="animate-in">
-        <h1 className="font-display text-2xl font-bold tracking-tight">User Settings</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">
+          User Settings
+        </h1>
         <p className="text-muted-foreground text-sm mt-1">
           Manage your account settings and preferences
         </p>

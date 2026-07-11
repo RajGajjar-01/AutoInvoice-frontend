@@ -95,8 +95,8 @@ export const columns = [
       const price = row.original.salePrice
       const unit = row.original.unit || "pcs"
       return (
-        <div className="text-right">
-          <span className="font-semibold">
+        <div className="text-left font-medium">
+          <span>
             ₹
             {Number(price ?? 0).toLocaleString("en-IN", {
               minimumFractionDigits: 2,

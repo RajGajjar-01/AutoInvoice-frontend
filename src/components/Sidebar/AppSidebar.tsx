@@ -197,10 +197,16 @@ export function AppSidebar() {
                         {invoiceSubItems.map((sub) => (
                           <SidebarMenuSubItem key={sub.title}>
                             <SidebarMenuSubButton
-                              isActive={currentPath === sub.path || currentPath.startsWith(sub.path + "/")}
+                              isActive={
+                                currentPath === sub.path ||
+                                currentPath.startsWith(`${sub.path}/`)
+                              }
                               asChild
                             >
-                              <RouterLink to={sub.path} onClick={handleNavClick}>
+                              <RouterLink
+                                to={sub.path}
+                                onClick={handleNavClick}
+                              >
                                 <sub.icon className="h-3.5 w-3.5" />
                                 <span>{sub.title}</span>
                               </RouterLink>
@@ -234,7 +240,9 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarAppearance />
+        <SidebarMenu>
+          <SidebarAppearance />
+        </SidebarMenu>
         <User user={currentUser} />
       </SidebarFooter>
     </Sidebar>

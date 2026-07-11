@@ -4,7 +4,22 @@ const SPACING = 28
 const BASE_RADIUS = 0.75
 const MAX_RADIUS = 2.5
 const INFLUENCE_RADIUS = 160
-const PRIMARY_RGB = "225, 139, 104"
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const cleaned = hex.trim().replace("#", "")
+  if (cleaned.length === 3) {
+    const r = parseInt(cleaned[0] + cleaned[0], 16)
+    const g = parseInt(cleaned[1] + cleaned[1], 16)
+    const b = parseInt(cleaned[2] + cleaned[2], 16)
+    return { r, g, b }
+  }
+  if (cleaned.length === 6) {
+    const r = parseInt(cleaned.substring(0, 2), 16)
+    const g = parseInt(cleaned.substring(2, 4), 16)
+    const b = parseInt(cleaned.substring(4, 6), 16)
+    return { r, g, b }
+  }
+  return null
+}
 
 export function InteractiveDotGrid() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -30,6 +45,18 @@ export function InteractiveDotGrid() {
       const isDark = document.documentElement.classList.contains("dark")
       const baseAlpha = isDark ? 0.13 : 0.09
 
+      let primaryColor = "37, 99, 235"
+      try {
+        const primaryHex =
+          getComputedStyle(canvas).getPropertyValue("--primary") || "#2563eb"
+        const rgb = hexToRgb(primaryHex)
+        if (rgb) {
+          primaryColor = `${rgb.r}, ${rgb.g}, ${rgb.b}`
+        }
+      } catch (_e) {
+        // Fallback to default primary
+      }
+
       ctx.clearRect(0, 0, width, height)
 
       for (let y = SPACING / 2; y < height; y += SPACING) {
@@ -41,7 +68,7 @@ export function InteractiveDotGrid() {
 
           ctx.beginPath()
           ctx.arc(x, y, radius, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(${PRIMARY_RGB}, ${alpha})`
+          ctx.fillStyle = `rgba(${primaryColor}, ${alpha})`
           ctx.fill()
         }
       }
@@ -93,7 +120,6 @@ export function InteractiveDotGrid() {
   return (
     <canvas
       ref={canvasRef}
-      aria-hidden="true"
       className="pointer-events-none absolute inset-0 -z-10"
     />
   )

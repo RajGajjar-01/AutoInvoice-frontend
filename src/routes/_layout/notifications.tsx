@@ -40,7 +40,9 @@ function NotificationsPage() {
       <div className="flex items-start justify-between animate-in">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="font-display text-2xl font-bold tracking-tight">Notifications</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight">
+              Notifications
+            </h1>
             {unreadCount > 0 && (
               <Badge className="rounded-full h-5 px-2 text-[10px] font-semibold bg-primary text-primary-foreground">
                 {unreadCount} new
@@ -124,9 +126,7 @@ function NotificationsPage() {
                     <button
                       key={key}
                       type="button"
-                      onClick={() =>
-                        setTypeFilter(isActive ? null : key)
-                      }
+                      onClick={() => setTypeFilter(isActive ? null : key)}
                       className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all ${
                         isActive
                           ? "border-primary/40 bg-primary/10 text-primary shadow-sm"
@@ -148,10 +148,7 @@ function NotificationsPage() {
           </div>
 
           <div className="animate-in animate-in-delay-3">
-            <Tabs
-              value={tab}
-              onValueChange={(v) => setTab(v as typeof tab)}
-            >
+            <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <TabsList>
                   <TabsTrigger value="all" className="gap-1.5 text-xs">
@@ -185,7 +182,8 @@ function NotificationsPage() {
                 {search && (
                   <p className="text-xs text-muted-foreground">
                     {filtered.length} result
-                    {filtered.length !== 1 ? "s" : ""} for &ldquo;{search}&rdquo;
+                    {filtered.length !== 1 ? "s" : ""} for &ldquo;{search}
+                    &rdquo;
                   </p>
                 )}
               </div>

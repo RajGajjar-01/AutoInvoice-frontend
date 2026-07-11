@@ -3,10 +3,14 @@ FROM node:20-alpine AS build-stage
 
 WORKDIR /app
 
-# Copy package files first for better caching
-COPY package.json package-lock.json ./
+# Install pnpm globally
+RUN npm install -g pnpm
 
-RUN npm ci --prefer-offline
+# Copy package files first for better caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install dependencies using pnpm
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -16,7 +20,7 @@ ARG VITE_API_URL=
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build the app
-RUN npm run build
+RUN pnpm build
 
 # Stage 1: Serve with Nginx
 FROM nginx:1-alpine

@@ -506,6 +506,15 @@ export type ItemUpdate = {
 }> | null);
 };
 
+export type GoogleAuthUrl = {
+    url: string;
+};
+
+export type GoogleStatus = {
+    connected: boolean;
+    email?: (string | null);
+};
+
 export type LoginRequest = {
     email: string;
     password: string;
@@ -518,6 +527,10 @@ export type Message = {
 export type NewPassword = {
     token: string;
     new_password: string;
+};
+
+export type VerifyEmailRequest = {
+    code: string;
 };
 
 export type NotificationCreate = {
@@ -655,6 +668,8 @@ export type UserPublic = {
     avatar_url?: (string | null);
     created_at?: (string | null);
     updated_at?: (string | null);
+    google_connected?: boolean;
+    google_email?: (string | null);
 };
 
 export type UserRegister = {
@@ -767,6 +782,19 @@ export type AuthForgotPasswordData = {
 
 export type AuthForgotPasswordResponse = (Message);
 
+export type AuthVerifyEmailData = {
+    accessToken?: (string | null);
+    requestBody: VerifyEmailRequest;
+};
+
+export type AuthVerifyEmailResponse = (Message);
+
+export type AuthResendVerificationEmailData = {
+    accessToken?: (string | null);
+};
+
+export type AuthResendVerificationEmailResponse = (Message);
+
 export type AuthResetPasswordData = {
     requestBody: NewPassword;
 };
@@ -842,6 +870,24 @@ export type CustomersDeleteCustomerData = {
 };
 
 export type CustomersDeleteCustomerResponse = (void);
+
+export type GoogleConnectGoogleData = {
+    accessToken?: (string | null);
+};
+
+export type GoogleConnectGoogleResponse = (GoogleAuthUrl);
+
+export type GoogleGoogleStatusData = {
+    accessToken?: (string | null);
+};
+
+export type GoogleGoogleStatusResponse = (GoogleStatus);
+
+export type GoogleDisconnectGoogleData = {
+    accessToken?: (string | null);
+};
+
+export type GoogleDisconnectGoogleResponse = (Message);
 
 export type HealthResponse = ({
     [key: string]: (string);

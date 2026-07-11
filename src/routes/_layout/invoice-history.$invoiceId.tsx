@@ -8,6 +8,8 @@ import {
   CircleDashed,
   CircleX,
   CreditCard,
+  Download,
+  Eye,
   IndianRupee,
   Mail,
   MapPin,
@@ -43,13 +45,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
 import {
   invoiceDetailQueryOptions,
   invoicesQueryKeys,
 } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import useLocalStorage from "@/hooks/useLocalStorage"
+import { buildInvoiceHtml, downloadInvoicePdf } from "@/lib/pdfHelper"
 import { queryClient } from "@/queryClient"
+import { handleError } from "@/utils"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -137,6 +143,15 @@ function InvoiceDetailPage() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const navigate = useNavigate()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [companyDetails] = useLocalStorage<any>("company-details", {})
+  const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
+  const selectedTemplate =
+    activeTemplate?.kind === "built_in"
+      ? activeTemplate?.built_in_id
+      : activeTemplate?.kind === "custom"
+        ? activeTemplate?.built_in_id
+        : "clean-teal"
 
   const { data: invoice, isLoading } = useQuery(
     invoiceDetailQueryOptions(invoiceId),
@@ -180,7 +195,7 @@ function InvoiceDetailPage() {
         requestBody: body,
       }),
     onSuccess: () => showSuccessToast("Invoice sent via email"),
-    onError: () => showErrorToast("Failed to send email"),
+    onError: handleError.bind(showErrorToast),
   })
 
   const sendWhatsappMutation = useMutation({
@@ -199,6 +214,53 @@ function InvoiceDetailPage() {
   const cs = getCurrencySymbol(invoice.currency)
   const StatusIcon = statusIcon[invoice.status ?? "unpaid"] ?? CircleDashed
   const validItems = (invoice.items || []).filter((it) => it.name)
+
+  const handleDownloadPDF = () => {
+    showSuccessToast("Generating PDF...")
+
+    const invoiceData = {
+      invoiceNumber: invoice.invoiceNumber,
+      invoiceDate: invoice.invoiceDate,
+      dueDate: invoice.dueDate,
+      currency: invoice.currency,
+      subtotal: invoice.subtotal || 0,
+      totalTax: invoice.totalTax || 0,
+      grandTotal: invoice.grandTotal || 0,
+      discount: invoice.discount || 0,
+      notes: invoice.notes,
+      paymentTerms: invoice.paymentTerms,
+      poNumber: invoice.poNumber,
+      placeOfSupply: invoice.placeOfSupply,
+      customer: {
+        name: invoice.customer?.name || "",
+        email: invoice.customer?.email || "",
+        phone: invoice.customer?.phone || "",
+        address: invoice.customer?.address || "",
+        gst: invoice.customer?.gst || "",
+      },
+      items: (invoice.items || []).map((it) => ({
+        name: it.name,
+        description: it.description,
+        quantity: it.quantity || 0,
+        price: it.price || 0,
+        tax: it.tax || 0,
+        unit: it.unit || "",
+      })),
+    }
+
+    downloadInvoicePdf(
+      invoiceData,
+      companyDetails || {},
+      selectedTemplate || "clean-teal",
+    )
+      .then(() => {
+        showSuccessToast("PDF downloaded successfully!")
+      })
+      .catch((err) => {
+        console.error("PDF generation failed:", err)
+        showErrorToast("Failed to generate PDF")
+      })
+  }
 
   const handleWhatsApp = () => {
     const phone = invoice.customer?.whatsapp || invoice.customer?.phone
@@ -273,6 +335,18 @@ function InvoiceDetailPage() {
           <Button variant="outline" size="sm" onClick={handleWhatsApp}>
             <Send className="mr-2 h-4 w-4" />
             WhatsApp
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPreviewOpen(true)}
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            Preview
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+            <Download className="mr-2 h-4 w-4" />
+            Download PDF
           </Button>
           <Button
             variant="outline"
@@ -560,6 +634,67 @@ function InvoiceDetailPage() {
               Delete
             </LoadingButton>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Preview Dialog ── */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Invoice Preview</DialogTitle>
+          </DialogHeader>
+          <iframe
+            title="invoice-preview"
+            srcDoc={
+              previewOpen
+                ? buildInvoiceHtml(
+                    {
+                      invoiceNumber: invoice.invoiceNumber,
+                      invoiceDate: invoice.invoiceDate,
+                      dueDate: invoice.dueDate,
+                      currency: invoice.currency,
+                      subtotal: invoice.subtotal || 0,
+                      totalTax: invoice.totalTax || 0,
+                      grandTotal: invoice.grandTotal || 0,
+                      discount: invoice.discount || 0,
+                      notes: invoice.notes,
+                      paymentTerms: invoice.paymentTerms,
+                      poNumber: invoice.poNumber,
+                      placeOfSupply: invoice.placeOfSupply,
+                      customer: {
+                        name: invoice.customer?.name || "",
+                        email: invoice.customer?.email || "",
+                        phone: invoice.customer?.phone || "",
+                        address: invoice.customer?.address || "",
+                        gst: invoice.customer?.gst || "",
+                      },
+                      items: (invoice.items || []).map((it) => ({
+                        name: it.name,
+                        description: it.description,
+                        quantity: it.quantity || 0,
+                        price: it.price || 0,
+                        tax: it.tax || 0,
+                        unit: it.unit || "",
+                      })),
+                    },
+                    companyDetails || {},
+                    selectedTemplate || "clean-teal",
+                  )
+                : ""
+            }
+            className="w-full flex-1 rounded-md border bg-background"
+            style={{ minHeight: "65vh" }}
+            sandbox="allow-same-origin"
+          />
+          <div className="flex justify-end gap-2 mt-3">
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={handleDownloadPDF}>
+              <Download className="mr-2 h-4 w-4" />
+              Download PDF
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

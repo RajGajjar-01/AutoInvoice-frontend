@@ -1,8 +1,8 @@
 import { Separator } from "@/components/ui/separator"
 import { NotificationCard } from "@/features/notifications/components/NotificationCard"
+import { NotificationsEmpty } from "@/features/notifications/components/NotificationsEmpty"
 import type { Notification } from "@/features/notifications/types"
 import { groupByDate } from "@/features/notifications/utils"
-import { NotificationsEmpty } from "@/features/notifications/components/NotificationsEmpty"
 
 interface GroupedListProps {
   items: Notification[]

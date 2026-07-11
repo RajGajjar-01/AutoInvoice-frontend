@@ -68,25 +68,32 @@ function InvoicesPage() {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest")
 
   const filtered = useMemo(() => {
-    let list = invoices
-    if (activeTab !== "all") list = list.filter((i) => i.status === activeTab)
-    if (search.trim()) {
-      const q = search.toLowerCase()
+    let list = [...invoices]
+
+    if (activeTab !== "all") {
+      list = list.filter((i) => i.status === activeTab)
+    }
+
+    const q = search.trim().toLowerCase()
+    if (q) {
       list = list.filter(
-        (i) =>
-          i.invoiceNumber?.toLowerCase().includes(q) ||
-          i.customer?.name?.toLowerCase().includes(q) ||
-          (i.customer as any)?.email?.toLowerCase().includes(q) ||
-          String(i.grandTotal).includes(q),
+        (inv) =>
+          inv.invoiceNumber?.toLowerCase().includes(q) ||
+          inv.customer?.name?.toLowerCase().includes(q) ||
+          (inv.customer as any)?.email?.toLowerCase().includes(q) ||
+          String(inv.grandTotal).includes(q),
       )
     }
-    return [...list].sort((a, b) => {
-      const aDate = a.createdAt || (a as any).invoiceDate || ""
-      const bDate = b.createdAt || (b as any).invoiceDate || ""
+
+    list.sort((a, b) => {
+      const aDate = a.createdAt || a.invoiceDate || ""
+      const bDate = b.createdAt || b.invoiceDate || ""
       return sortOrder === "newest"
         ? bDate.localeCompare(aDate)
         : aDate.localeCompare(bDate)
     })
+
+    return list
   }, [invoices, activeTab, search, sortOrder])
 
   if (isLoading) return <InvoicesSkeleton />

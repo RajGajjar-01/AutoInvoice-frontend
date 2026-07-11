@@ -8,8 +8,6 @@ import {
   Eye,
   FileSpreadsheet,
   FileText,
-  Pencil,
-  Plus,
   Receipt,
   ShoppingBag,
   Trash2,

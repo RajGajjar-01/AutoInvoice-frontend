@@ -210,11 +210,17 @@ export function Features() {
               wide
               className="md:shrink-0 md:grow-0 md:basis-2/3"
             />
-            <FeatureCard feature={features[1]} className="md:min-w-0 md:flex-1" />
+            <FeatureCard
+              feature={features[1]}
+              className="md:min-w-0 md:flex-1"
+            />
           </div>
 
           <div className="flex flex-col gap-4 md:flex-row lg:gap-5">
-            <FeatureCard feature={features[2]} className="md:min-w-0 md:flex-1" />
+            <FeatureCard
+              feature={features[2]}
+              className="md:min-w-0 md:flex-1"
+            />
             <FeatureCard
               ref={(el) => {
                 wideCardRefs.current[1] = el
@@ -226,7 +232,10 @@ export function Features() {
           </div>
 
           <div className="flex flex-col gap-4 md:flex-row lg:gap-5">
-            <FeatureCard feature={features[4]} className="md:min-w-0 md:flex-1" />
+            <FeatureCard
+              feature={features[4]}
+              className="md:min-w-0 md:flex-1"
+            />
             <FeatureCard
               ref={(el) => {
                 wideCardRefs.current[2] = el
