@@ -4,10 +4,9 @@ var openapi_ts_config_default = defineConfig({
   input: "./openapi.json",
   output: "./src/client",
   plugins: [
-    "legacy/axios",
+    "clientAxios",
     {
-      name: "@hey-api/sdk",
-      // NOTE: this doesn't allow tree-shaking
+      name: "sdk",
       asClass: true,
       operationId: true,
       classNameBuilder: "{{name}}Service",
@@ -21,8 +20,8 @@ var openapi_ts_config_default = defineConfig({
       },
     },
     {
-      name: "@hey-api/schemas",
-      type: "json",
+      name: "typescript",
+      enums: "javascript",
     },
   ],
 })
