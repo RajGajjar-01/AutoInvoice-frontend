@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   CircleDashed,
   CircleX,
+  CircleDot,
   MoreHorizontal,
   FilePlus,
   IndianRupee,
@@ -14,11 +15,14 @@ import {
   AlertTriangle,
   Download,
   RefreshCw,
+  Mail,
 } from "lucide-react"
+import { downloadInvoicePdf, sendInvoiceEmail } from "@/lib/invoicePdf"
 import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -86,12 +90,18 @@ const statusVariant = {
   paid: "default",
   unpaid: "secondary",
   overdue: "destructive",
+  partial: "outline",
+}
+
+const statusStyle = {
+  partial: "border-amber-400 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30",
 }
 
 const statusIcon = {
   paid: CheckCircle2,
   unpaid: CircleDashed,
   overdue: CircleX,
+  partial: CircleDot,
 }
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
@@ -155,7 +165,29 @@ function StatCard({ icon: Icon, title, value, sub, iconClass, valueClass }) {
 
 function InvoiceHistoryPage() {
   const [invoices, setInvoices] = useLocalStorage("invoices", [])
-  const { showSuccessToast } = useCustomToast()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const [companyDetails] = useLocalStorage("company-details", {})
+  const [selectedTemplate] = useLocalStorage("selected-template", "clean-teal")
+  const [importedTemplate] = useLocalStorage("imported-template", null)
+
+  const handleSendEmail = async (inv) => {
+    if (!inv.customer?.email) {
+      showErrorToast("Customer has no email address configured")
+      return
+    }
+    try {
+      showSuccessToast("Sending email...")
+      await sendInvoiceEmail(inv, companyDetails, selectedTemplate, importedTemplate, inv.customer.email)
+      showSuccessToast(`Email successfully sent to ${inv.customer.email}`)
+    } catch (err) {
+      console.error(inv.invoiceNumber, "email failed:", err)
+      const docType = inv.type || "invoice"
+      const docTitle = docType === "quotation" ? "Quotation" : docType === "challan" ? "Delivery Challan" : docType === "proforma" ? "Proforma Invoice" : "Invoice"
+      const finalSubject = `${docTitle} ${inv.invoiceNumber} from ${companyDetails.name || 'UnifiedDesk'}`
+      const mailBody = `Dear ${inv.customer?.name || ""},\n\nPlease find your document ${inv.invoiceNumber} attached.\n\nThank you!`
+      window.open(`mailto:${inv.customer.email}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`)
+    }
+  }
 
   // Filter states
   const [search, setSearch] = useState("")
@@ -164,13 +196,21 @@ function InvoiceHistoryPage() {
 
   const [sortOrder, setSortOrder] = useState("newest")
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [partialTarget, setPartialTarget] = useState(null)
+  const [partialAmountInput, setPartialAmountInput] = useState("")
 
   // ── Stats ────────────────────────────────────────────────────────────────
   const totalRevenue = invoices.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
   const outstanding = invoices
-    .filter((i) => i.status === "unpaid" || i.status === "overdue")
-    .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
+    .filter((i) => i.status === "unpaid" || i.status === "overdue" || i.status === "partial")
+    .reduce((s, i) => {
+      if (i.status === "partial") {
+        return s + Math.max(0, (Number(i.grandTotal) || 0) - (Number(i.partialAmountPaid) || 0))
+      }
+      return s + (Number(i.grandTotal) || 0)
+    }, 0)
   const overdueCount = invoices.filter((i) => i.status === "overdue").length
+  const partialCount = invoices.filter((i) => i.status === "partial").length
 
   // ── Filtered + sorted ────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -213,16 +253,42 @@ function InvoiceHistoryPage() {
 
   // ── Actions ──────────────────────────────────────────────────────────────
   const handleToggleStatus = (inv) => {
-    const next =
-      inv.status === "paid"
-        ? "unpaid"
-        : inv.status === "unpaid"
-          ? "overdue"
-          : "paid"
+    const cycle = { unpaid: "partial", partial: "overdue", overdue: "paid", paid: "unpaid" }
+    const next = cycle[inv.status] ?? "unpaid"
+    if (next === "partial") {
+      setPartialAmountInput(inv.partialAmountPaid ? String(inv.partialAmountPaid) : "")
+      setPartialTarget(inv)
+      return
+    }
     setInvoices((prev) =>
       prev.map((i) => (i.id === inv.id ? { ...i, status: next } : i)),
     )
     showSuccessToast(`Status changed to ${next}`)
+  }
+
+  const handleSavePartial = () => {
+    if (!partialTarget) return
+    const grandTotal = Number(partialTarget.grandTotal) || 0
+    const cs = getCurrencySymbol(partialTarget.currency)
+    const amt = parseFloat(partialAmountInput)
+    if (isNaN(amt) || amt < 0) {
+      showErrorToast("Please enter a valid amount")
+      return
+    }
+    if (amt >= grandTotal) {
+      showErrorToast(`Amount must be less than the total (${cs}${grandTotal.toFixed(2)}). Mark as Paid instead.`)
+      return
+    }
+    setInvoices((prev) =>
+      prev.map((i) =>
+        i.id === partialTarget.id
+          ? { ...i, status: "partial", partialAmountPaid: amt }
+          : i
+      ),
+    )
+    showSuccessToast(`Partial payment of ${cs}${amt.toFixed(2)} recorded`)
+    setPartialTarget(null)
+    setPartialAmountInput("")
   }
 
   const handleDelete = () => {
@@ -323,7 +389,7 @@ function InvoiceHistoryPage() {
           icon={Clock}
           title="Outstanding"
           value={fmt(outstanding)}
-          sub={`${invoices.filter((i) => i.status === "unpaid").length} unpaid`}
+          sub={`${invoices.filter((i) => i.status === "unpaid").length} unpaid · ${partialCount} partial`}
           iconClass="bg-amber-500/10 text-amber-500"
           valueClass={outstanding > 0 ? "text-amber-600 dark:text-amber-400" : ""}
         />
@@ -356,6 +422,7 @@ function InvoiceHistoryPage() {
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="partial">Partial Paid</SelectItem>
               <SelectItem value="unpaid">Unpaid</SelectItem>
               <SelectItem value="overdue">Overdue</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
@@ -473,65 +540,80 @@ function InvoiceHistoryPage() {
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Badge
                           variant={statusVariant[inv.status] ?? "outline"}
-                          className="capitalize cursor-pointer gap-1 text-xs"
+                          className={`capitalize cursor-pointer gap-1 text-xs ${statusStyle[inv.status] ?? ""}`}
                           onClick={() => handleToggleStatus(inv)}
-                          title="Click to cycle status"
+                          title="Click to cycle status: unpaid → partial → overdue → paid"
                         >
                           <StatusIcon className="h-3 w-3" />
-                          {inv.status}
+                          {inv.status === "partial" ? "Partial Paid" : inv.status}
                         </Badge>
                       </TableCell>
                       <TableCell
                         className="text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Actions</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link
-                                to="/invoice-history/$invoiceId"
-                                params={{ invoiceId: inv.id }}
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => downloadInvoicePdf(inv)}
+                            title="Download PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                               >
-                                <FileText className="mr-2 h-4 w-4" />
-                                View Details
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleWhatsApp(inv)}>
-                              <Send className="mr-2 h-4 w-4" />
-                              Send via WhatsApp
-                            </DropdownMenuItem>
-                            <Separator className="my-1" />
-                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                              Convert To
-                            </div>
-                            {["invoice", "quotation", "challan", "proforma"].filter(t => (inv.type || "invoice") !== t).map(type => (
-                              <DropdownMenuItem key={type} asChild>
-                                <Link to="/create-invoice" search={{ fromId: inv.id, type: type }}>
-                                  <RefreshCw className="mr-2 h-4 w-4" />
-                                  <span className="capitalize">{type}</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Actions</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  to="/invoice-history/$invoiceId"
+                                  params={{ invoiceId: inv.id }}
+                                >
+                                  <FileText className="mr-2 h-4 w-4" />
+                                  View Details
                                 </Link>
                               </DropdownMenuItem>
-                            ))}
-                            <Separator className="my-1" />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => setDeleteTarget(inv)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <DropdownMenuItem onClick={() => handleWhatsApp(inv)}>
+                                <Send className="mr-2 h-4 w-4" />
+                                Send via WhatsApp
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSendEmail(inv)}>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Send via Email
+                              </DropdownMenuItem>
+                              <Separator className="my-1" />
+                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                Convert To
+                              </div>
+                              {["invoice", "quotation", "challan", "proforma"].filter(t => (inv.type || "invoice") !== t).map(type => (
+                                <DropdownMenuItem key={type} asChild>
+                                  <Link to="/create-invoice" search={{ fromId: inv.id, type: type }}>
+                                    <RefreshCw className="mr-2 h-4 w-4" />
+                                    <span className="capitalize">{type}</span>
+                                  </Link>
+                                </DropdownMenuItem>
+                              ))}
+                              <Separator className="my-1" />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setDeleteTarget(inv)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
@@ -556,6 +638,69 @@ function InvoiceHistoryPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Partial Payment Dialog */}
+      {partialTarget && (() => {
+        const grandTotal = Number(partialTarget.grandTotal) || 0
+        const cs = getCurrencySymbol(partialTarget.currency)
+        const inputVal = parseFloat(partialAmountInput)
+        return (
+          <Dialog open={!!partialTarget} onOpenChange={(open) => !open && setPartialTarget(null)}>
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <CircleDot className="h-4 w-4 text-amber-500" />
+                  Record Partial Payment
+                </DialogTitle>
+                <DialogDescription>
+                  Enter the amount received for{" "}
+                  <strong>{partialTarget.invoiceNumber}</strong>. Total:{" "}
+                  <strong>{fmt(grandTotal, partialTarget.currency)}</strong>.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="list-partial-amount">Amount Paid ({partialTarget.currency || "INR"})</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{cs}</span>
+                    <Input
+                      id="list-partial-amount"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      className="pl-7"
+                      value={partialAmountInput}
+                      onChange={(e) => setPartialAmountInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSavePartial()}
+                      autoFocus
+                    />
+                  </div>
+                  {partialAmountInput && !isNaN(inputVal) && inputVal > 0 && inputVal < grandTotal && (
+                    <p className="text-xs text-muted-foreground">
+                      Remaining:{" "}
+                      <span className="font-medium text-amber-600 dark:text-amber-400">
+                        {fmt(grandTotal - inputVal, partialTarget.currency)}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline" onClick={() => setPartialTarget(null)}>Cancel</Button>
+                </DialogClose>
+                <Button
+                  className="bg-amber-500 hover:bg-amber-600 text-white"
+                  onClick={handleSavePartial}
+                >
+                  Save Payment
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )
+      })()}
 
       {/* Delete Confirmation */}
       <Dialog

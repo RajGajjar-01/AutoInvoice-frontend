@@ -5,6 +5,7 @@ import {
     CheckCircle2,
     CircleDashed,
     CircleX,
+    CircleDot,
     Download,
     Send,
     Trash2,
@@ -32,6 +33,8 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { LoadingButton } from "@/components/ui/loading-button"
@@ -52,6 +55,7 @@ import {
 import useLocalStorage from "@/hooks/useLocalStorage"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useState } from "react"
+import { downloadInvoicePdf } from "@/lib/invoicePdf"
 
 export const Route = createFileRoute("/_layout/invoice-history/$invoiceId")({
     component: InvoiceDetailPage,
@@ -82,12 +86,18 @@ const statusVariant = {
     paid: "default",
     unpaid: "secondary",
     overdue: "destructive",
+    partial: "outline",
+}
+
+const statusStyle = {
+    partial: "border-amber-400 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30",
 }
 
 const statusIcon = {
     paid: CheckCircle2,
     unpaid: CircleDashed,
     overdue: CircleX,
+    partial: CircleDot,
 }
 
 function InfoRow({ icon: Icon, label, value }) {
@@ -132,9 +142,11 @@ function NotFound() {
 function InvoiceDetailPage() {
     const { invoiceId } = Route.useParams()
     const [invoices, setInvoices] = useLocalStorage("invoices", [])
-    const { showSuccessToast } = useCustomToast()
+    const { showSuccessToast, showErrorToast } = useCustomToast()
     const navigate = useNavigate()
     const [deleteOpen, setDeleteOpen] = useState(false)
+    const [partialDialogOpen, setPartialDialogOpen] = useState(false)
+    const [partialAmountInput, setPartialAmountInput] = useState("")
 
     const invoice = invoices.find((i) => i.id === invoiceId)
 
@@ -143,22 +155,48 @@ function InvoiceDetailPage() {
     const docType = invoice.type || "invoice"
     const docTitle = docType === "quotation" ? "Quotation" : docType === "challan" ? "Delivery Challan" : docType === "proforma" ? "Proforma Invoice" : "Invoice"
 
-
     const cs = getCurrencySymbol(invoice.currency)
     const StatusIcon = statusIcon[invoice.status] ?? CircleDashed
     const validItems = (invoice.items || []).filter((it) => it.name)
 
+    const grandTotal = Number(invoice.grandTotal) || 0
+    const partialPaid = Number(invoice.partialAmountPaid) || 0
+    const remaining = grandTotal - partialPaid
+    const paidPct = grandTotal > 0 ? Math.min(100, Math.round((partialPaid / grandTotal) * 100)) : 0
+
     const handleToggleStatus = () => {
-        const next =
-            invoice.status === "paid"
-                ? "unpaid"
-                : invoice.status === "unpaid"
-                    ? "overdue"
-                    : "paid"
+        const cycle = { unpaid: "partial", partial: "overdue", overdue: "paid", paid: "unpaid" }
+        const next = cycle[invoice.status] ?? "unpaid"
+        if (next === "partial") {
+            setPartialAmountInput(invoice.partialAmountPaid ? String(invoice.partialAmountPaid) : "")
+            setPartialDialogOpen(true)
+            return
+        }
         setInvoices((prev) =>
             prev.map((i) => (i.id === invoice.id ? { ...i, status: next } : i)),
         )
         showSuccessToast(`Status changed to ${next}`)
+    }
+
+    const handleSavePartial = () => {
+        const amt = parseFloat(partialAmountInput)
+        if (isNaN(amt) || amt < 0) {
+            showErrorToast("Please enter a valid amount")
+            return
+        }
+        if (amt >= grandTotal) {
+            showErrorToast(`Amount must be less than the total (${cs}${grandTotal.toFixed(2)}). Mark as Paid instead.`)
+            return
+        }
+        setInvoices((prev) =>
+            prev.map((i) =>
+                i.id === invoice.id
+                    ? { ...i, status: "partial", partialAmountPaid: amt }
+                    : i
+            ),
+        )
+        setPartialDialogOpen(false)
+        showSuccessToast(`Partial payment of ${cs}${amt.toFixed(2)} recorded`)
     }
 
     const handleDelete = () => {
@@ -170,6 +208,10 @@ function InvoiceDetailPage() {
     const handleWhatsApp = () => {
         const text = `${docTitle} ${invoice.invoiceNumber}\nAmount: ${cs}${Number(invoice.grandTotal).toFixed(2)}\nStatus: ${invoice.status}\nFrom: UnifiedDesk`
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
+    }
+
+    const handleDownloadPDF = () => {
+        downloadInvoicePdf(invoice)
     }
 
     return (
@@ -194,12 +236,17 @@ function InvoiceDetailPage() {
                 <div className="flex items-center gap-2">
                     <Badge
                         variant={statusVariant[invoice.status] ?? "outline"}
-                        className="capitalize cursor-pointer gap-1 py-1 px-3 text-sm"
+                        className={`capitalize cursor-pointer gap-1 py-1 px-3 text-sm ${statusStyle[invoice.status] ?? ""}`}
                         onClick={handleToggleStatus}
+                        title="Click to cycle status"
                     >
                         <StatusIcon className="h-3.5 w-3.5" />
-                        {invoice.status}
+                        {invoice.status === "partial" ? "Partial Paid" : invoice.status}
                     </Badge>
+                    <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download PDF
+                    </Button>
                     <Button variant="outline" size="sm" onClick={handleWhatsApp}>
                         <Send className="mr-2 h-4 w-4" />
                         WhatsApp
@@ -467,13 +514,53 @@ function InvoiceDetailPage() {
                                 <span className="text-muted-foreground">Status</span>
                                 <Badge
                                     variant={statusVariant[invoice.status] ?? "outline"}
-                                    className="capitalize cursor-pointer gap-1"
+                                    className={`capitalize cursor-pointer gap-1 ${statusStyle[invoice.status] ?? ""}`}
                                     onClick={handleToggleStatus}
+                                    title="Click to cycle: unpaid → partial → overdue → paid"
                                 >
                                     <StatusIcon className="h-3 w-3" />
-                                    {invoice.status}
+                                    {invoice.status === "partial" ? "Partial Paid" : invoice.status}
                                 </Badge>
                             </div>
+                            {invoice.status === "partial" && (
+                                <>
+                                    <Separator />
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-muted-foreground">Amount Paid</span>
+                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                                {fmt(partialPaid, invoice.currency)}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-muted-foreground">Remaining</span>
+                                            <span className="font-semibold text-amber-600 dark:text-amber-400">
+                                                {fmt(remaining, invoice.currency)}
+                                            </span>
+                                        </div>
+                                        {/* Progress bar */}
+                                        <div className="h-2 rounded-full bg-muted overflow-hidden mt-1">
+                                            <div
+                                                className="h-full rounded-full bg-emerald-500 transition-all"
+                                                style={{ width: `${paidPct}%` }}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-muted-foreground text-right">{paidPct}% collected</p>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="w-full text-xs mt-1 border-amber-400 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                                            onClick={() => {
+                                                setPartialAmountInput(String(partialPaid || ""))
+                                                setPartialDialogOpen(true)
+                                            }}
+                                        >
+                                            <CircleDot className="mr-1.5 h-3 w-3" />
+                                            Update Partial Amount
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                             <p className="text-xs text-muted-foreground">
                                 Click the badge to cycle status
                             </p>
@@ -481,6 +568,62 @@ function InvoiceDetailPage() {
                     </Card>
                 </div>
             </div>
+
+            {/* ── Partial Payment Dialog ── */}
+            <Dialog open={partialDialogOpen} onOpenChange={setPartialDialogOpen}>
+                <DialogContent className="sm:max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <CircleDot className="h-4 w-4 text-amber-500" />
+                            Record Partial Payment
+                        </DialogTitle>
+                        <DialogDescription>
+                            Enter the amount already received for invoice{" "}
+                            <strong>{invoice.invoiceNumber}</strong>. Total is{" "}
+                            <strong>{fmt(grandTotal, invoice.currency)}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="partial-amount">Amount Paid ({invoice.currency || "INR"})</Label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{cs}</span>
+                                <Input
+                                    id="partial-amount"
+                                    type="number"
+                                    min="0"
+                                    max={grandTotal - 0.01}
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    className="pl-7"
+                                    value={partialAmountInput}
+                                    onChange={(e) => setPartialAmountInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && handleSavePartial()}
+                                    autoFocus
+                                />
+                            </div>
+                            {partialAmountInput && !isNaN(parseFloat(partialAmountInput)) && parseFloat(partialAmountInput) > 0 && parseFloat(partialAmountInput) < grandTotal && (
+                                <p className="text-xs text-muted-foreground">
+                                    Remaining: <span className="font-medium text-amber-600 dark:text-amber-400">
+                                        {fmt(grandTotal - parseFloat(partialAmountInput), invoice.currency)}
+                                    </span>
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button
+                            className="bg-amber-500 hover:bg-amber-600 text-white"
+                            onClick={handleSavePartial}
+                        >
+                            Save Payment
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* ── Delete Dialog ── */}
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

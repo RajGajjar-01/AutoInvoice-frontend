@@ -64,6 +64,39 @@ function generateDocumentNumber(type = "invoice") {
 
 const emptyItem = { name: "", description: "", quantity: 0, price: 0, tax: 0 }
 
+function toRupeesInWords(num) {
+  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", 
+                "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  
+  function convert(n) {
+    if (n < 20) return ones[n];
+    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + ones[n % 10] : "");
+    if (n < 1000) return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " " + convert(n % 100) : "");
+    if (n < 100000) return convert(Math.floor(n / 1000)) + " Thousand" + (n % 1000 !== 0 ? " " + convert(n % 1000) : "");
+    if (n < 10000000) return convert(Math.floor(n / 100000)) + " Lakh" + (n % 100000 !== 0 ? " " + convert(n % 100000) : "");
+    return convert(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 !== 0 ? " " + convert(n % 10000000) : "");
+  }
+
+  const absNum = Math.abs(num);
+  if (absNum === 0) return "Zero Rupees Only";
+  
+  const parts = absNum.toFixed(2).split(".");
+  const rupees = parseInt(parts[0], 10);
+  const paise = parseInt(parts[1], 10);
+  
+  let result = "";
+  if (rupees > 0) {
+    result += convert(rupees) + " Rupees";
+  }
+  if (paise > 0) {
+    if (rupees > 0) result += " and ";
+    result += convert(paise) + " Paise";
+  }
+  result += " Only";
+  return (num < 0 ? "Negative " : "") + result;
+}
+
 export function CreateInvoicePage({ defaultType = "invoice" }) {
   const [customers, setCustomers] = useLocalStorage("customers", [])
   const [inventoryItems, setInventoryItems] = useLocalStorage("items", [])
@@ -275,7 +308,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
   const removeItem = (index) =>
     setItems((prev) => prev.filter((_, i) => i !== index))
 
-  const { subtotal, totalTax, itemsDiscount, invoiceDiscount, grandTotal } = useMemo(() => {
+  const { subtotal, totalTax, itemsDiscount, invoiceDiscount, grandTotal, rawGrandTotal } = useMemo(() => {
     let sub = 0
     let tax = 0
     let itemDisc = 0
@@ -308,6 +341,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
       itemsDiscount: itemDisc,
       invoiceDiscount: invDisc,
       grandTotal: grand,
+      rawGrandTotal: rawGrand,
     }
   }, [items, discountType, discountValue, shippingCharge, extraChargeAmount, roundOff])
 
@@ -484,6 +518,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
       return { item, idx, lineBase, disc, taxable, lineTax, lineTotal }
     })
 
+    const amountInWords = toRupeesInWords(grandTotal)
     const summaryEntries = [
       { label: 'Subtotal', value: cs + subtotal.toFixed(2) },
       itemsDiscount > 0 ? { label: 'Item Discounts', value: '-' + cs + itemsDiscount.toFixed(2), red: true } : null,
@@ -491,6 +526,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
       totalTax > 0 ? { label: 'Tax', value: cs + totalTax.toFixed(2) } : null,
       Number(shippingCharge) > 0 ? { label: 'Shipping', value: cs + Number(shippingCharge).toFixed(2) } : null,
       Number(extraChargeAmount) > 0 ? { label: extraChargeLabel || 'Extra', value: cs + Number(extraChargeAmount).toFixed(2) } : null,
+      (roundOff && (grandTotal - rawGrandTotal) !== 0) ? { label: 'Round Off', value: ((grandTotal - rawGrandTotal) >= 0 ? '+' : '') + cs + (grandTotal - rawGrandTotal).toFixed(2) } : null,
     ].filter(Boolean)
 
     const bankHtml = (activeBankDetails && (activeBankDetails.bankName || activeBankDetails.accountNumber || activeBankDetails.upi))
@@ -595,6 +631,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
         </tr>
       </table>
     </div>
+    <div style="text-align:right;font-size:11px;color:#64748b;margin-bottom:20px;margin-top:-10px"><strong>Amount in Words:</strong> ${amountInWords}</div>
     ` : ''}
 
     ${(deliveryNotes || notes || paymentTerms) ? `<div style="padding:12px;font-size:11px;border:1px solid #e2e8f0;background:#f8fafc;margin-bottom:20px">
@@ -728,6 +765,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
         </tr>
       </table>
     </div>
+    <div style="text-align:right;font-size:11px;color:#64748b;margin-bottom:20px;margin-top:-10px"><strong>Amount in Words:</strong> ${amountInWords}</div>
     ` : ''}
 
 
@@ -856,6 +894,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
     <div style="border-top:2.5px solid #1a1a1a;border-bottom:2.5px solid #1a1a1a;padding:12px 0;display:flex;justify-content:space-between;font-weight:900;font-size:24px;margin-top:0">
       <span style="letter-spacing:2px">AMOUNT DUE</span><span style="font-family:monospace">${cs}${grandTotal.toFixed(2)}</span>
     </div>
+    <div style="text-align:right;font-size:11px;color:#6b7280;margin-top:8px"><strong>Amount in Words:</strong> ${amountInWords}</div>
     ` : ''}
 
 
@@ -995,6 +1034,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
         </tr>
       </table>
     </div>
+    <div style="text-align:right;font-size:11px;color:#6b7280;margin-bottom:20px;margin-top:-10px"><strong>Amount in Words:</strong> ${amountInWords}</div>
 
     <!-- Bank + Notes -->
     <div style="margin-top:auto;padding-top:40px;display:flex;justify-content:space-between;align-items:flex-end">
@@ -1125,6 +1165,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
         </tr>
       </table>
     </div>
+    <div style="text-align:right;font-size:11px;color:#6b7280;margin-bottom:20px;margin-top:-10px"><strong>Amount in Words:</strong> ${amountInWords}</div>
 
     ${roundOff ? '<div style="text-align:right;font-size:10px;color:#9ca3af;margin-top:4px">* Amount rounded off</div>' : ''}
 
@@ -1169,6 +1210,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
     return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + docTitleUpper + ' ' + invoiceNumber + '</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#fff;font-size:13px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="max-width:800px;margin:0 auto;padding:36px">' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:28px"><p style="font-size:48px;font-weight:900;color:#0E7490;letter-spacing:-2px;line-height:1">' + docTitleUpper + '</p><div style="text-align:right;border:1px solid #e2e8f0;padding:10px 16px;font-size:11px"><div><span style="color:#94a3b8">Date:</span> ' + invoiceDate + '</div><div><span style="color:#94a3b8">' + docTitle + ' No:</span> ' + invoiceNumber + '</div></div></div>' +
       '<table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1"><thead><tr style="background:#0E7490;color:#fff"><th style="padding:9px 10px;font-size:11px;text-align:center;width:36px">SL</th><th style="padding:9px 12px;font-size:11px;text-align:left">Description</th><th style="padding:9px 12px;font-size:11px;text-align:right">Amount</th></tr></thead><tbody>' + rows + '<tr style="border-top:2px solid #0E7490"><td colspan="2" style="padding:10px 12px;font-size:12px;font-weight:700;text-align:right">Total</td><td style="padding:10px 12px;font-size:13px;font-weight:800;text-align:right;color:#0E7490">' + cs + grandTotal.toFixed(2) + '</td></tr></tbody></table>' +
+      (!isChallan ? '<div style="text-align:right;font-size:11px;color:#64748b;margin-top:8px"><strong>Amount in Words:</strong> ' + amountInWords + '</div>' : '') +
       '<div style="margin-top:16px;text-align:center;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:10px">' + invoiceFooterNote + ' &bull; Generated by UnifiedDesk</div>' +
       '</div></body></html>'
   }
@@ -1797,7 +1839,7 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
               {roundOff && (
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Round Off</span>
-                  <span className="text-muted-foreground">{Math.round(grandTotal) - grandTotal >= 0 ? "+" : ""}{(Math.round(grandTotal) - grandTotal).toFixed(2)}</span>
+                  <span className="text-muted-foreground">{(grandTotal - rawGrandTotal) >= 0 ? "+" : ""}{(grandTotal - rawGrandTotal).toFixed(2)}</span>
                 </div>
               )}
               <Separator />
@@ -1807,6 +1849,11 @@ export function CreateInvoicePage({ defaultType = "invoice" }) {
                   {currencySymbol}{grandTotal.toFixed(2)}
                 </span>
               </div>
+              {docType !== "challan" && (
+                <div className="text-right text-[11px] text-muted-foreground mt-1 max-w-[280px] break-words ml-auto">
+                  <strong>In Words:</strong> {toRupeesInWords(grandTotal)}
+                </div>
+              )}
 
               <Separator />
 

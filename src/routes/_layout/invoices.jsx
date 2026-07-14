@@ -11,12 +11,15 @@ import {
     CheckCircle2,
     CircleDashed,
     CircleX,
+    CircleDot,
     MoreHorizontal,
     Trash2,
     Send,
     ArrowUpRight,
     RefreshCw,
+    Download,
 } from "lucide-react"
+import { downloadInvoicePdf } from "@/lib/invoicePdf"
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -75,12 +78,18 @@ const statusVariant = {
     paid: "default",
     unpaid: "secondary",
     overdue: "destructive",
+    partial: "outline",
+}
+
+const statusStyle = {
+    partial: "border-amber-400 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30",
 }
 
 const statusIcon = {
     paid: CheckCircle2,
     unpaid: CircleDashed,
     overdue: CircleX,
+    partial: CircleDot,
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -156,11 +165,17 @@ function InvoicesPage() {
     const paidCount = invoices.filter((i) => i.status === "paid").length
     const unpaidCount = invoices.filter((i) => i.status === "unpaid").length
     const overdueCount = invoices.filter((i) => i.status === "overdue").length
+    const partialCount = invoices.filter((i) => i.status === "partial").length
 
     const totalRevenue = invoices.reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
     const outstanding = invoices
-        .filter((i) => i.status === "unpaid" || i.status === "overdue")
-        .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
+        .filter((i) => i.status === "unpaid" || i.status === "overdue" || i.status === "partial")
+        .reduce((s, i) => {
+            if (i.status === "partial") {
+                return s + Math.max(0, (Number(i.grandTotal) || 0) - (Number(i.partialAmountPaid) || 0))
+            }
+            return s + (Number(i.grandTotal) || 0)
+        }, 0)
 
     const paidRevenue = invoices
         .filter((i) => i.status === "paid")
@@ -175,7 +190,8 @@ function InvoicesPage() {
 
     // ── Actions ─────────────────────────────────────────────────────────────
     const handleToggleStatus = (inv) => {
-        const next = inv.status === "paid" ? "unpaid" : inv.status === "unpaid" ? "overdue" : "paid"
+        const cycle = { unpaid: "partial", partial: "overdue", overdue: "paid", paid: "unpaid" }
+        const next = cycle[inv.status] ?? "unpaid"
         setInvoices((prev) => prev.map((i) => (i.id === inv.id ? { ...i, status: next } : i)))
         showSuccessToast(`Status changed to ${next}`)
     }
@@ -343,51 +359,63 @@ function InvoicesPage() {
                                                 <TableCell onClick={(e) => e.stopPropagation()}>
                                                     <Badge
                                                         variant={statusVariant[inv.status] ?? "outline"}
-                                                        className="capitalize cursor-pointer gap-1 text-xs"
+                                                        className={`capitalize cursor-pointer gap-1 text-xs ${statusStyle[inv.status] ?? ""}`}
                                                         onClick={() => handleToggleStatus(inv)}
+                                                        title="Click to cycle: unpaid → partial → overdue → paid"
                                                     >
                                                         <StatusIcon className="h-3 w-3" />
-                                                        {inv.status}
+                                                        {inv.status === "partial" ? "Partial Paid" : inv.status}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell
                                                     className="text-right"
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                                <span className="sr-only">Actions</span>
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => handleWhatsApp(inv)}>
-                                                                <Send className="mr-2 h-4 w-4" />
-                                                                Send via WhatsApp
-                                                            </DropdownMenuItem>
-                                                            <Separator className="my-1" />
-                                                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                                                Convert To
-                                                            </div>
-                                                            {["invoice", "quotation", "challan", "proforma"].filter(t => (inv.type || "invoice") !== t).map(type => (
-                                                                <DropdownMenuItem key={type} asChild>
-                                                                    <Link to="/create-invoice" search={{ fromId: inv.id, type: type }}>
-                                                                        <RefreshCw className="mr-2 h-4 w-4" />
-                                                                        <span className="capitalize">{type}</span>
-                                                                    </Link>
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                            onClick={() => downloadInvoicePdf(inv)}
+                                                            title="Download PDF"
+                                                        >
+                                                            <Download className="h-4 w-4" />
+                                                        </Button>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                    <span className="sr-only">Actions</span>
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem onClick={() => handleWhatsApp(inv)}>
+                                                                    <Send className="mr-2 h-4 w-4" />
+                                                                    Send via WhatsApp
                                                                 </DropdownMenuItem>
-                                                            ))}
-                                                            <Separator className="my-1" />
-                                                            <DropdownMenuItem
-                                                                className="text-destructive focus:text-destructive"
-                                                                onClick={() => setDeleteTarget(inv)}
-                                                            >
-                                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                                Delete
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                                <Separator className="my-1" />
+                                                                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                                                    Convert To
+                                                                </div>
+                                                                {["invoice", "quotation", "challan", "proforma"].filter(t => (inv.type || "invoice") !== t).map(type => (
+                                                                    <DropdownMenuItem key={type} asChild>
+                                                                        <Link to="/create-invoice" search={{ fromId: inv.id, type: type }}>
+                                                                            <RefreshCw className="mr-2 h-4 w-4" />
+                                                                            <span className="capitalize">{type}</span>
+                                                                        </Link>
+                                                                    </DropdownMenuItem>
+                                                                ))}
+                                                                <Separator className="my-1" />
+                                                                <DropdownMenuItem
+                                                                    className="text-destructive focus:text-destructive"
+                                                                    onClick={() => setDeleteTarget(inv)}
+                                                                >
+                                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                                    Delete
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         )
@@ -472,6 +500,17 @@ function InvoicesPage() {
                                     <span className="text-muted-foreground">Unpaid</span>
                                 </div>
                                 <span className="font-medium">{unpaidCount}</span>
+                            </div>
+
+                            {/* Partial Paid */}
+                            <div className="flex items-center justify-between text-sm">
+                                <div className="flex items-center gap-2">
+                                    <CircleDot className="h-3.5 w-3.5 text-amber-400" />
+                                    <span className="text-muted-foreground">Partial Paid</span>
+                                </div>
+                                <span className={`font-medium ${partialCount > 0 ? "text-amber-500" : ""}`}>
+                                    {partialCount}
+                                </span>
                             </div>
 
                             {/* Overdue */}
