@@ -179,7 +179,7 @@ export function TechnologyShowcase() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-20">
+    <section ref={sectionRef} className="py-14 md:py-20">
       <div className="mx-auto max-w-6xl px-6">
         {/* ---- Header ---- */}
         <div className="tech-heading text-center mb-14">

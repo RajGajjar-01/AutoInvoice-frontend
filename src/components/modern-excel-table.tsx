@@ -40,6 +40,7 @@ export function ModernExcelTable({
   addItem,
   removeItem,
   currencySymbol,
+  hidePricing = false,
 }: {
   items: TableItem[]
   inventoryItems: InventoryItem[]
@@ -52,6 +53,7 @@ export function ModernExcelTable({
   addItem: () => void
   removeItem: (index: number) => void
   currencySymbol: string
+  hidePricing?: boolean
 }) {
   const tableRef = useRef<HTMLTableElement>(null)
 
@@ -62,16 +64,18 @@ export function ModernExcelTable({
     field: string,
   ) => {
     const target = e.currentTarget
-    const fields = [
-      "itemId",
-      "name",
-      "description",
-      "hsnCode",
-      "quantity",
-      "price",
-      "tax",
-      "discount",
-    ]
+    const fields = hidePricing
+      ? ["itemId", "name", "description", "hsnCode", "quantity"]
+      : [
+          "itemId",
+          "name",
+          "description",
+          "hsnCode",
+          "quantity",
+          "price",
+          "tax",
+          "discount",
+        ]
     const fieldIndex = fields.indexOf(field)
 
     if (e.key === "ArrowDown" || (e.key === "Enter" && !e.shiftKey)) {
@@ -141,18 +145,22 @@ export function ModernExcelTable({
               <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-20">
                 Qty
               </th>
-              <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-32">
-                Price
-              </th>
-              <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-20">
-                Tax %
-              </th>
-              <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-[120px]">
-                Discount
-              </th>
-              <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-32">
-                Total
-              </th>
+              {!hidePricing && (
+                <>
+                  <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-32">
+                    Price
+                  </th>
+                  <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-20">
+                    Tax %
+                  </th>
+                  <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-[120px]">
+                    Discount
+                  </th>
+                  <th className="text-right font-semibold text-muted-foreground px-3 py-3 w-32">
+                    Total
+                  </th>
+                </>
+              )}
               <th className="w-12 px-2 py-3" />
             </tr>
           </thead>
@@ -306,91 +314,101 @@ export function ModernExcelTable({
                       )}
                     </div>
                   </td>
-                  <td className="px-2 py-2 align-top">
-                    <div className="relative mt-1 rounded-md border border-border bg-muted/20 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/60 font-mono select-none">
-                        {currencySymbol}
-                      </span>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.price === 0 ? "" : item.price}
-                        onChange={(e) =>
-                          updateItem(index, "price", e.target.value)
-                        }
-                        onKeyDown={(e) => handleKeyDown(e, index, "price")}
-                        data-field="price"
-                        className="h-8 w-full text-right border-0 bg-transparent focus-visible:ring-0 pl-5 pr-2 shadow-none"
-                      />
-                    </div>
-                  </td>
-                  <td className="px-2 py-2 align-top">
-                    <div className="mt-1 rounded-md border border-border bg-muted/20 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={item.tax === 0 ? "" : item.tax}
-                        onChange={(e) =>
-                          updateItem(index, "tax", e.target.value)
-                        }
-                        onKeyDown={(e) => handleKeyDown(e, index, "tax")}
-                        data-field="tax"
-                        className="h-8 w-full text-right border-0 bg-transparent focus-visible:ring-0 text-amber-600 font-medium px-2 shadow-none"
-                      />
-                    </div>
-                  </td>
-                  <td className="px-2 py-2 align-top">
-                    <div className="flex gap-1 mt-1">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateItem(
-                            index,
-                            "discountType",
-                            item.discountType === "flat" ? "percent" : "flat",
-                          )
-                        }
-                        className={cn(
-                          "h-8 px-2 rounded-md border border-border/50 transition-all text-[10px] font-bold shrink-0",
-                          item.discountType === "flat"
-                            ? "bg-primary/10 text-primary border-primary/30"
-                            : "bg-muted/50 text-muted-foreground hover:bg-muted",
-                        )}
-                      >
-                        {item.discountType === "flat" ? currencySymbol : "%"}
-                      </button>
-                      <div className="flex-1 rounded-md border border-border bg-muted/20 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={
-                            item.discount === 0 || !item.discount
-                              ? ""
-                              : item.discount
-                          }
-                          onChange={(e) =>
-                            updateItem(index, "discount", e.target.value)
-                          }
-                          onKeyDown={(e) => handleKeyDown(e, index, "discount")}
-                          data-field="discount"
-                          placeholder="0"
-                          className="h-8 w-full text-right border-0 bg-transparent focus-visible:ring-0 px-2 shadow-none"
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 text-right align-top pt-3.5">
-                    <span className="font-bold text-sm text-foreground">
-                      {currencySymbol}
-                      {lineTotal.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </td>
+                  {!hidePricing && (
+                    <>
+                      <td className="px-2 py-2 align-top">
+                        <div className="relative mt-1 rounded-md border border-border bg-muted/20 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/60 font-mono select-none">
+                            {currencySymbol}
+                          </span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.price === 0 ? "" : item.price}
+                            onChange={(e) =>
+                              updateItem(index, "price", e.target.value)
+                            }
+                            onKeyDown={(e) => handleKeyDown(e, index, "price")}
+                            data-field="price"
+                            className="h-8 w-full text-right border-0 bg-transparent focus-visible:ring-0 pl-5 pr-2 shadow-none"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 align-top">
+                        <div className="mt-1 rounded-md border border-border bg-muted/20 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={item.tax === 0 ? "" : item.tax}
+                            onChange={(e) =>
+                              updateItem(index, "tax", e.target.value)
+                            }
+                            onKeyDown={(e) => handleKeyDown(e, index, "tax")}
+                            data-field="tax"
+                            className="h-8 w-full text-right border-0 bg-transparent focus-visible:ring-0 text-amber-600 font-medium px-2 shadow-none"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 align-top">
+                        <div className="flex gap-1 mt-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateItem(
+                                index,
+                                "discountType",
+                                item.discountType === "flat"
+                                  ? "percent"
+                                  : "flat",
+                              )
+                            }
+                            className={cn(
+                              "h-8 px-2 rounded-md border border-border/50 transition-all text-[10px] font-bold shrink-0",
+                              item.discountType === "flat"
+                                ? "bg-primary/10 text-primary border-primary/30"
+                                : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                            )}
+                          >
+                            {item.discountType === "flat"
+                              ? currencySymbol
+                              : "%"}
+                          </button>
+                          <div className="flex-1 rounded-md border border-border bg-muted/20 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={
+                                item.discount === 0 || !item.discount
+                                  ? ""
+                                  : item.discount
+                              }
+                              onChange={(e) =>
+                                updateItem(index, "discount", e.target.value)
+                              }
+                              onKeyDown={(e) =>
+                                handleKeyDown(e, index, "discount")
+                              }
+                              data-field="discount"
+                              placeholder="0"
+                              className="h-8 w-full text-right border-0 bg-transparent focus-visible:ring-0 px-2 shadow-none"
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-right align-top pt-3.5">
+                        <span className="font-bold text-sm text-foreground">
+                          {currencySymbol}
+                          {lineTotal.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </td>
+                    </>
+                  )}
                   <td className="px-2 py-2 align-top pt-2.5">
                     <Button
                       variant="ghost"

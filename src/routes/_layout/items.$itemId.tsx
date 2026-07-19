@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query"
 import { Suspense } from "react"
 import { type LoaderFunctionArgs, useNavigate, useParams } from "react-router"
 import {
@@ -5,22 +6,17 @@ import {
   type Item as ItemDetailItem,
 } from "@/components/Items/ItemDetail"
 import PendingItemDetail from "@/components/Pending/PendingItemDetail"
+import { itemDetailQueryOptions } from "@/features/items/queries"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import useLocalStorage from "@/hooks/useLocalStorage"
 
 export function loader({ params }: LoaderFunctionArgs) {
-  // We handle the actual data fetch inside the component to use our hook,
-  // but we can throw notFound if we want to do strict routing here.
-  // For localStorage, it's easier to handle inside the component.
   return { itemId: params.itemId }
 }
 
 function ItemDetailContent() {
   const { itemId } = useParams<{ itemId: string }>()
   const navigate = useNavigate()
-  const [items] = useLocalStorage<ItemDetailItem[]>("items", [])
-
-  const item = items.find((i) => i.id === itemId)
+  const { data: item } = useQuery(itemDetailQueryOptions(itemId))
 
   if (!item) {
     return (
@@ -39,7 +35,12 @@ function ItemDetailContent() {
     )
   }
 
-  return <ItemDetail item={item} onDeleted={() => navigate("/items")} />
+  return (
+    <ItemDetail
+      item={item as unknown as ItemDetailItem}
+      onDeleted={() => navigate("/items")}
+    />
+  )
 }
 
 function ItemDetailPage() {

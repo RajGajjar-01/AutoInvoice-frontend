@@ -5,8 +5,8 @@ import {
   invoicesListQueryOptions,
   invoicesStatsQueryOptions,
 } from "@/features/invoices/queries"
+import { itemsListQueryOptions } from "@/features/items/queries"
 import useAuth from "@/hooks/useAuth"
-import useLocalStorage from "@/hooks/useLocalStorage"
 
 interface Item {
   id: string
@@ -28,7 +28,8 @@ interface Invoice {
 
 export function useDashboard() {
   const { user: currentUser } = useAuth()
-  const [items] = useLocalStorage<Item[]>("items", [])
+  const { data: itemsRes } = useQuery(itemsListQueryOptions())
+  const items: Item[] = (itemsRes?.data ?? []) as unknown as Item[]
 
   const { data: statsRes, isLoading: statsLoading } = useQuery(
     invoicesStatsQueryOptions(),

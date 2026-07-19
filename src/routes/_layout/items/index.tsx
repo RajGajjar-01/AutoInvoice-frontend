@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query"
 import type { LucideIcon } from "lucide-react"
 import { AlertTriangle, Filter, Package, Search, XCircle } from "lucide-react"
 import { useState } from "react"
@@ -13,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { itemsListQueryOptions } from "@/features/items/queries"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import useLocalStorage from "@/hooks/useLocalStorage"
 
 interface StatsCardProps {
   icon: LucideIcon
@@ -88,7 +89,8 @@ const STOCK_FILTERS = [
 
 function ItemsPage() {
   useDocumentTitle("Items")
-  const [items] = useLocalStorage<Item[]>("items", [])
+  const { data: itemsRes } = useQuery(itemsListQueryOptions())
+  const items: Item[] = (itemsRes?.data ?? []) as unknown as Item[]
   const [search, setSearch] = useState("")
   const [stockFilter, setStockFilter] = useState<string>("all")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")

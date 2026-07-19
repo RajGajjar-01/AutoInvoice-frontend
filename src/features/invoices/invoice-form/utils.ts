@@ -1,4 +1,4 @@
-import type { InvoiceFormData } from "./constants"
+import type { DocumentConfig, InvoiceFormData } from "./constants"
 import type {
   BankDetails,
   CompanyDetails,
@@ -7,12 +7,12 @@ import type {
   InvoiceItem,
 } from "./types"
 
-export function generateInvoiceNumber(): string {
+export function generateDocumentNumber(prefix = "INV"): string {
   const now = new Date()
   const y = now.getFullYear().toString().slice(-2)
   const m = String(now.getMonth() + 1).padStart(2, "0")
   const r = String(Math.floor(Math.random() * 9000) + 1000)
-  return `INV-${y}${m}-${r}`
+  return `${prefix}-${y}${m}-${r}`
 }
 
 export function getCurrencySymbol(currency: string): string {
@@ -106,7 +106,7 @@ export function getActiveBankDetails(
 
 export function buildInvoicePayload(
   invoiceNumber: string,
-  documentType: string,
+  config: DocumentConfig,
   formData: InvoiceFormData,
   items: InvoiceItem[],
   subtotal: number,
@@ -116,19 +116,25 @@ export function buildInvoicePayload(
 ): Record<string, unknown> {
   return {
     invoice_number: invoiceNumber,
-    document_type: documentType,
+    document_type: config.type,
     invoice_date: formData.invoiceDate,
     due_date: formData.dueDate || null,
+    valid_until:
+      config.type === "quotation" ? formData.validityDate || null : null,
     currency: formData.currency,
     subtotal,
-    total_tax: totalTax,
-    grand_total: grandTotal,
-    discount: invoiceDiscount || 0,
+    total_tax: config.hidePricing ? 0 : totalTax,
+    grand_total: config.hidePricing ? 0 : grandTotal,
+    discount: config.hidePricing ? 0 : invoiceDiscount || 0,
     notes: formData.notes || null,
     payment_terms: formData.paymentTerms || null,
-    status: "unpaid",
+    status: config.defaultStatus,
     place_of_supply: formData.placeOfSupply || null,
     reverse_charge: formData.reverseCharge || false,
+    vehicle_info:
+      config.type === "challan" ? formData.vehicleInfo || null : null,
+    delivery_notes:
+      config.type === "challan" ? formData.deliveryNotes || null : null,
     customer_id: "",
     items: (items ?? [])
       .filter((i) => i.name)
@@ -136,8 +142,8 @@ export function buildInvoicePayload(
         name: i.name,
         description: i.description || null,
         quantity: Number(i.quantity) || 0,
-        price: Number(i.price) || 0,
-        tax: Number(i.tax) || 0,
+        price: config.hidePricing ? 0 : Number(i.price) || 0,
+        tax: config.hidePricing ? 0 : Number(i.tax) || 0,
         unit: i.unit || null,
         hsn_code: i.hsnCode || null,
       })),
@@ -172,54 +178,30 @@ export function fillCustomerForm(
   }
 }
 
-export function updateStockAfterInvoice(
-  items: InvoiceItem[],
-  invoiceNumber: string,
-  setInventoryItems: any,
-): void {
-  setInventoryItems((prev: any[]) => {
-    const newInventory = [...prev]
-    items.forEach((invLine) => {
-      if (!invLine.itemId) return
-      const idx = newInventory.findIndex((i) => i.id === invLine.itemId)
-      if (idx === -1) return
-      const currentStock = newInventory[idx].stock || 0
-      if (currentStock <= 0) return
-      newInventory[idx] = {
-        ...newInventory[idx],
-        stock: currentStock - invLine.quantity,
-        stockHistory: [
-          ...(newInventory[idx].stockHistory || []),
-          {
-            date: new Date().toISOString(),
-            type: "invoice",
-            qty: -invLine.quantity,
-            reason: `Invoice ${invoiceNumber}`,
-          },
-        ],
-      }
-    })
-    return newInventory
-  })
-}
-
 export function buildWhatsAppText(
-  invoiceNumber: string,
+  documentNumber: string,
   formData: InvoiceFormData,
   items: InvoiceItem[],
   grandTotal: number,
   currencySymbol: string,
+  config: DocumentConfig,
 ): string {
-  let text = `*INVOICE ${invoiceNumber}*\n`
+  let text = `*${config.pdfTitle} ${documentNumber}*\n`
   text += `*Customer:* ${formData.customerName || "N/A"}\n`
   text += `*Date:* ${formData.invoiceDate}\n`
-  text += `*Grand Total: ${currencySymbol}${grandTotal.toFixed(2)}*\n`
+  if (!config.hidePricing) {
+    text += `*Grand Total: ${currencySymbol}${grandTotal.toFixed(2)}*\n`
+  }
   text += `--------------------------\n`
   const activeItems = items.filter(
     (i) => i.name || i.description || i.price > 0,
   )
   activeItems.forEach((item) => {
-    text += `• ${item.name || "Item"} (${item.quantity} x ${currencySymbol}${item.price.toFixed(2)}) = ${currencySymbol}${(item.quantity * item.price).toFixed(2)}\n`
+    if (config.hidePricing) {
+      text += `• ${item.name || "Item"} (${item.quantity}${item.unit ? ` ${item.unit}` : ""})\n`
+    } else {
+      text += `• ${item.name || "Item"} (${item.quantity} x ${currencySymbol}${item.price.toFixed(2)}) = ${currencySymbol}${(item.quantity * item.price).toFixed(2)}\n`
+    }
   })
   text += `--------------------------\n`
   text += `\n_Please find the detailed PDF attached._`

@@ -29,12 +29,6 @@ export function Hero() {
         "-=0.1",
       )
       tl.fromTo(
-        ".hero-title .text-primary",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.25, ease: "power2.out" },
-        "-=0.15",
-      )
-      tl.fromTo(
         ".hero-subtitle",
         { y: 16, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.25, ease: "power2.out" },
@@ -82,14 +76,19 @@ export function Hero() {
             one place.
           </p>
 
-          <div className="hero-buttons mt-10 flex flex-col sm:flex-row gap-3">
-            <Button size="lg" className="h-12 px-8" asChild>
+          <div className="hero-buttons mt-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <Button size="lg" className="h-12 w-full px-8 sm:w-auto" asChild>
               <Link to="/signup">
                 Start Free Trial
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="outline" size="lg" className="h-12 px-8" asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-12 w-full px-8 sm:w-auto"
+              asChild
+            >
               <Link to="/login">Sign In</Link>
             </Button>
           </div>

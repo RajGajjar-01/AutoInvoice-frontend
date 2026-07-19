@@ -90,7 +90,7 @@ export function FAQ() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-20 bg-muted/50">
+    <section ref={sectionRef} className="py-14 md:py-20 bg-muted/50">
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid lg:grid-cols-5 gap-10 lg:gap-16 items-start">
           {/* Left: sticky heading block (2/5) */}

@@ -1,4 +1,4 @@
-import type { InvoiceFormData } from "./constants"
+import type { DocumentConfig, InvoiceFormData } from "./constants"
 import type {
   BankDetails,
   CompanyDetails,
@@ -14,6 +14,7 @@ interface BuildHtmlParams {
   items: InvoiceItem[]
   invoiceNumber: string
   selectedTemplate: string
+  documentConfig: DocumentConfig
   subtotal: number
   totalTax: number
   itemsDiscount: number
@@ -32,6 +33,7 @@ export function buildInvoiceHtml(params: BuildHtmlParams): string {
     items,
     invoiceNumber,
     selectedTemplate,
+    documentConfig,
     subtotal,
     totalTax,
     itemsDiscount,
@@ -121,8 +123,36 @@ export function buildInvoiceHtml(params: BuildHtmlParams): string {
     )
     .join("")
 
+  const docTitle = documentConfig.pdfTitle
+  const validUntil =
+    documentConfig.type === "quotation" ? formData.validityDate || "" : ""
+
+  if (documentConfig.hidePricing)
+    return deliveryChallanTemplate(computedRows, {
+      docTitle,
+      invoiceNumber,
+      invoiceDate,
+      poNumber,
+      bizName,
+      bizTagline,
+      bizAddress,
+      bizPhone,
+      bizEmail,
+      bizGstin,
+      bizLogo,
+      cd,
+      notes,
+      paymentTerms,
+      invoiceFooterNote,
+      placeOfSupply,
+      vehicleInfo: formData.vehicleInfo || "",
+      deliveryNotes: formData.deliveryNotes || "",
+    })
+
   if (selectedTemplate === "clean-teal")
     return cleanTealTemplate(computedRows, summaryRows, {
+      docTitle,
+      validUntil,
       invoiceNumber,
       invoiceDate,
       dueDate,
@@ -145,6 +175,8 @@ export function buildInvoiceHtml(params: BuildHtmlParams): string {
 
   if (selectedTemplate === "geometric")
     return geometricTemplate(computedRows, summaryRows, {
+      docTitle,
+      validUntil,
       invoiceNumber,
       invoiceDate,
       dueDate,
@@ -167,6 +199,8 @@ export function buildInvoiceHtml(params: BuildHtmlParams): string {
 
   if (selectedTemplate === "circle-studio")
     return circleStudioTemplate(computedRows, summaryRows, {
+      docTitle,
+      validUntil,
       invoiceNumber,
       invoiceDate,
       dueDate,
@@ -190,6 +224,8 @@ export function buildInvoiceHtml(params: BuildHtmlParams): string {
 
   if (selectedTemplate === "aizen-bold")
     return aizenBoldTemplate(computedRows, summaryRows, {
+      docTitle,
+      validUntil,
       invoiceNumber,
       invoiceDate,
       dueDate,
@@ -213,6 +249,7 @@ export function buildInvoiceHtml(params: BuildHtmlParams): string {
 
   return defaultTemplate(
     computedRows,
+    docTitle,
     invoiceNumber,
     invoiceDate,
     cs,
@@ -251,6 +288,8 @@ function buildBankHtml(activeBankDetails: BankDetails | null): string {
 }
 
 interface TemplateContext {
+  docTitle: string
+  validUntil: string
   invoiceNumber: string
   invoiceDate: string
   dueDate: string
@@ -297,18 +336,19 @@ function cleanTealTemplate(
       ? `<tr><td colspan="3" style="padding:12px;font-size:11px;border-top:1px solid #e2e8f0;background:#f8fafc"><strong>Note:</strong> ${ctx.notes || ctx.paymentTerms}</td></tr>`
       : ""
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${ctx.invoiceNumber}</title>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ctx.docTitle} ${ctx.invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
   <div style="flex:1;padding:48px 52px 32px;display:flex;flex-direction:column">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px">
-      <p style="font-size:56px;font-weight:900;color:#0E7490;letter-spacing:-3px;line-height:1">INVOICE</p>
+      <p style="font-size:56px;font-weight:900;color:#0E7490;letter-spacing:-3px;line-height:1">${ctx.docTitle}</p>
       <div style="text-align:right;border:1px solid #e2e8f0;padding:14px 18px;font-size:12px;color:#555;min-width:200px">
         <div style="margin-bottom:6px"><span style="color:#94a3b8">Date:</span> ${ctx.invoiceDate}</div>
         <div style="margin-bottom:6px"><span style="color:#94a3b8">Invoice No:</span> ${ctx.invoiceNumber}</div>
         ${ctx.dueDate ? `<div style="margin-bottom:4px"><span style="color:#94a3b8">Due:</span> ${ctx.dueDate}</div>` : ""}
         ${ctx.poNumber ? `<div><span style="color:#94a3b8">PO #:</span> ${ctx.poNumber}</div>` : ""}
+        ${ctx.validUntil ? `<div style="margin-top:4px"><span style="color:#94a3b8">Valid Until:</span> ${ctx.validUntil}</div>` : ""}
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:36px">
@@ -388,7 +428,7 @@ function geometricTemplate(
     )
     .join("")
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${ctx.invoiceNumber}</title>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ctx.docTitle} ${ctx.invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;overflow:hidden">
@@ -396,13 +436,14 @@ function geometricTemplate(
   <div style="position:fixed;top:0;right:50px;width:0;height:0;border-left:45px solid transparent;border-top:45px solid #EC4899;pointer-events:none"></div>
   <div style="position:fixed;bottom:0;left:0;width:0;height:0;border-right:70px solid transparent;border-bottom:70px solid #EC4899;pointer-events:none"></div>
   <div style="flex:1;padding:52px 52px 36px;display:flex;flex-direction:column">
-    <p style="font-size:48px;font-weight:900;letter-spacing:-2px;color:#1a1a1a;margin-bottom:36px;line-height:1">INVOICE</p>
+    <p style="font-size:48px;font-weight:900;letter-spacing:-2px;color:#1a1a1a;margin-bottom:36px;line-height:1">${ctx.docTitle}</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:36px">
       <div style="font-size:12px;color:#555">
         <p style="margin-bottom:8px">Date Issued:<br><strong style="font-size:13px;color:#1a1a1a">${ctx.invoiceDate}</strong></p>
         <p style="margin-bottom:8px">Invoice No:<br><strong style="font-size:13px;color:#1a1a1a">${ctx.invoiceNumber}</strong></p>
         ${ctx.dueDate ? `<p>Due Date:<br><strong style="font-size:13px;color:#1a1a1a">${ctx.dueDate}</strong></p>` : ""}
         ${ctx.poNumber ? `<p style="margin-top:6px">PO #: <strong>${ctx.poNumber}</strong></p>` : ""}
+        ${ctx.validUntil ? `<p style="margin-top:6px">Valid Until:<br><strong style="font-size:13px;color:#1a1a1a">${ctx.validUntil}</strong></p>` : ""}
       </div>
       <div style="font-size:12px">
         <p style="color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Issued By</p>
@@ -506,7 +547,7 @@ function circleStudioTemplate(
           : "")
       : ""
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${ctx.invoiceNumber}</title>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ctx.docTitle} ${ctx.invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
@@ -525,11 +566,12 @@ function circleStudioTemplate(
         ${ctx.cd.gst ? `<p style="font-size:11px;color:#6b7280">GSTIN: ${ctx.cd.gst}</p>` : ""}
       </div>
       <div style="text-align:right">
-        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">INVOICE NO:</p>
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${ctx.docTitle} NO:</p>
         <p style="font-weight:900;font-size:28px;font-family:monospace">#${ctx.invoiceNumber}</p>
         <p style="font-size:12px;color:#6b7280;margin-top:6px">${ctx.invoiceDate}</p>
         ${ctx.dueDate ? `<p style="font-size:12px;color:#6b7280">Due: ${ctx.dueDate}</p>` : ""}
         ${ctx.poNumber ? `<p style="font-size:12px;color:#6b7280">PO: ${ctx.poNumber}</p>` : ""}
+        ${ctx.validUntil ? `<p style="font-size:12px;color:#6b7280">Valid Until: ${ctx.validUntil}</p>` : ""}
       </div>
     </div>
     <table style="width:100%;border-collapse:collapse">
@@ -592,7 +634,7 @@ function aizenBoldTemplate(
     ? `<img src="${ctx.bizLogo}" style="width:42px;height:42px;object-fit:contain;border-radius:4px">`
     : `<div style="width:42px;height:42px;background:#ef4444;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:20px;flex-shrink:0">${ctx.bizName.charAt(0)}</div>`
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${ctx.invoiceNumber}</title>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ctx.docTitle} ${ctx.invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
 <div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
@@ -605,7 +647,7 @@ function aizenBoldTemplate(
       <p style="font-size:10px;color:#9ca3af;letter-spacing:2px;text-transform:uppercase">${ctx.bizTagline || "Professional Services"}</p>
     </div>
   </div>
-  <p style="text-align:center;font-weight:900;font-size:30px;letter-spacing:8px;padding:14px 0;border-bottom:1px solid #e5e7eb;margin:0">INVOICE</p>
+  <p style="text-align:center;font-weight:900;font-size:30px;letter-spacing:8px;padding:14px 0;border-bottom:1px solid #e5e7eb;margin:0">${ctx.docTitle}</p>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:20px 44px;border-bottom:1px solid #e5e7eb;font-size:12px">
     <div>
       <p style="color:#9ca3af;margin-bottom:4px;font-size:10px;text-transform:uppercase;letter-spacing:1px">Invoice To:</p>
@@ -627,6 +669,7 @@ function aizenBoldTemplate(
       <p style="font-family:monospace">Invoice: ${ctx.invoiceNumber}</p>
       ${ctx.dueDate ? `<p style="color:#6b7280">Due: ${ctx.dueDate}</p>` : ""}
       ${ctx.poNumber ? `<p style="color:#6b7280">PO #: ${ctx.poNumber}</p>` : ""}
+      ${ctx.validUntil ? `<p style="color:#6b7280">Valid Until: ${ctx.validUntil}</p>` : ""}
     </div>
   </div>
   <div style="flex:1;padding:0 44px 36px;display:flex;flex-direction:column">
@@ -674,8 +717,125 @@ function aizenBoldTemplate(
 </body></html>`
 }
 
+interface ChallanContext {
+  docTitle: string
+  invoiceNumber: string
+  invoiceDate: string
+  poNumber?: string
+  bizName: string
+  bizTagline: string
+  bizAddress: string
+  bizPhone: string
+  bizEmail: string
+  bizGstin: string
+  bizLogo: string | null
+  cd: {
+    name: string
+    address?: string
+    gst?: string
+    phone?: string
+    email?: string
+  }
+  notes: string
+  paymentTerms: string
+  invoiceFooterNote: string
+  placeOfSupply?: string
+  vehicleInfo: string
+  deliveryNotes: string
+}
+
+function deliveryChallanTemplate(
+  rows: ComputedRow[],
+  ctx: ChallanContext,
+): string {
+  const itemsHtml = rows
+    .map(
+      (r, i) =>
+        `<tr style="border-bottom:1px solid #e2e8f0;background:${i % 2 === 0 ? "#fff" : "#f0fdfe"}">` +
+        `<td style="padding:10px 10px;font-size:11px;text-align:center;border-right:1px solid #e2e8f0;color:#555">${i + 1}</td>` +
+        `<td style="padding:10px 12px;font-size:12px;color:#1a1a1a">${r.item.name}${r.item.description ? `<div style="font-size:10px;color:#94a3b8;margin-top:2px">${r.item.description}</div>` : ""}</td>` +
+        `<td style="padding:10px 12px;font-size:12px;text-align:right;color:#1a1a1a;font-family:monospace">${r.item.quantity}${r.item.unit ? ` ${r.item.unit}` : ""}</td></tr>`,
+    )
+    .join("")
+
+  const deliveryHtml =
+    ctx.vehicleInfo || ctx.deliveryNotes
+      ? `<div style="margin-top:20px;padding:14px 16px;background:#f0fdfe;border:1px solid #cffafe;font-size:12px;color:#555">
+        ${ctx.vehicleInfo ? `<div><strong>Vehicle / Transport:</strong> ${ctx.vehicleInfo}</div>` : ""}
+        ${ctx.deliveryNotes ? `<div style="margin-top:4px"><strong>Delivery Notes:</strong> ${ctx.deliveryNotes}</div>` : ""}
+      </div>`
+      : ""
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ctx.docTitle} ${ctx.invoiceNumber}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
+<body>
+<div style="max-width:794px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff">
+  <div style="flex:1;padding:48px 52px 32px;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px">
+      <p style="font-size:44px;font-weight:900;color:#0E7490;letter-spacing:-2px;line-height:1">${ctx.docTitle}</p>
+      <div style="text-align:right;border:1px solid #e2e8f0;padding:14px 18px;font-size:12px;color:#555;min-width:200px">
+        <div style="margin-bottom:6px"><span style="color:#94a3b8">Date:</span> ${ctx.invoiceDate}</div>
+        <div style="margin-bottom:6px"><span style="color:#94a3b8">Challan No:</span> ${ctx.invoiceNumber}</div>
+        ${ctx.poNumber ? `<div><span style="color:#94a3b8">PO #:</span> ${ctx.poNumber}</div>` : ""}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:36px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#555;border-bottom:2.5px solid #0E7490;padding-bottom:5px;margin-bottom:10px;text-transform:uppercase">From</div>
+        <p style="font-weight:700;font-size:14px">${ctx.bizName}</p>
+        ${ctx.bizTagline ? `<p style="color:#94a3b8;font-size:11px;margin-top:2px">${ctx.bizTagline}</p>` : ""}
+        ${ctx.bizAddress ? `<p style="color:#64748b;font-size:12px;margin-top:4px">${ctx.bizAddress}</p>` : ""}
+        ${ctx.bizPhone ? `<p style="color:#64748b;font-size:12px">${ctx.bizPhone}</p>` : ""}
+        ${ctx.bizGstin ? `<p style="color:#64748b;font-size:11px;margin-top:2px">GSTIN: ${ctx.bizGstin}</p>` : ""}
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#555;border-bottom:2.5px solid #0E7490;padding-bottom:5px;margin-bottom:10px;text-transform:uppercase">Deliver To</div>
+        <p style="font-weight:700;font-size:14px">${ctx.cd.name || "—"}</p>
+        ${ctx.cd.address ? `<p style="color:#64748b;font-size:12px;margin-top:4px;line-height:1.5">${ctx.cd.address}</p>` : ""}
+        ${ctx.cd.phone ? `<p style="color:#64748b;font-size:12px">${ctx.cd.phone}</p>` : ""}
+        ${ctx.cd.gst ? `<p style="color:#64748b;font-size:11px;margin-top:2px">GSTIN: ${ctx.cd.gst}</p>` : ""}
+        ${ctx.placeOfSupply ? `<p style="color:#9ca3af;font-size:11px">Place of Supply: ${ctx.placeOfSupply}</p>` : ""}
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1">
+      <thead><tr style="background:#0E7490;color:#fff">
+        <th style="padding:11px 10px;font-size:11px;text-align:center;width:40px">SL</th>
+        <th style="padding:11px 14px;font-size:11px;text-align:left">DESCRIPTION</th>
+        <th style="padding:11px 14px;font-size:11px;text-align:right">QUANTITY</th>
+      </tr></thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
+    ${deliveryHtml}
+    ${
+      ctx.notes || ctx.paymentTerms
+        ? `<div style="margin-top:20px;padding:12px;font-size:11px;border:1px solid #e2e8f0;background:#f8fafc"><strong>Note:</strong> ${ctx.notes || ctx.paymentTerms}</div>`
+        : ""
+    }
+    <div style="margin-top:auto;padding-top:48px;display:flex;justify-content:space-between;align-items:flex-end">
+      <div style="text-align:center;min-width:180px">
+        <div style="border-top:1.5px solid #94a3b8;padding-top:8px">
+          <p style="font-size:12px;color:#64748b">Received By</p>
+        </div>
+      </div>
+      <div style="text-align:right;min-width:180px">
+        <div style="border-top:1.5px solid #0E7490;padding-top:8px">
+          <p style="font-size:13px;font-weight:700;color:#0E7490">Authorized Signatory</p>
+          <p style="font-size:10px;color:#94a3b8;margin-top:2px">For ${ctx.bizName}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="background:#0E7490;padding:14px 52px;display:flex;justify-content:space-between;align-items:center;margin-top:auto">
+    <p style="color:rgba(255,255,255,0.9);font-size:12px;font-style:italic">${ctx.invoiceFooterNote}</p>
+    <p style="color:rgba(255,255,255,0.55);font-size:10px">Generated by AutoInvoice</p>
+  </div>
+</div>
+</body></html>`
+}
+
 function defaultTemplate(
   rows: ComputedRow[],
+  docTitle: string,
   invoiceNumber: string,
   invoiceDate: string,
   cs: string,
@@ -692,10 +852,14 @@ function defaultTemplate(
     )
     .join("")
   return (
-    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ' +
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' +
+    docTitle +
+    " " +
     invoiceNumber +
     '</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#fff;font-size:13px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="max-width:800px;margin:0 auto;padding:36px">' +
-    '<div style="display:flex;justify-content:space-between;margin-bottom:28px"><p style="font-size:48px;font-weight:900;color:#0E7490;letter-spacing:-2px;line-height:1">INVOICE</p><div style="text-align:right;border:1px solid #e2e8f0;padding:10px 16px;font-size:11px"><div><span style="color:#94a3b8">Date:</span> ' +
+    '<div style="display:flex;justify-content:space-between;margin-bottom:28px"><p style="font-size:48px;font-weight:900;color:#0E7490;letter-spacing:-2px;line-height:1">' +
+    docTitle +
+    '</p><div style="text-align:right;border:1px solid #e2e8f0;padding:10px 16px;font-size:11px"><div><span style="color:#94a3b8">Date:</span> ' +
     invoiceDate +
     '</div><div><span style="color:#94a3b8">Invoice No:</span> ' +
     invoiceNumber +

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 
 export function CTA() {
   return (
-    <section className="py-20 bg-primary">
+    <section className="py-14 md:py-20 bg-primary">
       <div className="mx-auto max-w-4xl px-6 text-center">
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl text-foreground">
           Start sending professional invoices today

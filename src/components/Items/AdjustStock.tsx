@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   AlertTriangle,
   SlidersHorizontal,
@@ -8,6 +9,7 @@ import {
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { ItemsService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -29,8 +31,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
 import { cn } from "@/lib/utils"
 
 const baseSchema = z.object({
@@ -94,8 +96,26 @@ const AdjustStock = ({
 }: AdjustStockProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [mode, setMode] = useState<Mode>("add")
-  const [, setItems] = useLocalStorage<Item[]>("items", [])
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const queryClient = useQueryClient()
+
+  const adjustStockMutation = useMutation({
+    mutationFn: (data: { quantity: number; reason?: string }) =>
+      ItemsService.adjustStock({
+        id: item.id,
+        quantity: data.quantity,
+        reason: data.reason || null,
+        reference: null,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: itemsQueryKeys.all })
+      showSuccessToast(`Stock updated`)
+      form.reset()
+      setIsOpen(false)
+      onSuccess?.()
+    },
+    onError: () => showErrorToast("Failed to adjust stock"),
+  })
 
   const form = useForm<FormValues>({
     resolver: zodResolver(baseSchema) as any,
@@ -107,50 +127,20 @@ const AdjustStock = ({
     const qty = data.qty
     const currentStock = item.stock ?? 0
 
-    let newStock: number
-    let historyType: "add" | "remove" | "set"
+    let quantity: number
     if (mode === "add") {
-      newStock = currentStock + qty
-      historyType = "add"
+      quantity = qty
     } else if (mode === "remove") {
       if (qty > currentStock) {
         showErrorToast(`Cannot remove ${qty} — only ${currentStock} in stock`)
         return
       }
-      newStock = currentStock - qty
-      historyType = "remove"
+      quantity = -qty
     } else {
-      newStock = qty
-      historyType = "set"
+      quantity = qty - currentStock
     }
 
-    const historyEntry: StockHistoryEntry = {
-      date: new Date().toISOString(),
-      type: historyType,
-      qty:
-        mode === "set"
-          ? newStock - currentStock
-          : mode === "remove"
-            ? -qty
-            : qty,
-      reason: data.reason || "",
-    }
-
-    setItems((prev) =>
-      prev.map((i) => {
-        if (i.id !== item.id) return i
-        return {
-          ...i,
-          stock: newStock,
-          stockHistory: [...(i.stockHistory ?? []), historyEntry],
-        }
-      }),
-    )
-
-    showSuccessToast(`Stock updated to ${newStock}`)
-    form.reset()
-    setIsOpen(false)
-    onSuccess?.()
+    adjustStockMutation.mutate({ quantity, reason: data.reason })
   }
 
   const activeMode = MODES.find((m) => m.key === mode)

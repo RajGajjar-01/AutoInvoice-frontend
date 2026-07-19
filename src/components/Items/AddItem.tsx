@@ -1,8 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Package, Plus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { ItemsService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -32,9 +34,8 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
+import { itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
-import { randomUUID } from "@/lib/uuid"
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Item name is required" }).max(255),
@@ -95,32 +96,21 @@ function SectionLabel({ label }: { label: string }) {
   )
 }
 
-interface Item {
-  id: string
-  name: string
-  sku: string
-  category: string
-  unit: string
-  salePrice: number
-  purchasePrice: number | null
-  taxRate: number
-  hsnCode: string
-  stock: number
-  lowStockThreshold: number
-  description: string
-  stockHistory: Array<{
-    date: string
-    type: "set"
-    qty: number
-    reason: string
-  }>
-  createdAt: string
-}
-
 const AddItem = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const [_items, setItems] = useLocalStorage<Item[]>("items", [])
   const { showSuccessToast } = useCustomToast()
+  const queryClient = useQueryClient()
+
+  const createItemMutation = useMutation({
+    mutationFn: (data: Record<string, unknown>) =>
+      ItemsService.createItem({ requestBody: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: itemsQueryKeys.all })
+      showSuccessToast("Item added successfully")
+      form.reset()
+      setIsOpen(false)
+    },
+  })
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any,
@@ -142,36 +132,18 @@ const AddItem = () => {
   })
 
   const onSubmit = (data: FormValues) => {
-    const newItem: Item = {
-      id: randomUUID(),
+    createItemMutation.mutate({
       name: data.name,
       sku: data.sku || generateSKU(),
-      category: data.category || "",
+      category: data.category || null,
       unit: data.unit,
-      salePrice: Number(data.salePrice) || 0,
-      purchasePrice: data.purchasePrice ? Number(data.purchasePrice) : null,
-      taxRate: Number(data.taxRate) || 0,
-      hsnCode: data.hsnCode || "",
+      price: Number(data.salePrice) || 0,
+      tax_rate: Number(data.taxRate) || 0,
+      hsn_code: data.hsnCode || null,
       stock: Number(data.stock) || 0,
-      lowStockThreshold: Number(data.lowStockThreshold) ?? 5,
-      description: data.description || "",
-      stockHistory:
-        Number(data.stock) > 0
-          ? [
-              {
-                date: new Date().toISOString(),
-                type: "set" as const,
-                qty: Number(data.stock),
-                reason: "Opening stock",
-              },
-            ]
-          : [],
-      createdAt: new Date().toISOString(),
-    }
-    setItems((prev) => [...prev, newItem])
-    showSuccessToast("Item added successfully")
-    form.reset()
-    setIsOpen(false)
+      low_stock_threshold: Number(data.lowStockThreshold) ?? 5,
+      description: data.description || null,
+    })
   }
 
   return (

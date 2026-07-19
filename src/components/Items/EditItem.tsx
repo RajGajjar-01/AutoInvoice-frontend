@@ -1,8 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Package, Pencil } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { ItemsService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -32,8 +34,8 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
+import { itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Item name is required" }).max(255),
@@ -113,8 +115,19 @@ function SectionLabel({ label }: { label: string }) {
 
 const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [, setItems] = useLocalStorage<Item[]>("items", [])
   const { showSuccessToast } = useCustomToast()
+  const queryClient = useQueryClient()
+
+  const updateItemMutation = useMutation({
+    mutationFn: (data: Record<string, unknown>) =>
+      ItemsService.updateItem({ id: item.id, requestBody: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: itemsQueryKeys.all })
+      showSuccessToast("Item updated successfully")
+      setIsOpen(false)
+      onSuccess?.()
+    },
+  })
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any,
@@ -136,24 +149,17 @@ const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
   })
 
   const onSubmit = (data: FormValues) => {
-    const updated: Item = {
-      ...item,
+    updateItemMutation.mutate({
       name: data.name,
-      sku: data.sku || item.sku,
-      category: data.category || "",
+      sku: data.sku || item.sku || null,
+      category: data.category || null,
       unit: data.unit,
-      salePrice: Number(data.salePrice) || 0,
-      purchasePrice:
-        data.purchasePrice != null ? Number(data.purchasePrice) : null,
-      taxRate: Number(data.taxRate) || 0,
-      hsnCode: data.hsnCode || "",
-      lowStockThreshold: Number(data.lowStockThreshold) ?? 5,
-      description: data.description || "",
-    }
-    setItems((prev) => prev.map((i) => (i.id === item.id ? updated : i)))
-    showSuccessToast("Item updated successfully")
-    setIsOpen(false)
-    onSuccess?.()
+      price: Number(data.salePrice) || 0,
+      tax_rate: Number(data.taxRate) || 0,
+      hsn_code: data.hsnCode || null,
+      low_stock_threshold: Number(data.lowStockThreshold) ?? 5,
+      description: data.description || null,
+    })
   }
 
   const trigger =

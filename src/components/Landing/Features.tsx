@@ -8,7 +8,7 @@ import {
   Package,
   Users,
 } from "lucide-react"
-import { forwardRef, useLayoutEffect, useRef } from "react"
+import { forwardRef, useLayoutEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
 gsap.registerPlugin(ScrollTrigger)
@@ -115,6 +115,76 @@ const FeatureCard = forwardRef<
   )
 })
 
+/* Mobile-only: horizontal snap-scroll carousel of the same features.
+   Keeps content identical to desktop, but far less vertical scrolling. */
+function FeatureCarousel() {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState(0)
+
+  const handleScroll = () => {
+    const el = scrollRef.current
+    const slide = el?.firstElementChild as HTMLElement | null
+    if (!el || !slide) return
+    // slide width + gap (gap-4 = 16px)
+    const step = slide.offsetWidth + 16
+    setActive(Math.round(el.scrollLeft / step))
+  }
+
+  const goTo = (i: number) => {
+    const el = scrollRef.current
+    const slide = el?.children[i] as HTMLElement | undefined
+    if (!el || !slide) return
+    // account for scroll-px-6 (24px) so the snapped slide aligns to the edge
+    el.scrollTo({ left: slide.offsetLeft - 24, behavior: "smooth" })
+  }
+
+  return (
+    <div>
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-6 px-6 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {features.map((feature) => (
+          <article
+            key={feature.title}
+            className="flex snap-start shrink-0 basis-[82%] flex-col rounded-xl border bg-card p-6"
+          >
+            <div className={cn("mb-4 w-fit rounded-lg p-3", feature.bg)}>
+              <feature.icon className={cn("h-6 w-6", feature.color)} />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {feature.description}
+            </p>
+            {feature.stat && (
+              <p className="mt-3 text-xs font-medium text-muted-foreground/70">
+                {feature.stat}
+              </p>
+            )}
+          </article>
+        ))}
+      </div>
+
+      {/* Pagination dots */}
+      <div className="mt-6 flex justify-center gap-2">
+        {features.map((feature, i) => (
+          <button
+            key={feature.title}
+            type="button"
+            aria-label={`Go to ${feature.title}`}
+            onClick={() => goTo(i)}
+            className={cn(
+              "h-2 rounded-full transition-all duration-300",
+              i === active ? "w-5 bg-primary" : "w-2 bg-muted-foreground/25",
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const WIDE_BASIS_START = "50%"
 const WIDE_BASIS_END = "66.6667%"
 
@@ -185,7 +255,7 @@ export function Features() {
   }, [])
 
   return (
-    <section ref={featuresRef} className="py-20 bg-muted/50">
+    <section ref={featuresRef} className="py-14 md:py-20 bg-muted/50">
       <div className="mx-auto max-w-6xl px-6">
         <div className="features-heading text-center mb-12">
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
@@ -199,8 +269,8 @@ export function Features() {
 
         {/* Alternating bento rows: wide-narrow, narrow-wide, narrow-wide.
             Wide cards grow from half-width to their final two-thirds width
-            as each row scrolls into view. */}
-        <div className="space-y-4 lg:space-y-5">
+            as each row scrolls into view. Desktop only — mobile uses a carousel. */}
+        <div className="hidden space-y-4 md:block lg:space-y-5">
           <div className="flex flex-col gap-4 md:flex-row lg:gap-5">
             <FeatureCard
               ref={(el) => {
@@ -246,6 +316,11 @@ export function Features() {
             />
           </div>
         </div>
+      </div>
+
+      {/* Mobile carousel — full-bleed, replaces the bento grid below md */}
+      <div className="md:hidden">
+        <FeatureCarousel />
       </div>
     </section>
   )

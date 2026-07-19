@@ -366,7 +366,7 @@ const IID = {
   speakerSet: uuid(),
 }
 
-const items = [
+const _items = [
   {
     id: IID.laptop,
     name: 'Business Laptop 14"',
@@ -920,7 +920,7 @@ const gl = (
   tax,
 })
 
-const invoices = [
+const _invoices = [
   // Paid invoices (older)
   makeInv({
     num: "INV-2501-X9A2",
@@ -1250,23 +1250,11 @@ const invoices = [
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 export function seedDemoData() {
-  localStorage.setItem("customers", JSON.stringify(customers))
-  localStorage.setItem("items", JSON.stringify(items))
-  localStorage.setItem("invoices", JSON.stringify(invoices))
-  localStorage.setItem("selected-template", JSON.stringify("professional"))
+  // Demo seeding is now done via the backend API.
+  // Data is persisted in the database, not localStorage.
+  console.info("Demo data seeding is handled through the backend API.")
 }
 
 export function clearDemoData() {
-  const keys = [
-    "customers",
-    "items",
-    "invoices",
-    "selected-template",
-    "custom-template",
-    "imported-template",
-    "demo-tables",
-  ]
-  keys.forEach((k) => {
-    localStorage.removeItem(k)
-  })
+  // No-op: data is managed through the backend API.
 }

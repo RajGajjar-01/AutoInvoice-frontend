@@ -20,7 +20,7 @@ import {
   Trash2,
   User,
 } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { InvoicesService } from "@/client/sdk.gen"
 import { Badge } from "@/components/ui/badge"
@@ -45,14 +45,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { companySettingsQueryOptions } from "@/features/company-settings/queries"
 import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
+import { documentConfigs } from "@/features/invoices/invoice-form/constants"
 import {
   invoiceDetailQueryOptions,
   invoicesQueryKeys,
 } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import useLocalStorage from "@/hooks/useLocalStorage"
 import { buildInvoiceHtml, downloadInvoicePdf } from "@/lib/pdfHelper"
 import { queryClient } from "@/queryClient"
 import { handleError } from "@/utils"
@@ -144,7 +145,28 @@ function InvoiceDetailPage() {
   const navigate = useNavigate()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [companyDetails] = useLocalStorage<any>("company-details", {})
+  const { data: companySettings } = useQuery(companySettingsQueryOptions())
+  const companyDetails: Record<string, unknown> = useMemo(
+    () => ({
+      name: companySettings?.name ?? "",
+      email: companySettings?.email ?? "",
+      phone: companySettings?.phone ?? "",
+      address: companySettings?.address ?? "",
+      city: companySettings?.city ?? "",
+      state: companySettings?.state ?? "",
+      gstin: companySettings?.gstin ?? "",
+      logo_url: companySettings?.logo_url ?? null,
+      bank_name: companySettings?.bank_name ?? "",
+      bank_account: companySettings?.bank_account ?? "",
+      bank_ifsc: companySettings?.bank_ifsc ?? "",
+      bank_branch: companySettings?.bank_branch ?? "",
+      upi_id: companySettings?.upi_id ?? "",
+      invoice_prefix: companySettings?.invoice_prefix ?? "INV",
+      terms_and_conditions: companySettings?.terms_and_conditions ?? "",
+      currency: "INR",
+    }),
+    [companySettings],
+  )
   const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
   const selectedTemplate =
     activeTemplate?.kind === "built_in"
@@ -279,7 +301,7 @@ function InvoiceDetailPage() {
     }
     sendEmailMutation.mutate({
       to_email: email,
-      subject: `Invoice ${invoice.invoiceNumber}`,
+      subject: `${documentConfigs[invoice.document_type]?.singular ?? "Invoice"} ${invoice.invoiceNumber}`,
     })
   }
 
@@ -641,7 +663,10 @@ function InvoiceDetailPage() {
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>Invoice Preview</DialogTitle>
+            <DialogTitle>
+              {documentConfigs[invoice.document_type]?.singular ?? "Invoice"}{" "}
+              Preview
+            </DialogTitle>
           </DialogHeader>
           <iframe
             title="invoice-preview"

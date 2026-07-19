@@ -67,7 +67,7 @@ export function HowItWorks() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-20 bg-muted/50">
+    <section ref={sectionRef} className="py-14 md:py-20 bg-muted/50">
       <div className="mx-auto max-w-6xl px-6">
         <div className="hiw-heading text-center mb-20">
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">

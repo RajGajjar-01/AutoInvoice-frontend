@@ -1,5 +1,7 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
+import { ItemsService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -11,8 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
 
 interface Item {
   id: string
@@ -31,14 +33,21 @@ const DeleteItem = ({
   variant = "dropdown",
 }: DeleteItemProps) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [, setItems] = useLocalStorage<Item[]>("items", [])
   const { showSuccessToast } = useCustomToast()
+  const queryClient = useQueryClient()
+
+  const deleteItemMutation = useMutation({
+    mutationFn: () => ItemsService.deleteItem({ id: item.id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: itemsQueryKeys.all })
+      showSuccessToast("Item deleted")
+      setIsOpen(false)
+      onSuccess?.()
+    },
+  })
 
   const handleDelete = () => {
-    setItems((prev) => prev.filter((i) => i.id !== item.id))
-    showSuccessToast("Item deleted")
-    setIsOpen(false)
-    onSuccess?.()
+    deleteItemMutation.mutate()
   }
 
   const trigger =

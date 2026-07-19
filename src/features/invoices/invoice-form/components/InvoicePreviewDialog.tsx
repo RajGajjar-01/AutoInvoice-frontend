@@ -12,6 +12,7 @@ interface InvoicePreviewDialogProps {
   onOpenChange: (open: boolean) => void
   html: string
   onDownload: () => void
+  title?: string
 }
 
 export function InvoicePreviewDialog({
@@ -19,12 +20,13 @@ export function InvoicePreviewDialog({
   onOpenChange,
   html,
   onDownload,
+  title,
 }: InvoicePreviewDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Invoice Preview</DialogTitle>
+          <DialogTitle>{title ?? "Document Preview"}</DialogTitle>
         </DialogHeader>
         <iframe
           title="invoice-preview"

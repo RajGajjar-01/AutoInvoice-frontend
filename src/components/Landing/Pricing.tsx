@@ -119,7 +119,7 @@ export function Pricing() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-20">
+    <section ref={sectionRef} className="py-14 md:py-20">
       <div className="mx-auto max-w-6xl px-6">
         <div className="pricing-heading text-center mb-12">
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">

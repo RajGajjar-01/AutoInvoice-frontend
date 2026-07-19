@@ -1,17 +1,16 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CompanySettingsService } from "@/client/sdk.gen"
+import {
+  companySettingsQueryKeys,
+  companySettingsQueryOptions,
+} from "@/features/company-settings/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
+import { queryClient } from "@/queryClient"
 import { type CompanyDetails, defaultCompany } from "../types"
 
 export function useProfileForm() {
-  const [company, setCompany] = useLocalStorage<CompanyDetails>(
-    "company-details",
-    defaultCompany,
-  )
   const [activeSection, setActiveSection] = useState<string | null>(null)
-  const [draft, setDraft] = useState<CompanyDetails>(company)
 
   const [whatsappEnabled, setWhatsappEnabled] = useState(false)
   const [openwaBaseUrl, setOpenwaBaseUrl] = useState("")
@@ -26,10 +25,34 @@ export function useProfileForm() {
 
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
-  const { data: companySettings } = useQuery({
-    queryKey: ["company-settings"],
-    queryFn: () => CompanySettingsService.getCompanySettings(),
-  })
+  const { data: companySettings } = useQuery(companySettingsQueryOptions())
+
+  const company: CompanyDetails = useMemo(
+    () => ({
+      ...defaultCompany,
+      name: companySettings?.name ?? "",
+      email: companySettings?.email ?? "",
+      phone: companySettings?.phone ?? "",
+      website: companySettings?.website ?? "",
+      address: companySettings?.address ?? "",
+      city: companySettings?.city ?? "",
+      state: companySettings?.state ?? "",
+      pincode: companySettings?.pincode ?? "",
+      gstin: companySettings?.gstin ?? "",
+      pan: companySettings?.pan ?? "",
+      logo: companySettings?.logo_url ?? null,
+      bankName: companySettings?.bank_name ?? "",
+      accountName: companySettings?.bank_account ?? "",
+      ifsc: companySettings?.bank_ifsc ?? "",
+      branch: companySettings?.bank_branch ?? "",
+      upi: companySettings?.upi_id ?? "",
+      invoicePrefix: companySettings?.invoice_prefix ?? "INV",
+      invoiceFooter: companySettings?.terms_and_conditions ?? "",
+    }),
+    [companySettings],
+  )
+
+  const [draft, setDraft] = useState<CompanyDetails>(company)
 
   useEffect(() => {
     if (companySettings) {
@@ -46,14 +69,42 @@ export function useProfileForm() {
     }
   }, [companySettings])
 
+  useEffect(() => {
+    setDraft(company)
+  }, [company])
+
   const updateSettingsMutation = useMutation({
     mutationFn: (
       data: Parameters<
         typeof CompanySettingsService.updateCompanySettings
       >[0]["requestBody"],
     ) => CompanySettingsService.updateCompanySettings({ requestBody: data }),
-    onSuccess: () => showSuccessToast("Communication settings saved"),
-    onError: () => showErrorToast("Failed to save communication settings"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: companySettingsQueryKeys.all })
+      showSuccessToast("Saved successfully")
+    },
+    onError: () => showErrorToast("Failed to save"),
+  })
+
+  const mapCompanyToSettings = (d: CompanyDetails) => ({
+    name: d.name,
+    email: d.email || null,
+    phone: d.phone || null,
+    website: d.website || null,
+    address: d.address || null,
+    city: d.city || null,
+    state: d.state || null,
+    pincode: d.pincode || null,
+    gstin: d.gstin || null,
+    pan: d.pan || null,
+    logo_url: d.logo || null,
+    bank_name: d.bankName || null,
+    bank_account: d.accountName || null,
+    bank_ifsc: d.ifsc || null,
+    bank_branch: d.branch || null,
+    upi_id: d.upi || null,
+    invoice_prefix: d.invoicePrefix || "INV",
+    terms_and_conditions: d.invoiceFooter || null,
   })
 
   const startEdit = (id: string) => {
@@ -69,9 +120,11 @@ export function useProfileForm() {
       showErrorToast("Company name is required")
       return
     }
-    setCompany(draft)
+    updateSettingsMutation.mutate({
+      name: draft.name,
+      logo_url: draft.logo || null,
+    })
     setActiveSection(null)
-    showSuccessToast("Saved successfully")
   }
 
   const saveContactSection = () => {
@@ -79,15 +132,17 @@ export function useProfileForm() {
       showErrorToast("Email address is required")
       return
     }
-    setCompany(draft)
+    updateSettingsMutation.mutate({
+      email: draft.email || null,
+      phone: draft.phone || null,
+      website: draft.website || null,
+    })
     setActiveSection(null)
-    showSuccessToast("Saved successfully")
   }
 
   const saveGenericSection = () => {
-    setCompany(draft)
+    updateSettingsMutation.mutate(mapCompanyToSettings(draft))
     setActiveSection(null)
-    showSuccessToast("Saved successfully")
   }
 
   const saveCommunication = () => {

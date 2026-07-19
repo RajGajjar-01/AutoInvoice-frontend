@@ -4,21 +4,27 @@ import html2pdf from "html2pdf.js"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useSearchParams } from "react-router"
-import { CustomersService, InvoicesService } from "@/client/sdk.gen"
+import {
+  CustomersService,
+  InvoicesService,
+  ItemsService,
+} from "@/client/sdk.gen"
+import { companySettingsQueryOptions } from "@/features/company-settings/queries"
 import {
   customersListQueryOptions,
   customersQueryKeys,
 } from "@/features/customers/queries"
 import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
 import { invoicesQueryKeys } from "@/features/invoices/queries"
+import { itemsListQueryOptions, itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
-import useLocalStorage from "@/hooks/useLocalStorage"
 import { queryClient } from "@/queryClient"
 import {
   defaultFormValues,
   emptyItem,
   type InvoiceFormData,
   invoiceFormSchema,
+  resolveDocumentConfig,
 } from "../constants"
 import { buildInvoiceHtml } from "../templates"
 import type {
@@ -33,27 +39,46 @@ import {
   buildWhatsAppText,
   computeInvoiceTotals,
   fillCustomerForm,
-  generateInvoiceNumber,
+  generateDocumentNumber,
   getActiveBankDetails,
   getCurrencySymbol,
-  updateStockAfterInvoice,
 } from "../utils"
 
 export function useInvoiceForm() {
-  const [inventoryItems, setInventoryItems] = useLocalStorage<InventoryItem[]>(
-    "items",
-    [],
+  const { data: itemsRes } = useQuery(itemsListQueryOptions())
+  const inventoryItems: InventoryItem[] = useMemo(
+    () => (itemsRes?.data ?? []) as unknown as InventoryItem[],
+    [itemsRes],
   )
-  const [companyDetails] = useLocalStorage<CompanyDetails>(
-    "company-details",
-    {},
+  const { data: companySettings } = useQuery(companySettingsQueryOptions())
+  const companyDetails: CompanyDetails = useMemo(
+    () => ({
+      name: companySettings?.name ?? "",
+      email: companySettings?.email ?? "",
+      phone: companySettings?.phone ?? "",
+      address: companySettings?.address ?? "",
+      city: companySettings?.city ?? "",
+      state: companySettings?.state ?? "",
+      pincode: companySettings?.pincode ?? "",
+      gstin: companySettings?.gstin ?? "",
+      logo: companySettings?.logo_url ?? null,
+      bankName: companySettings?.bank_name ?? "",
+      accountName: companySettings?.bank_account ?? "",
+      ifsc: companySettings?.bank_ifsc ?? "",
+      branch: companySettings?.bank_branch ?? "",
+      upi: companySettings?.upi_id ?? "",
+      invoiceFooter: companySettings?.terms_and_conditions ?? "",
+      tagline: "",
+      accountNumber: "",
+    }),
+    [companySettings],
   )
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const savedRef = useRef<boolean>(false)
   const [searchParams] = useSearchParams()
   const preselectedCustomerId = searchParams.get("customerId") ?? undefined
   const preselectedItemId = searchParams.get("itemId") ?? undefined
-  const documentType = searchParams.get("documentType") || "invoice"
+  const documentConfig = resolveDocumentConfig(searchParams.get("documentType"))
 
   const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
 
@@ -74,7 +99,20 @@ export function useInvoiceForm() {
   ) as unknown as Customer[]
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
-  const [invoiceNumber] = useState<string>(generateInvoiceNumber)
+  const resolvedPrefix = useMemo(() => {
+    const settingsPrefix =
+      companySettings?.[
+        `${documentConfig.type}_prefix` as keyof typeof companySettings
+      ]
+    if (settingsPrefix && typeof settingsPrefix === "string") {
+      return settingsPrefix.replace(/-+$/, "")
+    }
+    return documentConfig.numberPrefix
+  }, [companySettings, documentConfig.type, documentConfig.numberPrefix])
+
+  const [invoiceNumber] = useState<string>(() =>
+    generateDocumentNumber(resolvedPrefix),
+  )
   const [items, setItems] = useState<InvoiceItem[]>([{ ...emptyItem }])
   const [showBankDetails, setShowBankDetails] = useState<boolean>(false)
   const [previewOpen, setPreviewOpen] = useState<boolean>(false)
@@ -218,21 +256,35 @@ export function useInvoiceForm() {
     try {
       let customerId = selectedCustomerId
       if (!customerId || customerId === "__new__") {
-        const created = await createCustomerMutation.mutateAsync({
-          name: formData.customerName,
-          phone: formData.customerPhone || null,
-          email: formData.customerEmail || null,
-          address: formData.customerAddress || null,
-          gst: formData.customerGst ? formData.customerGst.toUpperCase() : null,
-          notes: formData.notes || null,
-        })
-        customerId = created.id
-        setSelectedCustomerId(created.id)
+        const existing = (customersRes?.data ?? []).find(
+          (c) =>
+            (c.email &&
+              formData.customerEmail &&
+              c.email.toLowerCase() === formData.customerEmail.toLowerCase()) ||
+            c.name.trim().toLowerCase() ===
+              formData.customerName.trim().toLowerCase(),
+        )
+        if (existing) {
+          customerId = existing.id
+        } else {
+          const created = await createCustomerMutation.mutateAsync({
+            name: formData.customerName,
+            phone: formData.customerPhone || null,
+            email: formData.customerEmail || null,
+            address: formData.customerAddress || null,
+            gst: formData.customerGst
+              ? formData.customerGst.toUpperCase()
+              : null,
+            notes: formData.notes || null,
+          })
+          customerId = created.id
+        }
+        setSelectedCustomerId(customerId)
       }
 
       const payload = buildInvoicePayload(
         invoiceNumber,
-        documentType,
+        documentConfig,
         formData,
         items,
         calculations.subtotal,
@@ -242,13 +294,32 @@ export function useInvoiceForm() {
       )
       payload.customer_id = customerId
 
-      await createInvoiceMutation.mutateAsync(payload)
-      showSuccessToast("Invoice saved successfully")
-    } catch {
-      showErrorToast("Failed to save invoice")
-    }
+      const _created = await createInvoiceMutation.mutateAsync(payload)
+      showSuccessToast(`${documentConfig.singular} saved successfully`)
 
-    updateStockAfterInvoice(items, invoiceNumber, setInventoryItems)
+      if (documentConfig.deductsStock) {
+        for (const line of items) {
+          if (!line.itemId || !line.quantity) continue
+          try {
+            await ItemsService.adjustStock({
+              id: line.itemId,
+              quantity: -line.quantity,
+              reason: `${documentConfig.singular} ${invoiceNumber}`,
+              reference: invoiceNumber,
+            })
+          } catch {
+            showErrorToast(
+              `Failed to deduct stock for "${line.name}". Stock may be insufficient.`,
+            )
+          }
+        }
+        await queryClient.invalidateQueries({
+          queryKey: itemsQueryKeys.all,
+        })
+      }
+    } catch {
+      showErrorToast(`Failed to save ${documentConfig.singular.toLowerCase()}`)
+    }
 
     setTimeout(() => {
       savedRef.current = false
@@ -262,6 +333,7 @@ export function useInvoiceForm() {
       items,
       invoiceNumber,
       selectedTemplate,
+      documentConfig,
       ...calculations,
       shippingCharge,
       extraChargeAmount,
@@ -297,6 +369,7 @@ export function useInvoiceForm() {
     extraChargeAmount,
     extraChargeLabel,
     showBankDetails,
+    documentConfig,
   ])
 
   const handleDownloadPDF = useCallback(() => {
@@ -322,6 +395,7 @@ export function useInvoiceForm() {
       items,
       invoiceNumber,
       selectedTemplate,
+      documentConfig,
       ...calculations,
       shippingCharge,
       extraChargeAmount,
@@ -341,6 +415,7 @@ export function useInvoiceForm() {
       items,
       calculations.grandTotal,
       currencySymbol,
+      documentConfig,
     )
 
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -398,6 +473,7 @@ export function useInvoiceForm() {
     currencySymbol,
     showErrorToast,
     showSuccessToast,
+    documentConfig,
   ])
 
   const handleEmail = useCallback(() => {
@@ -406,8 +482,12 @@ export function useInvoiceForm() {
       showErrorToast("Please provide a customer email first")
       return
     }
-    const finalSubject = `Invoice ${invoiceNumber} from ${companyDetails.name || "AutoInvoice"}`
-    const mailBody = `Dear ${formData.customerName},\n\nPlease find your invoice ${invoiceNumber} for ${currencySymbol}${calculations.grandTotal.toFixed(2)} attached.\n\nDue Date: ${formData.dueDate || "N/A"}\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
+    const docName = documentConfig.singular
+    const finalSubject = `${docName} ${invoiceNumber} from ${companyDetails.name || "AutoInvoice"}`
+    const amountLine = documentConfig.hidePricing
+      ? ""
+      : ` for ${currencySymbol}${calculations.grandTotal.toFixed(2)}`
+    const mailBody = `Dear ${formData.customerName},\n\nPlease find your ${docName.toLowerCase()} ${invoiceNumber}${amountLine} attached.\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
     window.open(
       `mailto:${formData.customerEmail}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`,
     )
@@ -418,6 +498,7 @@ export function useInvoiceForm() {
     currencySymbol,
     calculations.grandTotal,
     showErrorToast,
+    documentConfig,
   ])
 
   const previewHtml = useMemo(() => {
@@ -428,6 +509,7 @@ export function useInvoiceForm() {
       items,
       invoiceNumber,
       selectedTemplate,
+      documentConfig,
       ...calculations,
       shippingCharge,
       extraChargeAmount,
@@ -450,6 +532,7 @@ export function useInvoiceForm() {
     extraChargeAmount,
     extraChargeLabel,
     showBankDetails,
+    documentConfig,
   ])
 
   return {
@@ -457,7 +540,7 @@ export function useInvoiceForm() {
     customers,
     selectedCustomerId,
     invoiceNumber,
-    documentType,
+    documentConfig,
     items,
     showBankDetails,
     previewOpen,
