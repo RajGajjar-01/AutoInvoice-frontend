@@ -2,12 +2,18 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 import type { UseFormReturn } from "react-hook-form"
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import {
+  sanitizeLowercase,
+  sanitizeNumeric,
+  sanitizeUppercase,
+} from "@/lib/validation"
 import type { InvoiceFormData } from "../constants"
 
 interface BankDetailsSectionProps {
@@ -38,8 +44,8 @@ export function BankDetailsSection({
         </button>
       </div>
       {showBankDetails && (
-        <div className="space-y-4 mt-0">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4 mt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="bankName"
@@ -73,8 +79,19 @@ export function BankDetailsSection({
                 <FormItem>
                   <FormLabel>Account Number</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="XXXXXXXXXXXX" />
+                    <Input
+                      {...field}
+                      value={field.value || ""}
+                      onChange={(e) =>
+                        field.onChange(sanitizeNumeric(e.target.value))
+                      }
+                      placeholder="50100123456789"
+                      className="font-mono"
+                    />
                   </FormControl>
+                  <FormDescription className="text-[11px]">
+                    9 to 18 numeric digits
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -88,10 +105,17 @@ export function BankDetailsSection({
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder="e.g. HDFC0000123"
+                      value={field.value || ""}
+                      onChange={(e) =>
+                        field.onChange(sanitizeUppercase(e.target.value))
+                      }
+                      placeholder="e.g. HDFC0001234"
                       className="font-mono"
                     />
                   </FormControl>
+                  <FormDescription className="text-[11px]">
+                    11-character code (e.g. HDFC0001234)
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -116,8 +140,19 @@ export function BankDetailsSection({
                 <FormItem>
                   <FormLabel>UPI ID</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="yourname@upi" />
+                    <Input
+                      {...field}
+                      value={field.value || ""}
+                      onChange={(e) =>
+                        field.onChange(sanitizeLowercase(e.target.value))
+                      }
+                      placeholder="yourname@upi"
+                      className="font-mono"
+                    />
                   </FormControl>
+                  <FormDescription className="text-[11px]">
+                    e.g. user@bank
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

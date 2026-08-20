@@ -23,12 +23,12 @@ var playwright_config_default = defineConfig({
   projects: [
     {
       name: "static",
-      testMatch: /typescript-only\.spec\.ts/,
+      testMatch: /(typescript-only|unit-validation)\.spec\.ts/,
     },
     { name: "setup", testMatch: /.*\.setup\.ts/ },
     {
       name: "chromium",
-      testIgnore: /typescript-only\.spec\.ts/,
+      testIgnore: /(typescript-only|unit-validation)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/user.json",

@@ -22,6 +22,9 @@ export interface CompanyDetails {
   invoiceFooter: string
   currency: string
   defaultPaymentTerms: string
+  smtpPasswordSet?: boolean
+  openwaApiKeySet?: boolean
+  openwaSessionIdSet?: boolean
 }
 
 export const defaultCompany: CompanyDetails = {
@@ -48,4 +51,7 @@ export const defaultCompany: CompanyDetails = {
   invoiceFooter: "Thank you for your business!",
   currency: "INR",
   defaultPaymentTerms: "Net 30",
+  smtpPasswordSet: false,
+  openwaApiKeySet: false,
+  openwaSessionIdSet: false,
 }

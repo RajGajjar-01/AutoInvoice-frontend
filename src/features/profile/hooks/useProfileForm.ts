@@ -6,6 +6,16 @@ import {
   companySettingsQueryOptions,
 } from "@/features/company-settings/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import {
+  isValidBankAccount,
+  isValidGstin,
+  isValidIfsc,
+  isValidPan,
+  isValidUpiId,
+  sanitizeLowercase,
+  sanitizeNumeric,
+  sanitizeUppercase,
+} from "@/lib/validation"
 import { queryClient } from "@/queryClient"
 import { type CompanyDetails, defaultCompany } from "../types"
 
@@ -42,12 +52,16 @@ export function useProfileForm() {
       pan: companySettings?.pan ?? "",
       logo: companySettings?.logo_url ?? null,
       bankName: companySettings?.bank_name ?? "",
-      accountName: companySettings?.bank_account ?? "",
+      accountName: companySettings?.name ?? "", // Account holder defaults to business name
+      accountNumber: companySettings?.bank_account ?? "",
       ifsc: companySettings?.bank_ifsc ?? "",
       branch: companySettings?.bank_branch ?? "",
       upi: companySettings?.upi_id ?? "",
       invoicePrefix: companySettings?.invoice_prefix ?? "INV",
       invoiceFooter: companySettings?.terms_and_conditions ?? "",
+      smtpPasswordSet: companySettings?.smtp_password_set ?? false,
+      openwaApiKeySet: companySettings?.openwa_api_key_set ?? false,
+      openwaSessionIdSet: companySettings?.openwa_session_id_set ?? false,
     }),
     [companySettings],
   )
@@ -58,14 +72,18 @@ export function useProfileForm() {
     if (companySettings) {
       setWhatsappEnabled(companySettings.whatsapp_enabled ?? false)
       setOpenwaBaseUrl(companySettings.openwa_base_url ?? "")
-      setOpenwaApiKey(companySettings.openwa_api_key ?? "")
+      setOpenwaApiKey("")
       setOpenwaSessionId(companySettings.openwa_session_id ?? "")
       setSmtpHost(companySettings.smtp_host ?? "")
       setSmtpPort(companySettings.smtp_port ?? 587)
       setSmtpUser(companySettings.smtp_user ?? "")
-      setSmtpPassword(companySettings.smtp_password ?? "")
-      setSmtpFromEmail(companySettings.email ?? "")
-      setSmtpFromName(companySettings.name ?? "")
+      setSmtpPassword("")
+      setSmtpFromEmail(
+        companySettings.emails_from_email ?? companySettings.email ?? "",
+      )
+      setSmtpFromName(
+        companySettings.emails_from_name ?? companySettings.name ?? "",
+      )
     }
   }, [companySettings])
 
@@ -83,26 +101,29 @@ export function useProfileForm() {
       queryClient.invalidateQueries({ queryKey: companySettingsQueryKeys.all })
       showSuccessToast("Saved successfully")
     },
-    onError: () => showErrorToast("Failed to save"),
+    onError: (err: any) => {
+      const msg = err?.body?.detail || err?.message || "Failed to save"
+      showErrorToast(typeof msg === "string" ? msg : "Validation error")
+    },
   })
 
   const mapCompanyToSettings = (d: CompanyDetails) => ({
-    name: d.name,
-    email: d.email || null,
-    phone: d.phone || null,
-    website: d.website || null,
-    address: d.address || null,
-    city: d.city || null,
-    state: d.state || null,
-    pincode: d.pincode || null,
-    gstin: d.gstin || null,
-    pan: d.pan || null,
+    name: d.name.trim(),
+    email: d.email?.trim() || null,
+    phone: d.phone?.trim() || null,
+    website: d.website?.trim() || null,
+    address: d.address?.trim() || null,
+    city: d.city?.trim() || null,
+    state: d.state?.trim() || null,
+    pincode: d.pincode?.trim() || null,
+    gstin: d.gstin ? sanitizeUppercase(d.gstin) : null,
+    pan: d.pan ? sanitizeUppercase(d.pan) : null,
     logo_url: d.logo || null,
-    bank_name: d.bankName || null,
-    bank_account: d.accountName || null,
-    bank_ifsc: d.ifsc || null,
-    bank_branch: d.branch || null,
-    upi_id: d.upi || null,
+    bank_name: d.bankName?.trim() || null,
+    bank_account: d.accountNumber ? sanitizeNumeric(d.accountNumber) : null,
+    bank_ifsc: d.ifsc ? sanitizeUppercase(d.ifsc) : null,
+    bank_branch: d.branch?.trim() || null,
+    upi_id: d.upi ? sanitizeLowercase(d.upi) : null,
     invoice_prefix: d.invoicePrefix || "INV",
     terms_and_conditions: d.invoiceFooter || null,
   })
@@ -112,8 +133,18 @@ export function useProfileForm() {
     setActiveSection(id)
   }
   const cancelEdit = () => setActiveSection(null)
-  const set = (key: keyof CompanyDetails, value: string | null) =>
-    setDraft((p) => ({ ...p, [key]: value }))
+
+  const set = (key: keyof CompanyDetails, value: string | null) => {
+    let sanitizedValue = value
+    if (key === "accountNumber") {
+      sanitizedValue = value ? sanitizeNumeric(value) : ""
+    } else if (key === "ifsc" || key === "pan" || key === "gstin") {
+      sanitizedValue = value ? sanitizeUppercase(value) : ""
+    } else if (key === "upi") {
+      sanitizedValue = value ? sanitizeLowercase(value) : ""
+    }
+    setDraft((p) => ({ ...p, [key]: sanitizedValue }))
+  }
 
   const saveBusinessSection = () => {
     if (!draft.name?.trim()) {
@@ -121,7 +152,7 @@ export function useProfileForm() {
       return
     }
     updateSettingsMutation.mutate({
-      name: draft.name,
+      name: draft.name.trim(),
       logo_url: draft.logo || null,
     })
     setActiveSection(null)
@@ -133,30 +164,80 @@ export function useProfileForm() {
       return
     }
     updateSettingsMutation.mutate({
-      email: draft.email || null,
-      phone: draft.phone || null,
-      website: draft.website || null,
+      email: draft.email.trim() || null,
+      phone: draft.phone?.trim() || null,
+      website: draft.website?.trim() || null,
     })
     setActiveSection(null)
   }
 
   const saveGenericSection = () => {
+    // Validate bank section if editing bank
+    if (activeSection === "bank") {
+      if (draft.accountNumber && !isValidBankAccount(draft.accountNumber)) {
+        showErrorToast("Bank Account Number must be 9 to 18 digits")
+        return
+      }
+      if (draft.ifsc && !isValidIfsc(draft.ifsc)) {
+        showErrorToast("Invalid IFSC format (e.g. HDFC0001234)")
+        return
+      }
+      if (draft.upi && !isValidUpiId(draft.upi)) {
+        showErrorToast("Invalid UPI ID format (e.g. name@bank)")
+        return
+      }
+    }
+
+    // Validate tax section if editing tax
+    if (activeSection === "tax") {
+      if (draft.gstin && !isValidGstin(draft.gstin)) {
+        showErrorToast("Invalid GSTIN format (e.g. 22AAAAA0000A1Z5)")
+        return
+      }
+      if (draft.pan && !isValidPan(draft.pan)) {
+        showErrorToast("Invalid PAN format (e.g. ABCDE1234F)")
+        return
+      }
+    }
+
     updateSettingsMutation.mutate(mapCompanyToSettings(draft))
     setActiveSection(null)
   }
 
   const saveCommunication = () => {
-    updateSettingsMutation.mutate({
+    const payload: Parameters<
+      typeof CompanySettingsService.updateCompanySettings
+    >[0]["requestBody"] = {
       whatsapp_enabled: whatsappEnabled,
-      openwa_base_url: openwaBaseUrl || null,
-      openwa_api_key: openwaApiKey || null,
-      openwa_session_id: openwaSessionId || null,
-      smtp_host: smtpHost || null,
-      smtp_port: smtpPort,
-      smtp_user: smtpUser || null,
-      smtp_password: smtpPassword || null,
-    })
+      openwa_base_url: openwaBaseUrl?.trim() || null,
+      smtp_host: smtpHost?.trim() || null,
+      smtp_port: smtpPort || 587,
+      smtp_user: smtpUser?.trim() || null,
+      emails_from_email: smtpFromEmail?.trim() || null,
+      emails_from_name: smtpFromName?.trim() || null,
+    }
+
+    // Only send sensitive credential fields if the user typed a new value
+    if (openwaApiKey.trim()) {
+      payload.openwa_api_key = openwaApiKey.trim()
+    }
+    if (openwaSessionId.trim()) {
+      payload.openwa_session_id = openwaSessionId.trim()
+    }
+    if (smtpPassword.trim()) {
+      payload.smtp_password = smtpPassword.trim()
+    }
+
+    updateSettingsMutation.mutate(payload)
     setActiveSection(null)
+  }
+
+  const clearSmtpPassword = () => {
+    updateSettingsMutation.mutate({ smtp_password: null })
+  }
+
+  const clearOpenwaApiKey = () => {
+    updateSettingsMutation.mutate({ openwa_api_key: null })
   }
 
   return {
@@ -192,5 +273,7 @@ export function useProfileForm() {
     saveContactSection,
     saveGenericSection,
     saveCommunication,
+    clearSmtpPassword,
+    clearOpenwaApiKey,
   }
 }

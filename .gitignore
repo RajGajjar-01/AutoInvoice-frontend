@@ -29,3 +29,6 @@ openapi.json
 /playwright/.cache/
 /playwright/.auth/
 .env
+.agent-runs
+docs/knowledge
+

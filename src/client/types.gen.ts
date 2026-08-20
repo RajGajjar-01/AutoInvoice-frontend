@@ -94,10 +94,13 @@ export type CompanySettingsPublic = {
     openwa_base_url?: string;
     openwa_api_key?: (string | null);
     openwa_session_id?: (string | null);
+    openwa_api_key_set?: boolean;
+    openwa_session_id_set?: boolean;
     smtp_host?: (string | null);
     smtp_port?: number;
     smtp_user?: (string | null);
     smtp_password?: (string | null);
+    smtp_password_set?: boolean;
     smtp_tls?: boolean;
     emails_from_email?: (string | null);
     emails_from_name?: (string | null);

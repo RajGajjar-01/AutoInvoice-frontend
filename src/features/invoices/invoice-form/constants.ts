@@ -1,8 +1,14 @@
 import { z } from "zod"
+import {
+  bankAccountZodSchema,
+  GSTIN_REGEX,
+  gstinZodSchema,
+  ifscZodSchema,
+  upiZodSchema,
+} from "@/lib/validation"
 import type { InvoiceItem } from "./types"
 
-export const gstinRegex =
-  /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
+export const gstinRegex = GSTIN_REGEX
 
 export const invoiceFormSchema = z.object({
   customerName: z.string().min(1, { message: "Customer name is required" }),
@@ -12,12 +18,7 @@ export const invoiceFormSchema = z.object({
     .email({ message: "Invalid email address" })
     .or(z.literal(""))
     .optional(),
-  customerGst: z
-    .string()
-    .refine((v) => !v || gstinRegex.test(v.toUpperCase()), {
-      message: "Invalid GSTIN format (e.g. 22AAAAA0000A1Z5)",
-    })
-    .optional(),
+  customerGst: gstinZodSchema,
   customerAddress: z.string().optional(),
   invoiceDate: z.string().min(1, { message: "Invoice date is required" }),
   dueDate: z.string().optional(),
@@ -36,10 +37,10 @@ export const invoiceFormSchema = z.object({
   deliveryNotes: z.string().optional(),
   bankName: z.string().optional(),
   accountName: z.string().optional(),
-  accountNumber: z.string().optional(),
-  ifsc: z.string().optional(),
+  accountNumber: bankAccountZodSchema,
+  ifsc: ifscZodSchema,
   branch: z.string().optional(),
-  upi: z.string().optional(),
+  upi: upiZodSchema,
   notes: z.string().optional(),
   paymentTerms: z.string().optional(),
 })

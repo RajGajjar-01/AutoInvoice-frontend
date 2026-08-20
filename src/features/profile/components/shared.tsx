@@ -1,8 +1,9 @@
-import { Building2, Camera, Trash2, Upload } from "lucide-react"
-import { useRef } from "react"
+import { Building2, Camera, Eye, EyeOff, Trash2, Upload } from "lucide-react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { maskAccountNumber, maskPan } from "@/lib/validation"
 
 export function InfoRow({
   label,
@@ -28,6 +29,48 @@ export function InfoRow({
   )
 }
 
+export function MaskedInfoRow({
+  label,
+  value,
+  maskType = "account",
+}: {
+  label: string
+  value?: string | null
+  maskType?: "account" | "pan"
+}) {
+  const [revealed, setRevealed] = useState(false)
+  if (!value) return null
+
+  const displayedValue = revealed
+    ? value
+    : maskType === "account"
+      ? maskAccountNumber(value)
+      : maskPan(value)
+
+  return (
+    <div className="flex items-center justify-between gap-4 py-2 border-b border-border/40 last:border-0">
+      <span className="text-xs text-muted-foreground shrink-0 w-36">
+        {label}
+      </span>
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium font-mono">{displayedValue}</span>
+        <button
+          type="button"
+          onClick={() => setRevealed((prev) => !prev)}
+          className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors"
+          title={revealed ? "Hide details" : "Reveal full number"}
+        >
+          {revealed ? (
+            <EyeOff className="h-3.5 w-3.5" />
+          ) : (
+            <Eye className="h-3.5 w-3.5" />
+          )}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function EmptyState({ message }: { message: string }) {
   return <p className="text-sm text-muted-foreground italic py-1">{message}</p>
 }
@@ -39,6 +82,8 @@ export function Field({
   placeholder,
   type = "text",
   required,
+  helperText,
+  mono,
 }: {
   label: string
   value: string | null
@@ -46,6 +91,8 @@ export function Field({
   placeholder?: string
   type?: string
   required?: boolean
+  helperText?: string
+  mono?: boolean
 }) {
   return (
     <div className="space-y-1">
@@ -58,8 +105,11 @@ export function Field({
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-9 text-sm"
+        className={`h-9 text-sm ${mono ? "font-mono" : ""}`}
       />
+      {helperText && (
+        <p className="text-[11px] text-muted-foreground">{helperText}</p>
+      )}
     </div>
   )
 }
@@ -88,7 +138,8 @@ export function LogoUpload({
   return (
     <div className="flex items-center gap-4">
       <div className="relative shrink-0">
-        <div
+        <button
+          type="button"
           onClick={() => fileRef.current?.click()}
           className="h-20 w-20 rounded-xl border-2 border-dashed border-border bg-muted/40 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
         >
@@ -101,7 +152,7 @@ export function LogoUpload({
           ) : (
             <Building2 className="h-7 w-7 text-muted-foreground/50" />
           )}
-        </div>
+        </button>
         <button
           type="button"
           onClick={() => fileRef.current?.click()}

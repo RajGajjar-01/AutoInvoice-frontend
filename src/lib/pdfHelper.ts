@@ -86,15 +86,16 @@ export function buildInvoiceHtml(
   const bizLogo = biz.logo || null
   const invoiceFooterNote = biz.invoiceFooter || "Thank you for your business!"
 
+  const anyBiz = biz as Record<string, any>
   const activeBankDetails =
-    biz.bankName || biz.accountNumber || biz.upi
+    biz.bankName || anyBiz.bank_name || biz.accountNumber || anyBiz.bank_account || biz.upi || anyBiz.upi_id
       ? {
-          bankName: biz.bankName || "",
-          accountName: biz.accountName || "",
-          accountNumber: biz.accountNumber || "",
-          ifsc: biz.ifsc || "",
-          branch: biz.branch || "",
-          upi: biz.upi || "",
+          bankName: biz.bankName || anyBiz.bank_name || "",
+          accountName: biz.accountName || anyBiz.account_name || biz.name || anyBiz.name || "",
+          accountNumber: biz.accountNumber || anyBiz.bank_account || "",
+          ifsc: biz.ifsc || anyBiz.bank_ifsc || "",
+          branch: biz.branch || anyBiz.bank_branch || "",
+          upi: biz.upi || anyBiz.upi_id || "",
         }
       : null
 

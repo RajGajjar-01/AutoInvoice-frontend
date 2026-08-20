@@ -1,11 +1,13 @@
 import {
   BadgeCheck,
   Building2,
+  CheckCircle2,
   CreditCard,
   FileText,
   Mail,
   MapPin,
   MessageSquare,
+  ShieldCheck,
 } from "lucide-react"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +19,7 @@ import {
   Field,
   InfoRow,
   LogoUpload,
+  MaskedInfoRow,
 } from "@/features/profile/components/shared"
 import { useProfileForm } from "@/features/profile/hooks/useProfileForm"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
@@ -57,6 +60,8 @@ function AccountPage() {
     saveContactSection,
     saveGenericSection,
     saveCommunication,
+    clearSmtpPassword,
+    clearOpenwaApiKey,
   } = useProfileForm()
 
   return (
@@ -204,29 +209,32 @@ function AccountPage() {
         onSave={saveGenericSection}
         onCancel={cancelEdit}
         viewContent={
-          company.address ? (
-            <>
-              <InfoRow label="Street" value={company.address} />
-              <InfoRow
-                label="City / State"
-                value={[company.city, company.state, company.pincode]
-                  .filter(Boolean)
-                  .join(", ")}
-              />
-              <InfoRow label="Country" value={company.country} />
-            </>
+          company.address ||
+          company.city ||
+          company.state ||
+          company.pincode ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
+              <div>
+                <InfoRow label="Address" value={company.address} />
+                <InfoRow label="City" value={company.city} />
+              </div>
+              <div>
+                <InfoRow label="State" value={company.state} />
+                <InfoRow label="PIN Code" value={company.pincode} />
+                <InfoRow label="Country" value={company.country} />
+              </div>
+            </div>
           ) : (
-            <EmptyState message="No address set." />
+            <EmptyState message="No address details added." />
           )
         }
         editContent={
-          <div className="grid gap-3">
+          <div className="flex flex-col gap-3">
             <Field
               label="Street Address"
               value={draft.address}
               onChange={(v) => set("address", v)}
-              placeholder="123 Business Park, Sector 7"
-              required
+              placeholder="123 Business Avenue, Suite 400"
             />
             <div className="grid grid-cols-2 gap-3">
               <Field
@@ -273,7 +281,11 @@ function AccountPage() {
           company.gstin || company.pan ? (
             <>
               <InfoRow label="GSTIN" value={company.gstin} mono />
-              <InfoRow label="PAN Number" value={company.pan} mono />
+              <MaskedInfoRow
+                label="PAN Number"
+                value={company.pan}
+                maskType="pan"
+              />
             </>
           ) : (
             <EmptyState message="No tax details added." />
@@ -286,12 +298,16 @@ function AccountPage() {
               value={draft.gstin}
               onChange={(v) => set("gstin", v)}
               placeholder="22AAAAA0000A1Z5"
+              helperText="15 alphanumeric characters (e.g. 22AAAAA0000A1Z5)"
+              mono
             />
             <Field
               label="PAN Number"
               value={draft.pan}
               onChange={(v) => set("pan", v)}
               placeholder="AAAAA0000A"
+              helperText="10 alphanumeric characters (e.g. ABCDE1234F)"
+              mono
             />
           </div>
         }
@@ -310,12 +326,12 @@ function AccountPage() {
           company.bankName || company.accountNumber || company.upi ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
               <div>
-                <InfoRow label="Bank" value={company.bankName} />
+                <InfoRow label="Bank Name" value={company.bankName} />
                 <InfoRow label="Account Holder" value={company.accountName} />
-                <InfoRow
+                <MaskedInfoRow
                   label="Account Number"
                   value={company.accountNumber}
-                  mono
+                  maskType="account"
                 />
               </div>
               <div>
@@ -341,18 +357,23 @@ function AccountPage() {
               value={draft.accountName}
               onChange={(v) => set("accountName", v)}
               placeholder="Acme Pvt. Ltd."
+              helperText="Account holder name or business title"
             />
             <Field
               label="Account Number"
               value={draft.accountNumber}
               onChange={(v) => set("accountNumber", v)}
               placeholder="50100123456789"
+              helperText="9 to 18 numeric digits"
+              mono
             />
             <Field
               label="IFSC Code"
               value={draft.ifsc}
               onChange={(v) => set("ifsc", v)}
               placeholder="HDFC0001234"
+              helperText="11 characters (e.g. HDFC0001234)"
+              mono
             />
             <Field
               label="Branch"
@@ -365,6 +386,8 @@ function AccountPage() {
               value={draft.upi}
               onChange={(v) => set("upi", v)}
               placeholder="yourname@upi"
+              helperText="e.g. username@okhdfcbank"
+              mono
             />
           </div>
         }
@@ -376,7 +399,7 @@ function AccountPage() {
         icon={MessageSquare}
         title="Communication Settings"
         isEditing={activeSection === "communication"}
-        onEdit={() => setActiveSection("communication")}
+        onEdit={() => startEdit("communication")}
         onSave={saveCommunication}
         onCancel={cancelEdit}
         isSaving={updateSettingsMutation.isPending}
@@ -388,18 +411,40 @@ function AccountPage() {
                 <p className="text-[11px] text-muted-foreground mb-0.5">
                   WhatsApp
                 </p>
-                <p className="text-sm font-semibold">
-                  {companySettings.whatsapp_enabled ? "Enabled" : "Disabled"}
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold">
+                    {companySettings.whatsapp_enabled ? "Enabled" : "Disabled"}
+                  </p>
+                  {company.openwaApiKeySet && (
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
+                    >
+                      <ShieldCheck className="h-3 w-3 mr-0.5" /> API Key
+                      Encrypted
+                    </Badge>
+                  )}
+                </div>
               </div>
               {companySettings.smtp_host && (
                 <div className="rounded-lg bg-muted/50 border border-border/50 px-3 py-2">
                   <p className="text-[11px] text-muted-foreground mb-0.5">
                     SMTP Host
                   </p>
-                  <p className="text-sm font-semibold font-mono">
-                    {companySettings.smtp_host}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold font-mono">
+                      {companySettings.smtp_host}
+                    </p>
+                    {company.smtpPasswordSet && (
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
+                      >
+                        <CheckCircle2 className="h-3 w-3 mr-0.5" /> Password
+                        Encrypted
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -433,14 +478,35 @@ function AccountPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  API Key
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    API Key
+                  </Label>
+                  {company.openwaApiKeySet && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-emerald-600 font-medium">
+                        Configured ✓
+                      </span>
+                      <button
+                        type="button"
+                        onClick={clearOpenwaApiKey}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <Input
+                  type="password"
                   value={openwaApiKey}
                   onChange={(e) => setOpenwaApiKey(e.target.value)}
-                  placeholder="sk-..."
-                  className="h-9 text-sm"
+                  placeholder={
+                    company.openwaApiKeySet
+                      ? "•••••••• (Leave blank to keep unchanged)"
+                      : "sk-..."
+                  }
+                  className="h-9 text-sm font-mono"
                 />
               </div>
               <div className="space-y-1">
@@ -494,15 +560,35 @@ function AccountPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Password
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    Password
+                  </Label>
+                  {company.smtpPasswordSet && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-emerald-600 font-medium">
+                        Configured ✓
+                      </span>
+                      <button
+                        type="button"
+                        onClick={clearSmtpPassword}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <Input
                   type="password"
                   value={smtpPassword}
                   onChange={(e) => setSmtpPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="h-9 text-sm"
+                  placeholder={
+                    company.smtpPasswordSet
+                      ? "•••••••• (Leave blank to keep unchanged)"
+                      : "••••••••"
+                  }
+                  className="h-9 text-sm font-mono"
                 />
               </div>
               <div className="space-y-1">
@@ -572,18 +658,20 @@ function AccountPage() {
               </div>
             )}
             {company.invoiceFooter && (
-              <div className="col-span-full rounded-lg bg-muted/50 border border-border/50 px-3 py-2">
+              <div className="rounded-lg bg-muted/50 border border-border/50 px-3 py-2 col-span-full">
                 <p className="text-[11px] text-muted-foreground mb-0.5">
-                  Footer Note
+                  Terms & Conditions / Note
                 </p>
-                <p className="text-sm italic">"{company.invoiceFooter}"</p>
+                <p className="text-sm text-muted-foreground">
+                  {company.invoiceFooter}
+                </p>
               </div>
             )}
           </div>
         }
         editContent={
-          <div className="grid gap-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <Field
                 label="Invoice Prefix"
                 value={draft.invoicePrefix}
@@ -591,34 +679,23 @@ function AccountPage() {
                 placeholder="INV"
               />
               <Field
+                label="Currency"
+                value={draft.currency}
+                onChange={(v) => set("currency", v)}
+                placeholder="INR"
+              />
+              <Field
                 label="Default Payment Terms"
                 value={draft.defaultPaymentTerms}
                 onChange={(v) => set("defaultPaymentTerms", v)}
                 placeholder="Net 30"
               />
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Default Currency
-                </Label>
-                <select
-                  value={draft.currency || "INR"}
-                  onChange={(e) => set("currency", e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="INR">INR — Indian Rupee (₹)</option>
-                  <option value="USD">USD — US Dollar ($)</option>
-                  <option value="EUR">EUR — Euro (€)</option>
-                  <option value="GBP">GBP — British Pound (£)</option>
-                  <option value="AED">AED — UAE Dirham</option>
-                  <option value="SGD">SGD — Singapore Dollar</option>
-                </select>
-              </div>
             </div>
             <Field
-              label="Invoice Footer Note"
+              label="Terms & Conditions / Note"
               value={draft.invoiceFooter}
               onChange={(v) => set("invoiceFooter", v)}
-              placeholder="Thank you for your business! Payment due within 30 days."
+              placeholder="Thank you for your business!"
             />
           </div>
         }
