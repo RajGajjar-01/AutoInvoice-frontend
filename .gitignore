@@ -13,6 +13,10 @@ dist-ssr
 *.local
 openapi.json
 
+# tsc -b emitDeclarationOnly artifacts (tsconfig.node.json)
+/*.d.ts
+*.tsbuildinfo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
