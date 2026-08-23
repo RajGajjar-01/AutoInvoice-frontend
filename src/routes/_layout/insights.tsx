@@ -215,9 +215,9 @@ function InsightsPage() {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(value: number, name: string) => [
-                          `${value} invoice${value !== 1 ? "s" : ""}`,
-                          name,
+                        formatter={(value: unknown, name: unknown) => [
+                          `${Number(value)} invoice${Number(value) !== 1 ? "s" : ""}`,
+                          String(name),
                         ]}
                         contentStyle={tooltipStyle}
                       />

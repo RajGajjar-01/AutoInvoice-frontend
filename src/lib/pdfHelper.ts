@@ -231,13 +231,6 @@ export function buildInvoiceHtml(
       )
       .join("")
 
-    const _noteHtml =
-      notes || paymentTerms
-        ? `<tr><td colspan="3" style="padding:12px;font-size:11px;border-top:1px solid #e2e8f0;background:#f8fafc"><strong>Note:</strong> ${
-            notes || paymentTerms
-          }</td></tr>`
-        : ""
-
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body>
@@ -885,12 +878,12 @@ export function downloadInvoicePdf(
   const opt = {
     margin: 0,
     filename,
-    image: { type: "jpeg", quality: 0.98 },
+    image: { type: "jpeg" as const, quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, logging: false },
     jsPDF: {
       unit: "mm",
-      format: "a4",
-      orientation: "portrait",
+      format: "a4" as const,
+      orientation: "portrait" as const,
     },
   }
 

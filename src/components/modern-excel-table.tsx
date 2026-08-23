@@ -8,29 +8,11 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select"
+import type {
+  InventoryItem,
+  InvoiceItem as TableItem,
+} from "@/features/invoices/invoice-form/types"
 import { cn } from "@/lib/utils"
-
-interface TableItem {
-  itemId: string
-  name: string
-  description: string
-  hsnCode: string
-  quantity: number
-  price: number
-  tax: number
-  discount: number
-  discountType: "flat" | "percent"
-  unit: string
-  showHsn?: boolean
-}
-
-interface InventoryItem {
-  id: string
-  name: string
-  stock: number
-  unit: string
-  hsnCode?: string
-}
 
 export function ModernExcelTable({
   items,
@@ -46,8 +28,8 @@ export function ModernExcelTable({
   inventoryItems: InventoryItem[]
   updateItem: (
     index: number,
-    field: string,
-    value: string | number | boolean,
+    field: keyof TableItem,
+    value: string | number,
   ) => void
   handleItemSelect: (index: number, itemId: string) => void
   addItem: () => void

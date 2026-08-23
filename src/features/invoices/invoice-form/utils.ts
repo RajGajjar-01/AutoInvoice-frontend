@@ -69,6 +69,7 @@ export function computeInvoiceTotals(
     itemsDiscount: itemDisc,
     invoiceDiscount: invDisc,
     grandTotal: grand,
+    rawGrandTotal: rawGrand,
   }
 }
 

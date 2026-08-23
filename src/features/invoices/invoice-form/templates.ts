@@ -79,7 +79,7 @@ export function buildInvoiceHtml(params: BuildHtmlParams): string {
     return { item, idx, lineBase, disc, taxable, lineTax, lineTotal }
   })
 
-  const summaryEntries: (SummaryEntry | null)[] = [
+  const summaryEntries: SummaryEntry[] = [
     { label: "Subtotal", value: cs + subtotal.toFixed(2) },
     itemsDiscount > 0
       ? {
@@ -292,8 +292,8 @@ interface TemplateContext {
   validUntil: string
   invoiceNumber: string
   invoiceDate: string
-  dueDate: string
-  poNumber: string
+  dueDate?: string
+  poNumber?: string
   bizName: string
   bizTagline: string
   bizAddress: string
@@ -302,18 +302,18 @@ interface TemplateContext {
   bizGstin: string
   cd: {
     name: string
-    address: string
-    gst: string
-    phone: string
-    email: string
+    address?: string
+    gst?: string
+    phone?: string
+    email?: string
   }
   cs: string
   grandTotal: number
   notes: string
   paymentTerms: string
-  bankHtml: string
+  bankHtml?: string
   invoiceFooterNote: string
-  placeOfSupply: string
+  placeOfSupply?: string
 }
 
 function cleanTealTemplate(

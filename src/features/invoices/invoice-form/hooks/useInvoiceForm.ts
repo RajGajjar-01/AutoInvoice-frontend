@@ -44,6 +44,13 @@ import {
   getCurrencySymbol,
 } from "../utils"
 
+const documentPrefixKeys = {
+  invoice: "invoice_prefix",
+  quotation: "quotation_prefix",
+  challan: "challan_prefix",
+  proforma: "proforma_prefix",
+} as const
+
 export function useInvoiceForm() {
   const { data: itemsRes } = useQuery(itemsListQueryOptions())
   const inventoryItems: InventoryItem[] = useMemo(
@@ -61,7 +68,7 @@ export function useInvoiceForm() {
       state: companySettings?.state ?? "",
       pincode: companySettings?.pincode ?? "",
       gstin: companySettings?.gstin ?? "",
-      logo: companySettings?.logo_url ?? null,
+      logo: companySettings?.logo_url ?? undefined,
       bankName: companySettings?.bank_name ?? "",
       accountName: companySettings?.name ?? "",
       accountNumber: companySettings?.bank_account ?? "",
@@ -84,7 +91,7 @@ export function useInvoiceForm() {
 
   const selectedTemplate =
     activeTemplate?.kind === "built_in"
-      ? activeTemplate?.built_in_id
+      ? (activeTemplate?.built_in_id ?? "clean-teal")
       : activeTemplate?.kind === "custom"
         ? "custom"
         : activeTemplate?.kind === "imported_html" ||
@@ -101,9 +108,7 @@ export function useInvoiceForm() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
   const resolvedPrefix = useMemo(() => {
     const settingsPrefix =
-      companySettings?.[
-        `${documentConfig.type}_prefix` as keyof typeof companySettings
-      ]
+      companySettings?.[documentPrefixKeys[documentConfig.type]]
     if (settingsPrefix && typeof settingsPrefix === "string") {
       return settingsPrefix.replace(/-+$/, "")
     }
@@ -257,12 +262,17 @@ export function useInvoiceForm() {
       let customerId = selectedCustomerId
       if (!customerId || customerId === "__new__") {
         const existing = (customersRes?.data ?? []).find(
-          (c) =>
-            (c.email &&
-              formData.customerEmail &&
-              c.email.toLowerCase() === formData.customerEmail.toLowerCase()) ||
-            c.name.trim().toLowerCase() ===
-              formData.customerName.trim().toLowerCase(),
+          (c): c is NonNullable<typeof c> => {
+            if (!c) return false
+            return (
+              (c.email &&
+                formData.customerEmail &&
+                c.email.toLowerCase() ===
+                  formData.customerEmail.toLowerCase()) ||
+              c.name.trim().toLowerCase() ===
+                formData.customerName.trim().toLowerCase()
+            )
+          },
         )
         if (existing) {
           customerId = existing.id
@@ -294,7 +304,7 @@ export function useInvoiceForm() {
       )
       payload.customer_id = customerId
 
-      const _created = await createInvoiceMutation.mutateAsync(payload)
+      await createInvoiceMutation.mutateAsync(payload)
       showSuccessToast(`${documentConfig.singular} saved successfully`)
 
       if (documentConfig.deductsStock) {

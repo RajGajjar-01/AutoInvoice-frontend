@@ -11,7 +11,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function getUsersQueryOptions() {
   return {
-    queryFn: () => AdminService.listUsers({ page: 1, pageSize: 100 }),
+    queryFn: () => AdminService.listUsers({ skip: 0, limit: 50 }),
     queryKey: ["users"] as const,
   }
 }

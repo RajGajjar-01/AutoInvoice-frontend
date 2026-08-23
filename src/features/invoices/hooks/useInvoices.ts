@@ -13,12 +13,14 @@ export interface Invoice {
   id: string
   invoiceNumber: string
   invoiceDate?: string
+  dueDate?: string | null
   status: string
   grandTotal: number | string
   currency?: string
   createdAt?: string
   customer?: {
     name?: string
+    email?: string
     whatsapp?: string
     phone?: string
   }

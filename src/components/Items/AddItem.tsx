@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { ItemsService } from "@/client/sdk.gen"
+import type { ItemCreate } from "@/client/types.gen"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -66,6 +67,8 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
+type CreateItemPayload = ItemCreate & { hsn_code?: string | null }
+
 function generateSKU() {
   return `SKU-${Math.random().toString(36).slice(2, 7).toUpperCase()}`
 }
@@ -102,7 +105,7 @@ const AddItem = () => {
   const queryClient = useQueryClient()
 
   const createItemMutation = useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
+    mutationFn: (data: CreateItemPayload) =>
       ItemsService.createItem({ requestBody: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: itemsQueryKeys.all })

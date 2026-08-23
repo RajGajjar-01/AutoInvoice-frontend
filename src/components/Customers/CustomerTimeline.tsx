@@ -65,12 +65,12 @@ interface Invoice {
   invoiceNumber?: string
   status?: string
   invoiceDate?: string
-  dueDate?: string
+  dueDate?: string | null
   grandTotal?: number
   totalTax?: number
   currency?: string
   items?: InvoiceItem[]
-  customer?: { name?: string }
+  customer?: { name?: string } | null
   customerId?: string
   partyId?: string
   createdAt?: string
