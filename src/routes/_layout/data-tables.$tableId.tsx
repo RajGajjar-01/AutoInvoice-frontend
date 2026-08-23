@@ -47,8 +47,8 @@ import {
   useTableUiStore,
 } from "@/features/data-tables/table-ui-store"
 import { buildMandatoryDefaultRow } from "@/features/data-tables/templates"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { useIsMobile } from "@/hooks/useMobile"
 import { evaluateFormula } from "@/lib/formula-engine"
 import { cn } from "@/lib/utils"
 export async function loader({ params }: LoaderFunctionArgs) {
