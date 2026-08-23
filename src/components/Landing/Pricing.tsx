@@ -131,6 +131,7 @@ export function Pricing() {
 
           <div className="mt-8 inline-flex items-center gap-1 rounded-full border bg-muted/30 p-1.5">
             <button
+              type="button"
               onClick={() => setAnnual(false)}
               className={cn(
                 "rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200",
@@ -142,6 +143,7 @@ export function Pricing() {
               Monthly
             </button>
             <button
+              type="button"
               onClick={() => setAnnual(true)}
               className={cn(
                 "rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 flex items-center gap-2",

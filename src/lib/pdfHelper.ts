@@ -88,10 +88,20 @@ export function buildInvoiceHtml(
 
   const anyBiz = biz as Record<string, any>
   const activeBankDetails =
-    biz.bankName || anyBiz.bank_name || biz.accountNumber || anyBiz.bank_account || biz.upi || anyBiz.upi_id
+    biz.bankName ||
+    anyBiz.bank_name ||
+    biz.accountNumber ||
+    anyBiz.bank_account ||
+    biz.upi ||
+    anyBiz.upi_id
       ? {
           bankName: biz.bankName || anyBiz.bank_name || "",
-          accountName: biz.accountName || anyBiz.account_name || biz.name || anyBiz.name || "",
+          accountName:
+            biz.accountName ||
+            anyBiz.account_name ||
+            biz.name ||
+            anyBiz.name ||
+            "",
           accountNumber: biz.accountNumber || anyBiz.bank_account || "",
           ifsc: biz.ifsc || anyBiz.bank_ifsc || "",
           branch: biz.branch || anyBiz.bank_branch || "",

@@ -42,7 +42,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
 
-const invoiceFormSchema = z.object({
+const _invoiceFormSchema = z.object({
   customerName: z.string().min(1, { message: "Customer name is required" }),
   customerPhone: z.string().optional(),
   customerEmail: z
@@ -79,8 +79,6 @@ const invoiceFormSchema = z.object({
   paymentTerms: z.string().optional(),
 })
 
-type InvoiceFormData = z.infer<typeof invoiceFormSchema>
-
 interface InvoiceItem {
   itemId?: string
   name: string
@@ -93,65 +91,6 @@ interface InvoiceItem {
   unit?: string
   hsnCode?: string
   showHsn?: boolean
-}
-
-interface InventoryItem {
-  id: string
-  name: string
-  description?: string
-  salePrice?: number
-  taxRate?: number
-  unit?: string
-  hsnCode?: string
-  stock?: number
-  stockHistory?: Array<{
-    date: string
-    type: string
-    qty: number
-    reason: string
-  }>
-}
-
-interface CompanyDetails {
-  name?: string
-  email?: string
-  phone?: string
-  address?: string
-  city?: string
-  state?: string
-  pincode?: string
-  gstin?: string
-  tagline?: string
-  logo?: string
-  invoiceFooter?: string
-  bankName?: string
-  accountName?: string
-  accountNumber?: string
-  ifsc?: string
-  branch?: string
-  upi?: string
-}
-
-interface Customer {
-  id: string
-  name?: string
-  phone?: string
-  email?: string
-  gstin?: string
-  gst?: string
-  billingAddress?: string
-  address?: string
-  paymentTerms?: string
-  notes?: string
-}
-
-interface BankDetails {
-  bankName: string
-  accountName: string
-  accountNumber: string
-  ifsc: string
-  branch: string
-  upi: string
 }
 
 function _generateInvoiceNumber(): string {

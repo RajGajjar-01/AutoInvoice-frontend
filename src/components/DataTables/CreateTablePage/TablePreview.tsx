@@ -87,6 +87,7 @@ function SortableColumnHeader({
   const badgeColor = "bg-muted text-muted-foreground"
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: dnd-kit column header with keyboard rename support; dedicated a11y pass pending
     <div
       ref={isDragOverlay ? undefined : setNodeRef}
       style={isDragOverlay ? {} : style}

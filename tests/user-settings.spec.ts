@@ -20,8 +20,8 @@ test("All tabs are visible", async ({ page }) => {
 })
 test.describe("Edit user profile", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
-  let email
-  let password
+  let email: string
+  let password: string
   test.beforeAll(async () => {
     email = randomEmail()
     password = randomPassword()
@@ -122,8 +122,8 @@ test.describe("Change password", () => {
 })
 test.describe("Change password validation", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
-  let email
-  let password
+  let email: string
+  let password: string
   test.beforeAll(async () => {
     email = randomEmail()
     password = randomPassword()

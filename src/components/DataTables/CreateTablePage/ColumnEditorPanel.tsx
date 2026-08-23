@@ -307,6 +307,7 @@ export function ColumnEditorPanel({
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: keyboard arrow-nav between column headers; dedicated a11y pass pending
     <div
       data-panel="side-column"
       className="w-80 flex-shrink-0 border-l border-border bg-background flex flex-col overflow-hidden outline-none focus:ring-2 focus:ring-primary/20"
