@@ -127,7 +127,7 @@ const useAuth = () => {
     try {
       await AuthService.logout()
     } catch (e) {
-      console.error("Logout error:", e)
+      handleError.call(showErrorToast, e)
     }
     queryClient.clear()
     navigate("/login")

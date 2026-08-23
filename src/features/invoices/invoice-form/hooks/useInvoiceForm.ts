@@ -4,6 +4,7 @@ import html2pdf from "html2pdf.js"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useSearchParams } from "react-router"
+import { toast } from "sonner"
 import {
   CustomersService,
   InvoicesService,
@@ -458,8 +459,8 @@ export function useInvoiceForm() {
           await navigator.share({ title: `Invoice ${invoiceNumber}`, text })
           return
         }
-      } catch (err) {
-        console.error("Native Share failed:", err)
+      } catch {
+        toast.warning("Sharing is not supported here — download instead")
       }
     }
 

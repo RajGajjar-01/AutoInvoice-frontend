@@ -286,8 +286,7 @@ function InvoiceDetailPage() {
       .then(() => {
         showSuccessToast("PDF downloaded successfully!")
       })
-      .catch((err) => {
-        console.error("PDF generation failed:", err)
+      .catch(() => {
         showErrorToast("Failed to generate PDF")
       })
   }
