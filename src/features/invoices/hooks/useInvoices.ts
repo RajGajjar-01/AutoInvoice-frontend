@@ -107,8 +107,7 @@ export function useInvoices() {
   }
 
   const handleWhatsApp = (inv: Invoice) => {
-    const phone =
-      (inv as any).customer?.whatsapp || (inv as any).customer?.phone
+    const phone = inv.customer?.whatsapp || inv.customer?.phone
     if (!phone) {
       showErrorToast("No WhatsApp number available")
       return

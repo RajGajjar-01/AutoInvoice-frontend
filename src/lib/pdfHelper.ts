@@ -50,11 +50,17 @@ export interface CompanyDetails {
   logo?: string
   invoiceFooter?: string
   bankName?: string
+  bank_name?: string
   accountName?: string
+  account_name?: string
   accountNumber?: string
+  bank_account?: string
   ifsc?: string
+  bank_ifsc?: string
   branch?: string
+  bank_branch?: string
   upi?: string
+  upi_id?: string
 }
 
 function getCurrencySymbol(currency?: string): string {
@@ -86,26 +92,21 @@ export function buildInvoiceHtml(
   const bizLogo = biz.logo || null
   const invoiceFooterNote = biz.invoiceFooter || "Thank you for your business!"
 
-  const anyBiz = biz as Record<string, any>
   const activeBankDetails =
     biz.bankName ||
-    anyBiz.bank_name ||
+    biz.bank_name ||
     biz.accountNumber ||
-    anyBiz.bank_account ||
+    biz.bank_account ||
     biz.upi ||
-    anyBiz.upi_id
+    biz.upi_id
       ? {
-          bankName: biz.bankName || anyBiz.bank_name || "",
+          bankName: biz.bankName || biz.bank_name || "",
           accountName:
-            biz.accountName ||
-            anyBiz.account_name ||
-            biz.name ||
-            anyBiz.name ||
-            "",
-          accountNumber: biz.accountNumber || anyBiz.bank_account || "",
-          ifsc: biz.ifsc || anyBiz.bank_ifsc || "",
-          branch: biz.branch || anyBiz.bank_branch || "",
-          upi: biz.upi || anyBiz.upi_id || "",
+            biz.accountName || biz.account_name || biz.name || biz.name || "",
+          accountNumber: biz.accountNumber || biz.bank_account || "",
+          ifsc: biz.ifsc || biz.bank_ifsc || "",
+          branch: biz.branch || biz.bank_branch || "",
+          upi: biz.upi || biz.upi_id || "",
         }
       : null
 

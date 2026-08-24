@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -17,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
+import { formResolver } from "@/lib/form"
 import { cn } from "@/lib/utils"
 import { handleError } from "@/utils"
 
@@ -33,7 +33,7 @@ const UserInformation = () => {
   const [editMode, setEditMode] = useState(false)
   const { user: currentUser } = useAuth()
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: formResolver(formSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {

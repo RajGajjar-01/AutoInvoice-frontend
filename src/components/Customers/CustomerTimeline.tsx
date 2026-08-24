@@ -179,7 +179,7 @@ export function CustomerTimeline({
 }: CustomerTimelineProps) {
   const partyInvoices = invoices
     .filter((inv) => {
-      const cid = inv.customerId ?? (inv as any).customer_id
+      const cid = inv.customerId
       return cid === customer.id
     })
     .sort((a, b) => {

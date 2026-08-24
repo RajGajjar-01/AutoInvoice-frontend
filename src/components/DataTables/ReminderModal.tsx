@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { Bell, Mail, Phone } from "lucide-react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -28,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
+import { formResolver } from "@/lib/form"
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 const reminderSchema = z.object({
@@ -63,7 +63,7 @@ export function ReminderModal({
   rowLabel,
 }: ReminderModalProps) {
   const form = useForm<FormValues>({
-    resolver: zodResolver(reminderSchema) as any,
+    resolver: formResolver(reminderSchema),
     defaultValues: {
       title: "",
       description: "",

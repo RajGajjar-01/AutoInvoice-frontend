@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import html2pdf from "html2pdf.js"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -10,6 +9,7 @@ import {
   InvoicesService,
   ItemsService,
 } from "@/client/sdk.gen"
+import type { InvoiceCreate } from "@/client/types.gen"
 import { companySettingsQueryOptions } from "@/features/company-settings/queries"
 import {
   customersListQueryOptions,
@@ -19,6 +19,7 @@ import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/
 import { invoicesQueryKeys } from "@/features/invoices/queries"
 import { itemsListQueryOptions, itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { formResolver } from "@/lib/form"
 import { queryClient } from "@/queryClient"
 import {
   defaultFormValues,
@@ -124,7 +125,7 @@ export function useInvoiceForm() {
   const [previewOpen, setPreviewOpen] = useState<boolean>(false)
 
   const form = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceFormSchema) as any,
+    resolver: formResolver(invoiceFormSchema),
     defaultValues: defaultFormValues,
   })
 
@@ -137,15 +138,20 @@ export function useInvoiceForm() {
   const currency = form.watch("currency")
 
   const createCustomerMutation = useMutation({
-    mutationFn: async (payload: any) =>
-      CustomersService.createCustomer({ requestBody: payload }),
+    mutationFn: async (payload: {
+      name: string
+      phone?: string | null
+      email?: string | null
+      address?: string | null
+      gst?: string | null
+    }) => CustomersService.createCustomer({ requestBody: payload }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: customersQueryKeys.all })
     },
   })
 
   const createInvoiceMutation = useMutation({
-    mutationFn: async (payload: any) =>
+    mutationFn: async (payload: InvoiceCreate) =>
       InvoicesService.createInvoice({ requestBody: payload }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
@@ -286,7 +292,6 @@ export function useInvoiceForm() {
             gst: formData.customerGst
               ? formData.customerGst.toUpperCase()
               : null,
-            notes: formData.notes || null,
           })
           customerId = created.id
         }
@@ -444,6 +449,7 @@ export function useInvoiceForm() {
           },
         }
         const pdfBlob = await html2pdf()
+          // biome-ignore lint/suspicious/noExplicitAny: html2pdf.js ships ambient types inside its module declaration that aren't exported; options type cannot be imported
           .set(opt as any)
           .from(html)
           .output("blob")

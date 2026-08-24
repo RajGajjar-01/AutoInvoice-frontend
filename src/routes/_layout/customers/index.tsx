@@ -4,7 +4,10 @@ import { Building2, ContactRound, Search, Users } from "lucide-react"
 import { useDeferredValue, useMemo, useState } from "react"
 import { DataTable } from "@/components/Common/DataTable"
 import AddCustomer from "@/components/Customers/AddCustomer"
-import { columns } from "@/components/Customers/columns"
+import {
+  type Customer as BaseCustomer,
+  columns,
+} from "@/components/Customers/columns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
@@ -91,20 +94,10 @@ function StatsCard({
   )
 }
 
-interface Customer {
-  id: string
-  name: string
-  email?: string
-  phone?: string
+interface Customer extends BaseCustomer {
   whatsapp?: string
-  gstin?: string
-  gst?: string
   billingAddress?: string
-  partyType?: "customer" | "supplier" | "both"
   tags?: string[] | string
-  owner_id?: string
-  created_at?: string
-  updated_at?: string
 }
 
 function CustomersPage() {
@@ -245,7 +238,7 @@ function CustomersPage() {
             </div>
           ) : (
             <div className="animate-in animate-in-delay-2">
-              <DataTable columns={columns} data={filtered as any} />
+              <DataTable columns={columns} data={filtered} />
             </div>
           )}
         </>

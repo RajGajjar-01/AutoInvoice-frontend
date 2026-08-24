@@ -1,8 +1,9 @@
+import type { ColumnDef } from "@tanstack/react-table"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { CustomerActionsMenu } from "./CustomerActionsMenu"
 
-interface Customer {
+export interface Customer {
   id: string
   name: string
   partyType?: "customer" | "supplier" | "both"
@@ -27,7 +28,7 @@ const partyTypeLabel: Record<string, string> = {
   both: "Both",
 }
 
-export const columns = [
+export const columns: ColumnDef<Customer, unknown>[] = [
   {
     accessorKey: "name",
     header: "Name",

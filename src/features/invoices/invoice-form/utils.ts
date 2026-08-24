@@ -1,3 +1,5 @@
+import type { UseFormReturn } from "react-hook-form"
+import type { InvoiceCreate } from "@/client/types.gen"
 import type { DocumentConfig, InvoiceFormData } from "./constants"
 import type {
   BankDetails,
@@ -114,7 +116,10 @@ export function buildInvoicePayload(
   totalTax: number,
   grandTotal: number,
   invoiceDiscount: number,
-): Record<string, unknown> {
+): InvoiceCreate & {
+  vehicle_info?: string | null
+  delivery_notes?: string | null
+} {
   return {
     invoice_number: invoiceNumber,
     document_type: config.type,
@@ -152,7 +157,7 @@ export function buildInvoicePayload(
 }
 
 export function fillCustomerForm(
-  form: any,
+  form: UseFormReturn<InvoiceFormData>,
   value: string,
   customers: Customer[],
 ): void {
