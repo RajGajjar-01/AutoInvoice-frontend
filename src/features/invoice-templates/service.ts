@@ -1,12 +1,9 @@
-import { OpenAPI } from "@/client"
+import { InvoiceTemplatesService } from "@/client/sdk.gen"
 import type {
   InvoiceTemplateCreate,
   InvoiceTemplatePublic,
   InvoiceTemplateUpdate,
 } from "@/client/types.gen"
-import { api } from "@/lib/api"
-
-const apiBase = () => `${OpenAPI.BASE}/api/v1`
 
 interface ListParams {
   skip?: number
@@ -23,20 +20,23 @@ export const invoiceTemplatesApi = {
     skip = 0,
     limit = 200,
   }: ListParams = {}): Promise<InvoiceTemplatesListResponse> => {
-    const res = await api.get(`${apiBase()}/invoice-templates/`, {
-      params: { skip, limit },
+    const res = await InvoiceTemplatesService.readInvoiceTemplates({
+      skip,
+      limit,
     })
-    return res.data
+    return res
   },
   getActive: async (): Promise<InvoiceTemplatePublic> => {
-    const res = await api.get(`${apiBase()}/invoice-templates/active`)
-    return res.data
+    const res = await InvoiceTemplatesService.readActiveInvoiceTemplate()
+    return res
   },
   create: async (
     payload: InvoiceTemplateCreate,
   ): Promise<InvoiceTemplatePublic> => {
-    const res = await api.post(`${apiBase()}/invoice-templates/`, payload)
-    return res.data
+    const res = await InvoiceTemplatesService.createInvoiceTemplate({
+      requestBody: payload,
+    })
+    return res
   },
   update: async ({
     id,
@@ -45,17 +45,17 @@ export const invoiceTemplatesApi = {
     id: string
     payload: InvoiceTemplateUpdate
   }): Promise<InvoiceTemplatePublic> => {
-    const res = await api.put(`${apiBase()}/invoice-templates/${id}`, payload)
-    return res.data
+    const res = await InvoiceTemplatesService.updateInvoiceTemplate({
+      id,
+      requestBody: payload,
+    })
+    return res
   },
   activate: async ({ id }: { id: string }): Promise<InvoiceTemplatePublic> => {
-    const res = await api.post(
-      `${apiBase()}/invoice-templates/${id}/activate`,
-      {},
-    )
-    return res.data
+    const res = await InvoiceTemplatesService.activateInvoiceTemplate({ id })
+    return res
   },
   remove: async ({ id }: { id: string }): Promise<void> => {
-    await api.delete(`${apiBase()}/invoice-templates/${id}`)
+    await InvoiceTemplatesService.deleteInvoiceTemplate({ id })
   },
 }
