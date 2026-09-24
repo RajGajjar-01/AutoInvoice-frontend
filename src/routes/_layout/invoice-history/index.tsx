@@ -1,3 +1,4 @@
+import { useMutation, useQuery } from "@tanstack/react-query"
 import {
   AlertTriangle,
   Clock,
@@ -9,7 +10,10 @@ import {
   Send,
   Trash2,
 } from "lucide-react"
+import { useMemo, useState } from "react"
 import { Link } from "react-router"
+import { InvoicesService } from "@/client/sdk.gen"
+import type { InvoiceStatus } from "@/client/types.gen"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -38,8 +42,15 @@ import { HistoryEmptyState } from "@/features/invoice-history/components/History
 import { DeleteInvoiceDialog } from "@/features/invoices/components/DeleteInvoiceDialog"
 import { StatCard } from "@/features/invoices/components/StatCard"
 import { StatusBadge } from "@/features/invoices/components/StatusBadge"
+import type { Invoice } from "@/features/invoices/hooks/useInvoices"
+import {
+  invoicesListQueryOptions,
+  invoicesQueryKeys,
+} from "@/features/invoices/queries"
 import { fmt } from "@/features/invoices/utils"
+import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { queryClient } from "@/queryClient"
 
 function InvoiceHistoryPage() {
   useDocumentTitle("Invoice History")
@@ -57,7 +68,7 @@ function InvoiceHistoryPage() {
       patch,
     }: {
       id: string
-      patch: Partial<Invoice>
+      patch: { status: InvoiceStatus }
     }) => {
       return InvoicesService.updateInvoice({
         id,
@@ -152,8 +163,7 @@ function InvoiceHistoryPage() {
   })
 
   const handleWhatsApp = (inv: Invoice) => {
-    const phone =
-      (inv as any).customer?.whatsapp || (inv as any).customer?.phone
+    const phone = inv.customer?.whatsapp || inv.customer?.phone
     if (!phone) {
       showErrorToast("No WhatsApp number available")
       return

@@ -50,11 +50,17 @@ export interface CompanyDetails {
   logo?: string
   invoiceFooter?: string
   bankName?: string
+  bank_name?: string
   accountName?: string
+  account_name?: string
   accountNumber?: string
+  bank_account?: string
   ifsc?: string
+  bank_ifsc?: string
   branch?: string
+  bank_branch?: string
   upi?: string
+  upi_id?: string
 }
 
 function getCurrencySymbol(currency?: string): string {
@@ -86,16 +92,21 @@ export function buildInvoiceHtml(
   const bizLogo = biz.logo || null
   const invoiceFooterNote = biz.invoiceFooter || "Thank you for your business!"
 
-  const anyBiz = biz as Record<string, any>
   const activeBankDetails =
-    biz.bankName || anyBiz.bank_name || biz.accountNumber || anyBiz.bank_account || biz.upi || anyBiz.upi_id
+    biz.bankName ||
+    biz.bank_name ||
+    biz.accountNumber ||
+    biz.bank_account ||
+    biz.upi ||
+    biz.upi_id
       ? {
-          bankName: biz.bankName || anyBiz.bank_name || "",
-          accountName: biz.accountName || anyBiz.account_name || biz.name || anyBiz.name || "",
-          accountNumber: biz.accountNumber || anyBiz.bank_account || "",
-          ifsc: biz.ifsc || anyBiz.bank_ifsc || "",
-          branch: biz.branch || anyBiz.bank_branch || "",
-          upi: biz.upi || anyBiz.upi_id || "",
+          bankName: biz.bankName || biz.bank_name || "",
+          accountName:
+            biz.accountName || biz.account_name || biz.name || biz.name || "",
+          accountNumber: biz.accountNumber || biz.bank_account || "",
+          ifsc: biz.ifsc || biz.bank_ifsc || "",
+          branch: biz.branch || biz.bank_branch || "",
+          upi: biz.upi || biz.upi_id || "",
         }
       : null
 
@@ -220,13 +231,6 @@ export function buildInvoiceHtml(
           "</tr>",
       )
       .join("")
-
-    const _noteHtml =
-      notes || paymentTerms
-        ? `<tr><td colspan="3" style="padding:12px;font-size:11px;border-top:1px solid #e2e8f0;background:#f8fafc"><strong>Note:</strong> ${
-            notes || paymentTerms
-          }</td></tr>`
-        : ""
 
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>INVOICE ${invoiceNumber}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;min-height:100%}@page{size:A4;margin:0}@media print{html,body{height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
@@ -875,12 +879,12 @@ export function downloadInvoicePdf(
   const opt = {
     margin: 0,
     filename,
-    image: { type: "jpeg", quality: 0.98 },
+    image: { type: "jpeg" as const, quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, logging: false },
     jsPDF: {
       unit: "mm",
-      format: "a4",
-      orientation: "portrait",
+      format: "a4" as const,
+      orientation: "portrait" as const,
     },
   }
 

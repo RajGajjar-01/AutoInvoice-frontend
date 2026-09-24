@@ -23,7 +23,7 @@ test("Add Item button is visible", async ({ page }) => {
 })
 test.describe("Items management", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
-  let email
+  let email: string
   const password = randomPassword()
   test.beforeAll(async () => {
     email = randomEmail()
@@ -70,7 +70,7 @@ test.describe("Items management", () => {
     await expect(page.getByText("Item name is required")).toBeVisible()
   })
   test.describe("Edit and Delete", () => {
-    let itemTitle
+    let itemTitle: string
     test.beforeEach(async ({ page }) => {
       itemTitle = randomItemTitle()
       await page.getByRole("button", { name: "Add Item" }).click()

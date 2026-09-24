@@ -414,8 +414,6 @@ export const DATA_TABLE_TEMPLATES: DataTableTemplate[] = [
   },
 ]
 
-export const getDataTableTemplates = () => DATA_TABLE_TEMPLATES
-
 export const getDataTableTemplateById = (templateId?: string) =>
   DATA_TABLE_TEMPLATES.find((template) => template.id === templateId)
 

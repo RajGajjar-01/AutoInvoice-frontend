@@ -39,16 +39,16 @@ function triggerDownload(content: string, filename: string, mimeType: string) {
 // ─── CSV export ───────────────────────────────────────────────────────────────
 function exportAsCSV(table: Table, rows: Row[]) {
   const cols = table.columns.map((c) => c.name)
-  const escape = (val: unknown) => {
+  const csvEscape = (val: unknown) => {
     const str = val == null ? "" : String(val)
     return str.includes(",") || str.includes('"') || str.includes("\n")
       ? `"${str.replace(/"/g, '""')}"`
       : str
   }
 
-  const header = cols.map(escape).join(",")
+  const header = cols.map(csvEscape).join(",")
   const dataRows = rows.map((row) =>
-    cols.map((col) => escape(row[col])).join(","),
+    cols.map((col) => csvEscape(row[col])).join(","),
   )
   const csv = [header, ...dataRows].join("\n")
   triggerDownload(csv, `${table.name}.csv`, "text/csv;charset=utf-8;")

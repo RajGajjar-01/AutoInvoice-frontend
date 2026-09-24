@@ -261,8 +261,6 @@ function InvoiceDetailPage() {
       discount: invoice.discount || 0,
       notes: invoice.notes,
       paymentTerms: invoice.paymentTerms,
-      poNumber: invoice.poNumber,
-      placeOfSupply: invoice.placeOfSupply,
       customer: {
         name: invoice.customer?.name || "",
         email: invoice.customer?.email || "",
@@ -288,8 +286,7 @@ function InvoiceDetailPage() {
       .then(() => {
         showSuccessToast("PDF downloaded successfully!")
       })
-      .catch((err) => {
-        console.error("PDF generation failed:", err)
+      .catch(() => {
         showErrorToast("Failed to generate PDF")
       })
   }
@@ -311,7 +308,7 @@ function InvoiceDetailPage() {
     }
     sendEmailMutation.mutate({
       to_email: email,
-      subject: `${documentConfigs[invoice.document_type]?.singular ?? "Invoice"} ${invoice.invoiceNumber}`,
+      subject: `${documentConfigs[invoice.document_type ?? "invoice"]?.singular ?? "Invoice"} ${invoice.invoiceNumber}`,
     })
   }
 
@@ -674,7 +671,8 @@ function InvoiceDetailPage() {
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>
-              {documentConfigs[invoice.document_type]?.singular ?? "Invoice"}{" "}
+              {documentConfigs[invoice.document_type ?? "invoice"]?.singular ??
+                "Invoice"}{" "}
               Preview
             </DialogTitle>
           </DialogHeader>
@@ -694,8 +692,6 @@ function InvoiceDetailPage() {
                       discount: invoice.discount || 0,
                       notes: invoice.notes,
                       paymentTerms: invoice.paymentTerms,
-                      poNumber: invoice.poNumber,
-                      placeOfSupply: invoice.placeOfSupply,
                       customer: {
                         name: invoice.customer?.name || "",
                         email: invoice.customer?.email || "",

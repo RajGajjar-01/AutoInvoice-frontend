@@ -62,14 +62,7 @@ const useAuth = () => {
       await queryClient.refetchQueries({ queryKey: ["currentUser"] })
       navigate("/verify-email")
     },
-    onError: (error) => {
-      const message =
-        (error as { body?: { detail?: string }; message?: string })?.body
-          ?.detail ||
-        (error as Error)?.message ||
-        "Signup failed"
-      showErrorToast(message)
-    },
+    onError: (error) => handleError.call(showErrorToast, error),
   })
 
   const verifyEmailMutation = useMutation({
@@ -113,21 +106,14 @@ const useAuth = () => {
       await queryClient.refetchQueries({ queryKey: ["currentUser"] })
       navigate("/dashboard")
     },
-    onError: (error) => {
-      const message =
-        (error as { body?: { detail?: string }; message?: string })?.body
-          ?.detail ||
-        (error as Error)?.message ||
-        "Login failed"
-      showErrorToast(message)
-    },
+    onError: (error) => handleError.call(showErrorToast, error),
   })
 
   const logout = async () => {
     try {
       await AuthService.logout()
     } catch (e) {
-      console.error("Logout error:", e)
+      handleError.call(showErrorToast, e)
     }
     queryClient.clear()
     navigate("/login")

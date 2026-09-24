@@ -245,7 +245,7 @@ function ItemsPage() {
         </div>
       ) : (
         <div className="animate-in animate-in-delay-2">
-          <DataTable columns={columns} data={filtered as any} />
+          <DataTable columns={columns} data={filtered} />
         </div>
       )}
     </div>

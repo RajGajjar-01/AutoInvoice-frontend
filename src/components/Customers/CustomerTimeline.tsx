@@ -65,12 +65,12 @@ interface Invoice {
   invoiceNumber?: string
   status?: string
   invoiceDate?: string
-  dueDate?: string
+  dueDate?: string | null
   grandTotal?: number
   totalTax?: number
   currency?: string
   items?: InvoiceItem[]
-  customer?: { name?: string }
+  customer?: { name?: string } | null
   customerId?: string
   partyId?: string
   createdAt?: string
@@ -179,7 +179,7 @@ export function CustomerTimeline({
 }: CustomerTimelineProps) {
   const partyInvoices = invoices
     .filter((inv) => {
-      const cid = inv.customerId ?? (inv as any).customer_id
+      const cid = inv.customerId
       return cid === customer.id
     })
     .sort((a, b) => {

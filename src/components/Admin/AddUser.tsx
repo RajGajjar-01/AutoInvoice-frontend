@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import { useState } from "react"
@@ -28,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
+import { formResolver } from "@/lib/form"
 import { handleError } from "@/utils"
 
 const formSchema = z
@@ -56,7 +56,7 @@ const AddUser = () => {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: formResolver(formSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {

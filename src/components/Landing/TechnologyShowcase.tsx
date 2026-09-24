@@ -335,6 +335,7 @@ export function TechnologyShowcase() {
                           <div className="flex items-center gap-1.5">
                             <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-primary/10">
                               <svg
+                                aria-hidden="true"
                                 className="h-3 w-3 text-primary"
                                 viewBox="0 0 24 24"
                                 fill="none"

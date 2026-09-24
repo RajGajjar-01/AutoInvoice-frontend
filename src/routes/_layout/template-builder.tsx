@@ -545,6 +545,8 @@ function SortableCanvasBlock({
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: pre-existing clickable-card pattern; dedicated a11y pass pending
+    // biome-ignore lint/a11y/useKeyWithClickEvents: pre-existing clickable-card pattern; dedicated a11y pass pending
     <div
       ref={setNodeRef}
       style={{
@@ -561,6 +563,8 @@ function SortableCanvasBlock({
     >
       {/* Drag handle */}
       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted/40 border-b border-border rounded-t-lg">
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: dnd-kit drag handle; dedicated a11y pass pending */}
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: event propagation guard for drag handle */}
         <span
           {...attributes}
           {...listeners}
@@ -583,6 +587,7 @@ function SortableCanvasBlock({
           </Badge>
         )}
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation()
             onRemove(block.id)
@@ -608,6 +613,8 @@ interface CanvasDropZoneProps {
 function CanvasDropZone({ onDrop }: CanvasDropZoneProps) {
   const { isOver, setNodeRef } = useDroppable({ id: "canvas-drop" })
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: droppable canvas target; dedicated a11y pass pending
+    // biome-ignore lint/a11y/useKeyWithClickEvents: droppable canvas target; dedicated a11y pass pending
     <div
       ref={setNodeRef}
       onClick={onDrop}
@@ -698,6 +705,7 @@ function BlockStylePanel({ block, onChange }: BlockStylePanelProps) {
         <Label className="text-xs">Font Style</Label>
         <div className="flex gap-1">
           <button
+            type="button"
             onClick={() =>
               onChange("fontWeight", s.fontWeight === "bold" ? "" : "bold")
             }
@@ -706,6 +714,7 @@ function BlockStylePanel({ block, onChange }: BlockStylePanelProps) {
             B
           </button>
           <button
+            type="button"
             onClick={() => onChange("italic", !s.italic)}
             className={`flex-1 py-1 text-xs rounded border italic transition-colors ${s.italic ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-accent"}`}
           >
@@ -725,6 +734,7 @@ function BlockStylePanel({ block, onChange }: BlockStylePanelProps) {
             { v: "justify" as const, icon: AlignJustify },
           ].map(({ v, icon: IconComponent }) => (
             <button
+              type="button"
               key={v}
               onClick={() => onChange("textAlign", v)}
               className={`flex-1 flex items-center justify-center py-1 rounded border transition-colors ${(s.textAlign || "left") === v ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-accent"}`}
@@ -748,6 +758,7 @@ function BlockStylePanel({ block, onChange }: BlockStylePanelProps) {
             { label: "Pink", value: "#fdf2f8" },
           ].map((opt) => (
             <button
+              type="button"
               key={opt.value}
               onClick={() => onChange("bgColor", opt.value)}
               title={opt.label}
@@ -766,6 +777,7 @@ function BlockStylePanel({ block, onChange }: BlockStylePanelProps) {
       <div className="flex items-center justify-between">
         <Label className="text-xs">Show Border</Label>
         <button
+          type="button"
           onClick={() => onChange("border", !s.border)}
           className={`relative w-9 h-5 rounded-full transition-colors ${s.border ? "bg-primary" : "bg-muted"}`}
         >
@@ -840,6 +852,7 @@ function GlobalStylePanel({ globalStyle, onChange }: GlobalStylePanelProps) {
         <div className="grid grid-cols-4 gap-1">
           {ACCENT_COLOURS.map((c) => (
             <button
+              type="button"
               key={c.value}
               title={c.label}
               onClick={() => onChange("accentColor", c.value)}
@@ -869,6 +882,7 @@ function GlobalStylePanel({ globalStyle, onChange }: GlobalStylePanelProps) {
         <div className="grid grid-cols-3 gap-1">
           {TEXT_COLOURS.map((c) => (
             <button
+              type="button"
               key={c.value}
               title={c.label}
               onClick={() => onChange("textColor", c.value)}
@@ -901,6 +915,7 @@ function GlobalStylePanel({ globalStyle, onChange }: GlobalStylePanelProps) {
         <div className="grid grid-cols-3 gap-1">
           {BG_COLOURS.map((c) => (
             <button
+              type="button"
               key={c.value}
               title={c.label}
               onClick={() => onChange("pageBg", c.value)}
@@ -1238,6 +1253,7 @@ function TemplateBuilderPage() {
               { id: "block-style" as const, icon: Type, label: "Block Style" },
             ].map(({ id, icon: Icon, label }) => (
               <button
+                type="button"
                 key={id}
                 onClick={() => setLeftTab(id)}
                 className={`flex-1 flex items-center justify-center gap-1 py-2 text-xs font-medium transition-colors border-b-2 ${
@@ -1265,6 +1281,7 @@ function TemplateBuilderPage() {
                     Load all standard invoice blocks in one click
                   </p>
                   <button
+                    type="button"
                     onClick={() => {
                       setBlocks(
                         DEFAULT_BLOCKS.map((b) => ({
@@ -1289,6 +1306,7 @@ function TemplateBuilderPage() {
                   const alreadyAdded = blocks.some((b) => b.type === def.type)
                   return (
                     <button
+                      type="button"
                       key={def.type}
                       onClick={() => handleAddBlock(def.type)}
                       className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-all text-left group"

@@ -9,6 +9,7 @@ export interface InvoiceItem {
   discountType?: "flat" | "percent"
   unit?: string
   hsnCode?: string
+  showHsn?: boolean
 }
 
 export interface InventoryItem {
@@ -19,6 +20,7 @@ export interface InventoryItem {
   taxRate?: number
   unit?: string
   stock?: number
+  hsnCode?: string
   stockHistory?: Array<{
     date: string
     type: string
@@ -91,4 +93,5 @@ export interface InvoiceCalculations {
   itemsDiscount: number
   invoiceDiscount: number
   grandTotal: number
+  rawGrandTotal: number
 }

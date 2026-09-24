@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -14,6 +13,7 @@ import {
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useCustomToast from "@/hooks/useCustomToast"
+import { formResolver } from "@/lib/form"
 import { handleError } from "@/utils"
 
 const formSchema = z
@@ -44,7 +44,7 @@ type FormValues = z.infer<typeof formSchema>
 const ChangePassword = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: formResolver(formSchema),
     mode: "onSubmit",
     criteriaMode: "all",
     defaultValues: {

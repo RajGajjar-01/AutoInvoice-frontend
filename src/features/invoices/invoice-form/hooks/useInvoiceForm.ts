@@ -1,14 +1,15 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import html2pdf from "html2pdf.js"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useSearchParams } from "react-router"
+import { toast } from "sonner"
 import {
   CustomersService,
   InvoicesService,
   ItemsService,
 } from "@/client/sdk.gen"
+import type { InvoiceCreate } from "@/client/types.gen"
 import { companySettingsQueryOptions } from "@/features/company-settings/queries"
 import {
   customersListQueryOptions,
@@ -18,6 +19,7 @@ import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/
 import { invoicesQueryKeys } from "@/features/invoices/queries"
 import { itemsListQueryOptions, itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { formResolver } from "@/lib/form"
 import { queryClient } from "@/queryClient"
 import {
   defaultFormValues,
@@ -44,6 +46,13 @@ import {
   getCurrencySymbol,
 } from "../utils"
 
+const documentPrefixKeys = {
+  invoice: "invoice_prefix",
+  quotation: "quotation_prefix",
+  challan: "challan_prefix",
+  proforma: "proforma_prefix",
+} as const
+
 export function useInvoiceForm() {
   const { data: itemsRes } = useQuery(itemsListQueryOptions())
   const inventoryItems: InventoryItem[] = useMemo(
@@ -61,7 +70,7 @@ export function useInvoiceForm() {
       state: companySettings?.state ?? "",
       pincode: companySettings?.pincode ?? "",
       gstin: companySettings?.gstin ?? "",
-      logo: companySettings?.logo_url ?? null,
+      logo: companySettings?.logo_url ?? undefined,
       bankName: companySettings?.bank_name ?? "",
       accountName: companySettings?.name ?? "",
       accountNumber: companySettings?.bank_account ?? "",
@@ -84,7 +93,7 @@ export function useInvoiceForm() {
 
   const selectedTemplate =
     activeTemplate?.kind === "built_in"
-      ? activeTemplate?.built_in_id
+      ? (activeTemplate?.built_in_id ?? "clean-teal")
       : activeTemplate?.kind === "custom"
         ? "custom"
         : activeTemplate?.kind === "imported_html" ||
@@ -101,9 +110,7 @@ export function useInvoiceForm() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
   const resolvedPrefix = useMemo(() => {
     const settingsPrefix =
-      companySettings?.[
-        `${documentConfig.type}_prefix` as keyof typeof companySettings
-      ]
+      companySettings?.[documentPrefixKeys[documentConfig.type]]
     if (settingsPrefix && typeof settingsPrefix === "string") {
       return settingsPrefix.replace(/-+$/, "")
     }
@@ -118,7 +125,7 @@ export function useInvoiceForm() {
   const [previewOpen, setPreviewOpen] = useState<boolean>(false)
 
   const form = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceFormSchema) as any,
+    resolver: formResolver(invoiceFormSchema),
     defaultValues: defaultFormValues,
   })
 
@@ -131,15 +138,20 @@ export function useInvoiceForm() {
   const currency = form.watch("currency")
 
   const createCustomerMutation = useMutation({
-    mutationFn: async (payload: any) =>
-      CustomersService.createCustomer({ requestBody: payload }),
+    mutationFn: async (payload: {
+      name: string
+      phone?: string | null
+      email?: string | null
+      address?: string | null
+      gst?: string | null
+    }) => CustomersService.createCustomer({ requestBody: payload }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: customersQueryKeys.all })
     },
   })
 
   const createInvoiceMutation = useMutation({
-    mutationFn: async (payload: any) =>
+    mutationFn: async (payload: InvoiceCreate) =>
       InvoicesService.createInvoice({ requestBody: payload }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
@@ -257,12 +269,17 @@ export function useInvoiceForm() {
       let customerId = selectedCustomerId
       if (!customerId || customerId === "__new__") {
         const existing = (customersRes?.data ?? []).find(
-          (c) =>
-            (c.email &&
-              formData.customerEmail &&
-              c.email.toLowerCase() === formData.customerEmail.toLowerCase()) ||
-            c.name.trim().toLowerCase() ===
-              formData.customerName.trim().toLowerCase(),
+          (c): c is NonNullable<typeof c> => {
+            if (!c) return false
+            return (
+              (c.email &&
+                formData.customerEmail &&
+                c.email.toLowerCase() ===
+                  formData.customerEmail.toLowerCase()) ||
+              c.name.trim().toLowerCase() ===
+                formData.customerName.trim().toLowerCase()
+            )
+          },
         )
         if (existing) {
           customerId = existing.id
@@ -275,7 +292,6 @@ export function useInvoiceForm() {
             gst: formData.customerGst
               ? formData.customerGst.toUpperCase()
               : null,
-            notes: formData.notes || null,
           })
           customerId = created.id
         }
@@ -294,7 +310,7 @@ export function useInvoiceForm() {
       )
       payload.customer_id = customerId
 
-      const _created = await createInvoiceMutation.mutateAsync(payload)
+      await createInvoiceMutation.mutateAsync(payload)
       showSuccessToast(`${documentConfig.singular} saved successfully`)
 
       if (documentConfig.deductsStock) {
@@ -433,6 +449,7 @@ export function useInvoiceForm() {
           },
         }
         const pdfBlob = await html2pdf()
+          // biome-ignore lint/suspicious/noExplicitAny: html2pdf.js ships ambient types inside its module declaration that aren't exported; options type cannot be imported
           .set(opt as any)
           .from(html)
           .output("blob")
@@ -448,8 +465,8 @@ export function useInvoiceForm() {
           await navigator.share({ title: `Invoice ${invoiceNumber}`, text })
           return
         }
-      } catch (err) {
-        console.error("Native Share failed:", err)
+      } catch {
+        toast.warning("Sharing is not supported here — download instead")
       }
     }
 

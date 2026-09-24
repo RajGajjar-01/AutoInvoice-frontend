@@ -13,12 +13,14 @@ export interface Invoice {
   id: string
   invoiceNumber: string
   invoiceDate?: string
+  dueDate?: string | null
   status: string
   grandTotal: number | string
   currency?: string
   createdAt?: string
   customer?: {
     name?: string
+    email?: string
     whatsapp?: string
     phone?: string
   }
@@ -105,8 +107,7 @@ export function useInvoices() {
   }
 
   const handleWhatsApp = (inv: Invoice) => {
-    const phone =
-      (inv as any).customer?.whatsapp || (inv as any).customer?.phone
+    const phone = inv.customer?.whatsapp || inv.customer?.phone
     if (!phone) {
       showErrorToast("No WhatsApp number available")
       return

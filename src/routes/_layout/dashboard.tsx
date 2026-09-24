@@ -228,7 +228,7 @@ function Dashboard() {
                     interval={6}
                   />
                   <Tooltip
-                    formatter={(v: number) => [fmtShort(v), "Revenue"]}
+                    formatter={(v: unknown) => [fmtShort(Number(v)), "Revenue"]}
                     contentStyle={{
                       fontSize: 12,
                       borderRadius: 8,

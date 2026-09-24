@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { randomUUID } from "@/lib/uuid"
 
 interface Column {
   name: string
@@ -54,7 +53,7 @@ export function MobileEntryView({
   const [adding, setAdding] = useState(false)
 
   const handleAdd = () => {
-    const rowToSave = { ...newItem, id: randomUUID() }
+    const rowToSave = { ...newItem, id: crypto.randomUUID() }
     onAddRowWithData(rowToSave as Row)
     setNewItem({})
     setAdding(false)
@@ -87,12 +86,12 @@ export function MobileEntryView({
                 key={col.name}
                 className="grid grid-cols-[85px_1fr] items-center px-3 py-1 gap-2 min-h-[36px]"
               >
-                <label className="text-[9px] uppercase font-black text-muted-foreground/80 tracking-tight leading-tight truncate">
+                <span className="text-[9px] uppercase font-black text-muted-foreground/80 tracking-tight leading-tight truncate">
                   {col.name}
                   {col.mandatory && (
                     <span className="text-destructive ml-0.5">*</span>
                   )}
-                </label>
+                </span>
                 <div className="min-h-[30px] flex items-center bg-muted/5 rounded border border-border/20 overflow-hidden">
                   <TableCell
                     type={col.type}
@@ -241,9 +240,9 @@ function MobileRowCard({
               key={col.name}
               className="grid grid-cols-[100px_1fr] items-center py-2 px-1 gap-2"
             >
-              <label className="text-[10px] uppercase font-black text-muted-foreground/60 tracking-tight truncate pr-2">
+              <span className="text-[10px] uppercase font-black text-muted-foreground/60 tracking-tight truncate pr-2">
                 {col.name}
-              </label>
+              </span>
               <div className="min-h-[36px] flex items-center bg-background rounded-md border border-border/30 overflow-hidden">
                 <TableCell
                   type={col.type}

@@ -26,6 +26,7 @@ function ItemDetailContent() {
           The item you're looking for doesn't exist or was deleted.
         </p>
         <button
+          type="button"
           onClick={() => navigate("/items")}
           className="text-primary hover:underline"
         >

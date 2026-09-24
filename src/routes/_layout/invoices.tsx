@@ -80,7 +80,7 @@ function InvoicesPage() {
         (inv) =>
           inv.invoiceNumber?.toLowerCase().includes(q) ||
           inv.customer?.name?.toLowerCase().includes(q) ||
-          (inv.customer as any)?.email?.toLowerCase().includes(q) ||
+          inv.customer?.email?.toLowerCase().includes(q) ||
           String(inv.grandTotal).includes(q),
       )
     }
@@ -216,6 +216,7 @@ function InvoicesPage() {
       <div className="flex gap-1 border-b border-border -mt-2">
         {tabs.map((tab) => (
           <button
+            type="button"
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
@@ -298,9 +299,9 @@ function InvoicesPage() {
                       <span className="font-medium">
                         {inv.customer?.name || "—"}
                       </span>
-                      {(inv.customer as any)?.email && (
+                      {inv.customer?.email && (
                         <span className="block text-xs text-muted-foreground mt-0.5">
-                          {(inv.customer as any).email}
+                          {inv.customer.email}
                         </span>
                       )}
                     </Link>
@@ -309,7 +310,7 @@ function InvoicesPage() {
                     {inv.invoiceDate || "—"}
                   </TableCell>
                   <TableCell className="text-sm">
-                    {(inv as any).dueDate ? (
+                    {inv.dueDate ? (
                       <span
                         className={
                           inv.status === "overdue"
@@ -317,7 +318,7 @@ function InvoicesPage() {
                             : "text-muted-foreground"
                         }
                       >
-                        {(inv as any).dueDate}
+                        {inv.dueDate}
                       </span>
                     ) : (
                       <span className="text-muted-foreground">—</span>

@@ -14,6 +14,7 @@ function CreateProformaPage() {
     <div className="flex flex-col items-center justify-center py-24 text-center gap-6">
       <div className="rounded-full bg-muted p-6">
         <svg
+          aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           width="48"
           height="48"

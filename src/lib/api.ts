@@ -1,8 +1,4 @@
-import axios, {
-  type AxiosError,
-  type AxiosHeaders,
-  type InternalAxiosRequestConfig,
-} from "axios"
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios"
 import { OpenAPI } from "@/client"
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
@@ -16,6 +12,27 @@ const getCookie = (name: string): string | undefined => {
   const parts = value.split(`; ${name}=`)
   if (parts.length === 2) return parts.pop()?.split(";").shift()
   return undefined
+}
+
+const attachCsrfInterceptor = (
+  instance: typeof axios | ReturnType<typeof axios.create>,
+): void => {
+  instance.interceptors.request.use((config) => {
+    const method = (config.method || "get").toLowerCase()
+    if (!["get", "head", "options"].includes(method)) {
+      const csrf = getCookie("csrf_token")
+      if (csrf) {
+        if (config.headers instanceof axios.AxiosHeaders) {
+          config.headers.set("X-CSRF-Token", csrf)
+        } else {
+          config.headers = Object.assign(config.headers ?? {}, {
+            "X-CSRF-Token": csrf,
+          })
+        }
+      }
+    }
+    return config
+  })
 }
 
 const shouldAttemptRefresh = (
@@ -38,28 +55,10 @@ const shouldAttemptRefresh = (
 
 const api = axios.create()
 
+attachCsrfInterceptor(axios)
+attachCsrfInterceptor(api)
+
 let refreshPromise: Promise<void> | null = null
-
-api.interceptors.request.use((config) => {
-  const nextConfig = config
-  nextConfig.withCredentials ??= true
-
-  const method = (nextConfig.method || "get").toLowerCase()
-  if (!["get", "head", "options"].includes(method)) {
-    const csrf = getCookie("csrf_token")
-    if (csrf) {
-      if (nextConfig.headers instanceof axios.AxiosHeaders) {
-        nextConfig.headers.set("X-CSRF-Token", csrf)
-      } else {
-        nextConfig.headers = Object.assign(nextConfig.headers ?? {}, {
-          "X-CSRF-Token": csrf,
-        }) as AxiosHeaders
-      }
-    }
-  }
-
-  return nextConfig
-})
 
 api.interceptors.response.use(
   (response) => response,

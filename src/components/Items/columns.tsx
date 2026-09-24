@@ -1,4 +1,4 @@
-import type { CellContext } from "@tanstack/react-table"
+import type { CellContext, ColumnDef } from "@tanstack/react-table"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -52,7 +52,7 @@ function StockPill({ item }: { item: Item }) {
   )
 }
 
-export const columns = [
+export const columns: ColumnDef<Item, unknown>[] = [
   {
     accessorKey: "name",
     header: "Item",

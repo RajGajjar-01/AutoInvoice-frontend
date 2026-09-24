@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   AlertTriangle,
@@ -33,6 +32,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { formResolver } from "@/lib/form"
 import { cn } from "@/lib/utils"
 
 const baseSchema = z.object({
@@ -118,7 +118,7 @@ const AdjustStock = ({
   })
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(baseSchema) as any,
+    resolver: formResolver(baseSchema),
     mode: "onBlur",
     defaultValues: { qty: 0, reason: "" },
   })

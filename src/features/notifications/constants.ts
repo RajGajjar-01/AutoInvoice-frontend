@@ -28,7 +28,5 @@ export const TYPE_CONFIG: Record<string, TypeConfig> = {
   },
 }
 
-export const TYPE_KEYS = Object.keys(TYPE_CONFIG)
-
 export const QUICK_FILTERS = ["all", "unread", "history"] as const
 export type TabValue = (typeof QUICK_FILTERS)[number]

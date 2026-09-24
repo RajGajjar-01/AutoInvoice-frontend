@@ -101,7 +101,7 @@ export function useProfileForm() {
       queryClient.invalidateQueries({ queryKey: companySettingsQueryKeys.all })
       showSuccessToast("Saved successfully")
     },
-    onError: (err: any) => {
+    onError: (err: Error & { body?: { detail?: string } }) => {
       const msg = err?.body?.detail || err?.message || "Failed to save"
       showErrorToast(typeof msg === "string" ? msg : "Validation error")
     },

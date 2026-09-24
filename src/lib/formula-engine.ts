@@ -167,8 +167,7 @@ export const evaluateFormula = (
     }
 
     return res
-  } catch (err) {
-    console.error("Formula Error:", err)
+  } catch {
     return "#ERROR!"
   }
 }

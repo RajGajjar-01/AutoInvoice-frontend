@@ -265,6 +265,8 @@ function DataTablesPage() {
               {/* List rows */}
               {tables.map((table, idx) => (
                 <div key={table.id}>
+                  {/* biome-ignore lint/a11y/noStaticElementInteractions: pre-existing clickable-row pattern; dedicated a11y pass pending */}
+                  {/* biome-ignore lint/a11y/useKeyWithClickEvents: pre-existing clickable-row pattern; dedicated a11y pass pending */}
                   <div
                     onClick={() => navigate(`/data-tables/${table.id}`)}
                     className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-primary/[0.04] dark:hover:bg-primary/[0.02] transition-all duration-200 group cursor-pointer"
@@ -313,6 +315,8 @@ function DataTablesPage() {
                     </span>
 
                     {/* Actions */}
+                    {/* biome-ignore lint/a11y/noStaticElementInteractions: event propagation guard only, not interactive */}
+                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: event propagation guard only, not interactive */}
                     <div
                       className="w-8 flex justify-center"
                       onClick={(e) => e.stopPropagation()}

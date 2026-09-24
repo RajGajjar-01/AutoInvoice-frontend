@@ -17,9 +17,3 @@ export const statusIcon: Record<string, LucideIcon> = {
 }
 
 export type InvoiceStatusString = "paid" | "unpaid" | "overdue"
-
-export function cycleStatus(status: InvoiceStatusString): InvoiceStatusString {
-  if (status === "paid") return "unpaid"
-  if (status === "unpaid") return "overdue"
-  return "paid"
-}

@@ -124,7 +124,7 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
   )
 
   const partyInvoices = invoices.filter((inv) => {
-    const cid = inv.customerId ?? (inv as any).customer_id
+    const cid = inv.customer_id
     return cid === customer.id
   })
 

@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { Building2, Plus, User } from "lucide-react"
 import { useRef, useState } from "react"
@@ -37,6 +36,7 @@ import {
 } from "@/components/ui/select"
 import { customersQueryKeys } from "@/features/customers/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { formResolver } from "@/lib/form"
 import { queryClient } from "@/queryClient"
 
 const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
@@ -122,7 +122,7 @@ const AddCustomer = () => {
   })
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: formResolver(formSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues,

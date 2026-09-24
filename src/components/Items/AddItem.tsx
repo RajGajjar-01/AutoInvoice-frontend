@@ -1,10 +1,10 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Package, Plus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { ItemsService } from "@/client/sdk.gen"
+import type { ItemCreate } from "@/client/types.gen"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -36,6 +36,7 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
+import { formResolver } from "@/lib/form"
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Item name is required" }).max(255),
@@ -65,6 +66,8 @@ const formSchema = z.object({
 })
 
 type FormValues = z.infer<typeof formSchema>
+
+type CreateItemPayload = ItemCreate & { hsn_code?: string | null }
 
 function generateSKU() {
   return `SKU-${Math.random().toString(36).slice(2, 7).toUpperCase()}`
@@ -102,7 +105,7 @@ const AddItem = () => {
   const queryClient = useQueryClient()
 
   const createItemMutation = useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
+    mutationFn: (data: CreateItemPayload) =>
       ItemsService.createItem({ requestBody: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: itemsQueryKeys.all })
@@ -113,7 +116,7 @@ const AddItem = () => {
   })
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: formResolver(formSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
