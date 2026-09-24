@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { randomUUID } from "@/lib/uuid"
 
 interface Column {
   name: string
@@ -54,7 +53,7 @@ export function MobileEntryView({
   const [adding, setAdding] = useState(false)
 
   const handleAdd = () => {
-    const rowToSave = { ...newItem, id: randomUUID() }
+    const rowToSave = { ...newItem, id: crypto.randomUUID() }
     onAddRowWithData(rowToSave as Row)
     setNewItem({})
     setAdding(false)

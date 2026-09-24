@@ -1,14 +1,10 @@
 import { z } from "zod"
 import {
   bankAccountZodSchema,
-  GSTIN_REGEX,
   gstinZodSchema,
   ifscZodSchema,
-  upiZodSchema,
 } from "@/lib/validation"
 import type { InvoiceItem } from "./types"
-
-export const gstinRegex = GSTIN_REGEX
 
 export const invoiceFormSchema = z.object({
   customerName: z.string().min(1, { message: "Customer name is required" }),
@@ -40,7 +36,7 @@ export const invoiceFormSchema = z.object({
   accountNumber: bankAccountZodSchema,
   ifsc: ifscZodSchema,
   branch: z.string().optional(),
-  upi: upiZodSchema,
+  upi: z.string().optional(),
   notes: z.string().optional(),
   paymentTerms: z.string().optional(),
 })

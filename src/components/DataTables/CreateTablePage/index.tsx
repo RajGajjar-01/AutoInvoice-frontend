@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { getDataTableTemplateById } from "@/features/data-tables/templates"
-import { randomUUID } from "@/lib/uuid"
 
 interface Column {
   name: string
@@ -69,7 +68,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
       type: "Text",
       mandatory: false,
       options: [],
-      _id: randomUUID(),
+      _id: crypto.randomUUID(),
     },
   ])
   const [isCreating, setIsCreating] = useState(false)
@@ -95,7 +94,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
         type: col.type,
         mandatory: col.mandatory ?? false,
         options: col.options ?? [],
-        _id: randomUUID(),
+        _id: crypto.randomUUID(),
       })),
     )
   }, [templateId])
@@ -108,7 +107,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
         type: "Text",
         mandatory: false,
         options: [],
-        _id: randomUUID(),
+        _id: crypto.randomUUID(),
       },
     ])
   }
@@ -116,7 +115,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
   // ── Quick Add handler ─────────────────────────────────────────────────────
   const handleQuickAdd = (field: QuickAddField) => {
     if (addedQuickFields.has(field.label)) return
-    const newId = randomUUID()
+    const newId = crypto.randomUUID()
     setColumns((prev) => [
       ...prev,
       {

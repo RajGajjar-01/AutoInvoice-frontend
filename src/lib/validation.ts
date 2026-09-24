@@ -9,7 +9,6 @@ export const GSTIN_REGEX =
 export const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/
 export const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/
 export const BANK_ACCOUNT_REGEX = /^[0-9]{9,18}$/
-export const UPI_ID_REGEX = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/
 
 /**
  * Sanitization Helpers
@@ -73,7 +72,7 @@ export function isValidBankAccount(acc?: string | null): boolean {
 
 export function isValidUpiId(upi?: string | null): boolean {
   if (!upi) return true
-  return UPI_ID_REGEX.test(sanitizeLowercase(upi))
+  return /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(sanitizeLowercase(upi))
 }
 
 /**
@@ -115,16 +114,6 @@ export const bankAccountZodSchema = z
   .transform((v) => sanitizeNumeric(v))
   .refine((v) => !v || BANK_ACCOUNT_REGEX.test(v), {
     message: "Account number must be 9 to 18 numeric digits",
-  })
-  .optional()
-  .or(z.literal(""))
-
-export const upiZodSchema = z
-  .string()
-  .trim()
-  .transform((v) => v.toLowerCase())
-  .refine((v) => !v || UPI_ID_REGEX.test(v), {
-    message: "Invalid UPI ID format (e.g. name@bank)",
   })
   .optional()
   .or(z.literal(""))
