@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { Link as RouterLink } from "react-router"
 import { z } from "zod"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { GoogleAuthButton } from "@/components/Common/GoogleAuthButton"
 import {
   Form,
   FormControl,
@@ -16,6 +17,7 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth from "@/hooks/useAuth"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { useGoogleAuthMessage } from "@/hooks/useGoogleAuthMessage"
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -29,6 +31,7 @@ type FormValues = z.infer<typeof formSchema>
 
 function Login() {
   useDocumentTitle("Log In")
+  useGoogleAuthMessage()
   const { loginMutation } = useAuth()
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -116,6 +119,15 @@ function Login() {
             >
               Sign In
             </LoadingButton>
+
+            <div className="relative text-center text-xs">
+              <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                or
+              </span>
+              <div className="absolute inset-0 top-1/2 border-t" />
+            </div>
+
+            <GoogleAuthButton />
           </div>
 
           <div className="text-center text-sm text-muted-foreground">

@@ -10,11 +10,13 @@ import {
 } from "@/components/ui/card"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Separator } from "@/components/ui/separator"
+import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 const GoogleIntegration = () => {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
   const { showErrorToast } = useCustomToast()
 
   const { data: status, isLoading } = useQuery({
@@ -69,9 +71,16 @@ const GoogleIntegration = () => {
                 Connected as{" "}
                 <span className="font-medium">{status?.email}</span>
               </p>
+              {user && !user.has_password && (
+                <p className="text-xs text-muted-foreground">
+                  Set a password first — you sign in with Google only, so
+                  disconnecting now would lock you out.
+                </p>
+              )}
               <LoadingButton
                 variant="outline"
                 loading={disconnectMutation.isPending}
+                disabled={!!user && !user.has_password}
                 onClick={() => disconnectMutation.mutate()}
               >
                 Disconnect Google Account

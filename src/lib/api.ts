@@ -60,34 +60,41 @@ attachCsrfInterceptor(api)
 
 let refreshPromise: Promise<void> | null = null
 
-api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const config = error.config as RetriableRequestConfig | undefined
-    if (!config || !shouldAttemptRefresh(config, error.response?.status)) {
-      return Promise.reject(error)
-    }
+const attachRefreshInterceptor = (
+  instance: typeof axios | ReturnType<typeof axios.create>,
+): void => {
+  instance.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const config = error.config as RetriableRequestConfig | undefined
+      if (!config || !shouldAttemptRefresh(config, error.response?.status)) {
+        return Promise.reject(error)
+      }
 
-    config._retry = true
+      config._retry = true
 
-    if (!refreshPromise) {
-      refreshPromise = axios
-        .post(`${OpenAPI.BASE}/api/v1/auth/refresh`, undefined, {
-          withCredentials: true,
-        })
-        .then(() => undefined)
-        .finally(() => {
-          refreshPromise = null
-        })
-    }
+      if (!refreshPromise) {
+        refreshPromise = axios
+          .post(`${OpenAPI.BASE}/api/v1/auth/refresh`, undefined, {
+            withCredentials: true,
+          })
+          .then(() => undefined)
+          .finally(() => {
+            refreshPromise = null
+          })
+      }
 
-    try {
-      await refreshPromise
-      return api.request(config)
-    } catch {
-      return Promise.reject(error)
-    }
-  },
-)
+      try {
+        await refreshPromise
+        return instance.request(config)
+      } catch {
+        return Promise.reject(error)
+      }
+    },
+  )
+}
+
+attachRefreshInterceptor(axios)
+attachRefreshInterceptor(api)
 
 export { api }

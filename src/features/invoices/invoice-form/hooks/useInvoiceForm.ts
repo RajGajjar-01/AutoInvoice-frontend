@@ -21,6 +21,7 @@ import { itemsListQueryOptions, itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import { formResolver } from "@/lib/form"
 import { queryClient } from "@/queryClient"
+import { handleError } from "@/utils"
 import {
   defaultFormValues,
   emptyItem,
@@ -158,6 +159,38 @@ export function useInvoiceForm() {
     },
   })
 
+  const sendEmailMutation = useMutation({
+    mutationFn: (vars: {
+      id: string
+      toEmail: string
+      subject: string
+      message: string
+    }) =>
+      InvoicesService.sendInvoiceEmail({
+        id: vars.id,
+        requestBody: {
+          to_email: vars.toEmail,
+          subject: vars.subject,
+          message: vars.message,
+        },
+      }),
+    onSuccess: () => {
+      showSuccessToast("Invoice sent via email")
+      setEmailDialogOpen(false)
+    },
+    onError: (error) => handleError.call(showErrorToast, error),
+  })
+
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [emailDialogInvoiceId, setEmailDialogInvoiceId] = useState<
+    string | null
+  >(null)
+  const [emailDialogDefaults, setEmailDialogDefaults] = useState({
+    email: "",
+    subject: "",
+    message: "",
+  })
+
   const handleCustomerSelect = useCallback(
     (value: string) => {
       setSelectedCustomerId(value)
@@ -257,89 +290,115 @@ export function useInvoiceForm() {
 
   const currencySymbol = useMemo(() => getCurrencySymbol(currency), [currency])
 
-  const onSubmit = async (formData: InvoiceFormData) => {
-    if (items.length === 0 || !items[0].name) {
-      showErrorToast("Please add at least one item")
-      return
-    }
-    if (savedRef.current) return
-    savedRef.current = true
-
-    try {
-      let customerId = selectedCustomerId
-      if (!customerId || customerId === "__new__") {
-        const existing = (customersRes?.data ?? []).find(
-          (c): c is NonNullable<typeof c> => {
-            if (!c) return false
-            return (
-              (c.email &&
-                formData.customerEmail &&
-                c.email.toLowerCase() ===
-                  formData.customerEmail.toLowerCase()) ||
-              c.name.trim().toLowerCase() ===
-                formData.customerName.trim().toLowerCase()
-            )
-          },
-        )
-        if (existing) {
-          customerId = existing.id
-        } else {
-          const created = await createCustomerMutation.mutateAsync({
-            name: formData.customerName,
-            phone: formData.customerPhone || null,
-            email: formData.customerEmail || null,
-            address: formData.customerAddress || null,
-            gst: formData.customerGst
-              ? formData.customerGst.toUpperCase()
-              : null,
-          })
-          customerId = created.id
-        }
-        setSelectedCustomerId(customerId)
+  // Saves the invoice and returns its id, or null if validation/saving failed.
+  // Shared by the Save button and the Send via Email flow, which must save
+  // (or reuse) a persisted invoice before it can be emailed.
+  const saveInvoice = useCallback(
+    async (formData: InvoiceFormData): Promise<string | null> => {
+      if (items.length === 0 || !items[0].name) {
+        showErrorToast("Please add at least one item")
+        return null
       }
+      if (savedRef.current) return null
+      savedRef.current = true
 
-      const payload = buildInvoicePayload(
-        invoiceNumber,
-        documentConfig,
-        formData,
-        items,
-        calculations.subtotal,
-        calculations.totalTax,
-        calculations.grandTotal,
-        calculations.invoiceDiscount,
-      )
-      payload.customer_id = customerId
-
-      await createInvoiceMutation.mutateAsync(payload)
-      showSuccessToast(`${documentConfig.singular} saved successfully`)
-
-      if (documentConfig.deductsStock) {
-        for (const line of items) {
-          if (!line.itemId || !line.quantity) continue
-          try {
-            await ItemsService.adjustStock({
-              id: line.itemId,
-              quantity: -line.quantity,
-              reason: `${documentConfig.singular} ${invoiceNumber}`,
-              reference: invoiceNumber,
+      let createdId: string | null = null
+      try {
+        let customerId = selectedCustomerId
+        if (!customerId || customerId === "__new__") {
+          const existing = (customersRes?.data ?? []).find(
+            (c): c is NonNullable<typeof c> => {
+              if (!c) return false
+              return (
+                (c.email &&
+                  formData.customerEmail &&
+                  c.email.toLowerCase() ===
+                    formData.customerEmail.toLowerCase()) ||
+                c.name.trim().toLowerCase() ===
+                  formData.customerName.trim().toLowerCase()
+              )
+            },
+          )
+          if (existing) {
+            customerId = existing.id
+          } else {
+            const created = await createCustomerMutation.mutateAsync({
+              name: formData.customerName,
+              phone: formData.customerPhone || null,
+              email: formData.customerEmail || null,
+              address: formData.customerAddress || null,
+              gst: formData.customerGst
+                ? formData.customerGst.toUpperCase()
+                : null,
             })
-          } catch {
-            showErrorToast(
-              `Failed to deduct stock for "${line.name}". Stock may be insufficient.`,
-            )
+            customerId = created.id
           }
+          setSelectedCustomerId(customerId)
         }
-        await queryClient.invalidateQueries({
-          queryKey: itemsQueryKeys.all,
-        })
-      }
-    } catch {
-      showErrorToast(`Failed to save ${documentConfig.singular.toLowerCase()}`)
-    }
 
-    setTimeout(() => {
-      savedRef.current = false
-    }, 1000)
+        const payload = buildInvoicePayload(
+          invoiceNumber,
+          documentConfig,
+          formData,
+          items,
+          calculations.subtotal,
+          calculations.totalTax,
+          calculations.grandTotal,
+          calculations.invoiceDiscount,
+        )
+        payload.customer_id = customerId
+
+        const created = await createInvoiceMutation.mutateAsync(payload)
+        createdId = created.id
+        showSuccessToast(`${documentConfig.singular} saved successfully`)
+
+        if (documentConfig.deductsStock) {
+          for (const line of items) {
+            if (!line.itemId || !line.quantity) continue
+            try {
+              await ItemsService.adjustStock({
+                id: line.itemId,
+                quantity: -line.quantity,
+                reason: `${documentConfig.singular} ${invoiceNumber}`,
+                reference: invoiceNumber,
+              })
+            } catch {
+              showErrorToast(
+                `Failed to deduct stock for "${line.name}". Stock may be insufficient.`,
+              )
+            }
+          }
+          await queryClient.invalidateQueries({
+            queryKey: itemsQueryKeys.all,
+          })
+        }
+      } catch {
+        showErrorToast(
+          `Failed to save ${documentConfig.singular.toLowerCase()}`,
+        )
+      }
+
+      setTimeout(() => {
+        savedRef.current = false
+      }, 1000)
+      return createdId
+    },
+    [
+      items,
+      selectedCustomerId,
+      customersRes,
+      createCustomerMutation,
+      invoiceNumber,
+      documentConfig,
+      calculations,
+      createInvoiceMutation,
+      showSuccessToast,
+      showErrorToast,
+    ],
+  )
+
+  const onSubmit = async (formData: InvoiceFormData) => {
+    await saveInvoice(formData)
   }
 
   const printInvoice = useCallback(() => {
@@ -499,24 +558,39 @@ export function useInvoiceForm() {
       showErrorToast("Please provide a customer email first")
       return
     }
-    const docName = documentConfig.singular
-    const finalSubject = `${docName} ${invoiceNumber} from ${companyDetails.name || "AutoInvoice"}`
-    const amountLine = documentConfig.hidePricing
-      ? ""
-      : ` for ${currencySymbol}${calculations.grandTotal.toFixed(2)}`
-    const mailBody = `Dear ${formData.customerName},\n\nPlease find your ${docName.toLowerCase()} ${invoiceNumber}${amountLine} attached.\n\nThank you for choosing ${companyDetails.name || "AutoInvoice"}.`
-    window.open(
-      `mailto:${formData.customerEmail}?subject=${encodeURIComponent(finalSubject)}&body=${encodeURIComponent(mailBody)}`,
-    )
+
+    void form.handleSubmit(async (validData) => {
+      const id = await saveInvoice(validData)
+      if (!id) return
+      setEmailDialogInvoiceId(id)
+      setEmailDialogDefaults({
+        email: validData.customerEmail || "",
+        subject: `${documentConfig.singular} ${invoiceNumber} from ${companyDetails.name || "AutoInvoice"}`,
+        message: `Please find attached ${documentConfig.singular.toLowerCase()} ${invoiceNumber} for your review. Should you have any questions, feel free to reach out — we're happy to help.`,
+      })
+      setEmailDialogOpen(true)
+    })()
   }, [
     form,
+    saveInvoice,
     invoiceNumber,
     companyDetails,
-    currencySymbol,
-    calculations.grandTotal,
-    showErrorToast,
     documentConfig,
+    showErrorToast,
   ])
+
+  const confirmSendEmail = useCallback(
+    (toEmail: string, subject: string, message: string) => {
+      if (!emailDialogInvoiceId) return
+      sendEmailMutation.mutate({
+        id: emailDialogInvoiceId,
+        toEmail,
+        subject,
+        message,
+      })
+    },
+    [emailDialogInvoiceId, sendEmailMutation],
+  )
 
   const previewHtml = useMemo(() => {
     if (!previewOpen) return ""
@@ -583,5 +657,10 @@ export function useInvoiceForm() {
     setShowBankDetails,
     setPreviewOpen,
     previewHtml,
+    emailDialogOpen,
+    setEmailDialogOpen,
+    emailDialogDefaults,
+    confirmSendEmail,
+    sendingEmail: sendEmailMutation.isPending,
   }
 }

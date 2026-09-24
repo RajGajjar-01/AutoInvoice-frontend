@@ -1,3 +1,5 @@
+import { Search } from "lucide-react"
+import { useRef, useState } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import {
   FormControl,
@@ -31,21 +33,60 @@ export function CustomerSection({
   selectedCustomerId,
   onCustomerSelect,
 }: CustomerSectionProps) {
+  const [search, setSearch] = useState("")
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  const filteredCustomers = search.trim()
+    ? customers.filter((c) =>
+        [c.name, c.email, c.phone]
+          .filter(Boolean)
+          .some((field) => field?.toLowerCase().includes(search.toLowerCase())),
+      )
+    : customers
+
   return (
     <div className="animate-in space-y-6">
       <div className="space-y-2">
         <Label>Select Customer</Label>
-        <Select value={selectedCustomerId} onValueChange={onCustomerSelect}>
+        <Select
+          value={selectedCustomerId}
+          onValueChange={onCustomerSelect}
+          onOpenChange={(open) => {
+            if (open) {
+              // Runs after Radix's own mount-time focus of the selected
+              // item, so this wins the race and lands focus in the search box.
+              requestAnimationFrame(() => searchInputRef.current?.focus())
+            } else {
+              setSearch("")
+            }
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Choose a customer" />
           </SelectTrigger>
           <SelectContent>
+            <div className="relative px-1 pb-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                ref={searchInputRef}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+                placeholder="Search customers…"
+                className="h-8 pl-8"
+              />
+            </div>
             <SelectItem value="__new__">+ Add New Customer</SelectItem>
-            {customers.map((c) => (
+            {filteredCustomers.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
               </SelectItem>
             ))}
+            {filteredCustomers.length === 0 && (
+              <p className="px-2 py-1.5 text-sm text-muted-foreground">
+                No customers found
+              </p>
+            )}
           </SelectContent>
         </Select>
       </div>

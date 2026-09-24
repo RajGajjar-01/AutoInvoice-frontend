@@ -19,6 +19,7 @@ import {
   Wallet,
   Zap,
 } from "lucide-react"
+import { useState } from "react"
 import { Link } from "react-router"
 import type { CustomerPublic } from "@/client/types.gen"
 import { Badge } from "@/components/ui/badge"
@@ -26,6 +27,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { invoicesListQueryOptions } from "@/features/invoices/queries"
+import { CustomerSendEmailDialog } from "./CustomerSendEmailDialog"
 import { CustomerTimeline } from "./CustomerTimeline"
 import DeleteCustomer from "./DeleteCustomer"
 import EditCustomer from "./EditCustomer"
@@ -118,6 +120,7 @@ interface CustomerDetailProps {
 }
 
 export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
   const invoices = (invoicesRes?.data ?? []).filter(
     (inv): inv is NonNullable<typeof inv> => inv != null,
@@ -377,16 +380,15 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
                     </a>
                   )}
                   {customer.email && (
-                    <a href={`mailto:${customer.email}`}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 gap-1.5 text-xs"
-                      >
-                        <Mail className="h-3 w-3" />
-                        Email
-                      </Button>
-                    </a>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 gap-1.5 text-xs"
+                      onClick={() => setEmailDialogOpen(true)}
+                    >
+                      <Mail className="h-3 w-3" />
+                      Email
+                    </Button>
                   )}
                   {customer.phone && (
                     <a href={`tel:${customer.phone}`}>
@@ -408,6 +410,15 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
           <CustomerTimeline customer={customer} invoices={invoices} />
         </div>
       </div>
+
+      <CustomerSendEmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        customerId={customer.id}
+        customerName={customer.name}
+        defaultEmail={customer.email ?? ""}
+        invoices={partyInvoices}
+      />
     </div>
   )
 }

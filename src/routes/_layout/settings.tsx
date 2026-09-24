@@ -44,6 +44,8 @@ function UserSettings() {
     if (!googleStatus) return
     if (googleStatus === "connected") {
       showSuccessToast("Google account connected")
+    } else if (googleStatus === "already_linked") {
+      showErrorToast("That Google account is already linked to another user.")
     } else if (googleStatus === "error") {
       showErrorToast("Could not connect your Google account. Please try again.")
     }

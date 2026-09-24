@@ -16,11 +16,7 @@ export type AdminUserUpdate = {
 };
 
 export type AuthResponse = {
-    access_token: string;
-    token_type?: string;
-    refresh_token?: (string | null);
-    expires_in?: (number | null);
-    user?: (UserPublic | null);
+    user: UserPublic;
 };
 
 export type Body_invoice_templates_parse_excel_preview = {
@@ -602,6 +598,7 @@ export type PrivateUserCreate = {
 export type SendEmailRequest = {
     to_email: string;
     subject?: string;
+    message?: string;
 };
 
 export type SendReminderRequest = {
@@ -656,6 +653,10 @@ export type Token = {
     expires_in?: (number | null);
 };
 
+export type SetPassword = {
+    new_password: string;
+};
+
 export type UpdatePassword = {
     current_password: string;
     new_password: string;
@@ -673,6 +674,7 @@ export type UserPublic = {
     updated_at?: (string | null);
     google_connected?: boolean;
     google_email?: (string | null);
+    has_password?: boolean;
 };
 
 export type UserRegister = {
@@ -762,7 +764,7 @@ export type AuthRefreshTokenData = {
     refreshToken?: (string | null);
 };
 
-export type AuthRefreshTokenResponse = (Token);
+export type AuthRefreshTokenResponse = (Message);
 
 export type AuthLogoutResponse = (Message);
 
@@ -810,6 +812,13 @@ export type AuthUpdatePasswordData = {
 };
 
 export type AuthUpdatePasswordResponse = (Message);
+
+export type AuthSetPasswordData = {
+    accessToken?: (string | null);
+    requestBody: SetPassword;
+};
+
+export type AuthSetPasswordResponse = (Message);
 
 export type CompanySettingsGetCompanySettingsData = {
     accessToken?: (string | null);
@@ -873,6 +882,21 @@ export type CustomersDeleteCustomerData = {
 };
 
 export type CustomersDeleteCustomerResponse = (void);
+
+export type CustomerSendEmailRequest = {
+    to_email: string;
+    subject?: string;
+    message?: string;
+    invoice_id?: (string | null);
+};
+
+export type CustomersSendCustomerEmailData = {
+    accessToken?: (string | null);
+    id: string;
+    requestBody: CustomerSendEmailRequest;
+};
+
+export type CustomersSendCustomerEmailResponse = (Record<string, string>);
 
 export type GoogleConnectGoogleData = {
     accessToken?: (string | null);

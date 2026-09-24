@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminListUsersData, AdminListUsersResponse, AdminCreateUserData, AdminCreateUserResponse, AdminGetUserData, AdminGetUserResponse, AdminUpdateUserData, AdminUpdateUserResponse, AdminDeleteUserData, AdminDeleteUserResponse, AuthSignupData, AuthSignupResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutResponse, AuthGetCurrentUserInfoData, AuthGetCurrentUserInfoResponse, AuthUpdateCurrentUserData, AuthUpdateCurrentUserResponse, AuthVerifyEmailData, AuthVerifyEmailResponse, AuthResendVerificationEmailData, AuthResendVerificationEmailResponse, AuthForgotPasswordData, AuthForgotPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthUpdatePasswordData, AuthUpdatePasswordResponse, CompanySettingsGetCompanySettingsData, CompanySettingsGetCompanySettingsResponse, CompanySettingsCreateCompanySettingsData, CompanySettingsCreateCompanySettingsResponse, CompanySettingsUpdateCompanySettingsData, CompanySettingsUpdateCompanySettingsResponse, CompanySettingsDeleteCompanySettingsData, CompanySettingsDeleteCompanySettingsResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, GoogleConnectGoogleData, GoogleConnectGoogleResponse, GoogleGoogleStatusData, GoogleGoogleStatusResponse, GoogleDisconnectGoogleData, GoogleDisconnectGoogleResponse, HealthResponse, SentryDebugResponse, InvoicesGetDashboardStatsData, InvoicesGetDashboardStatsResponse, InvoicesReadInvoicesData, InvoicesReadInvoicesResponse, InvoicesCreateInvoiceData, InvoicesCreateInvoiceResponse, InvoicesReadInvoiceData, InvoicesReadInvoiceResponse, InvoicesUpdateInvoiceData, InvoicesUpdateInvoiceResponse, InvoicesDeleteInvoiceData, InvoicesDeleteInvoiceResponse, InvoicesSendInvoiceEmailData, InvoicesSendInvoiceEmailResponse, InvoicesSendInvoiceWhatsappData, InvoicesSendInvoiceWhatsappResponse, InvoicesSendInvoiceReminderData, InvoicesSendInvoiceReminderResponse, InvoiceTemplatesReadInvoiceTemplatesData, InvoiceTemplatesReadInvoiceTemplatesResponse, InvoiceTemplatesCreateInvoiceTemplateData, InvoiceTemplatesCreateInvoiceTemplateResponse, InvoiceTemplatesReadActiveInvoiceTemplateData, InvoiceTemplatesReadActiveInvoiceTemplateResponse, InvoiceTemplatesReadInvoiceTemplateData, InvoiceTemplatesReadInvoiceTemplateResponse, InvoiceTemplatesUpdateInvoiceTemplateData, InvoiceTemplatesUpdateInvoiceTemplateResponse, InvoiceTemplatesDeleteInvoiceTemplateData, InvoiceTemplatesDeleteInvoiceTemplateResponse, InvoiceTemplatesActivateInvoiceTemplateData, InvoiceTemplatesActivateInvoiceTemplateResponse, InvoiceTemplatesParseExcelPreviewData, InvoiceTemplatesParseExcelPreviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsListCategoriesData, ItemsListCategoriesResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, ItemsAdjustStockData, ItemsAdjustStockResponse, NotificationsGetNotificationsData, NotificationsGetNotificationsResponse, NotificationsCreateNotificationData, NotificationsCreateNotificationResponse, NotificationsClearAllData, NotificationsClearAllResponse, NotificationsGetNotificationData, NotificationsGetNotificationResponse, NotificationsUpdateNotificationData, NotificationsUpdateNotificationResponse, NotificationsDeleteNotificationData, NotificationsDeleteNotificationResponse, NotificationsMarkAllReadData, NotificationsMarkAllReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, TablesListTablesData, TablesListTablesResponse, TablesCreateTableData, TablesCreateTableResponse, TablesGetTableData, TablesGetTableResponse, TablesUpdateTableData, TablesUpdateTableResponse, TablesDeleteTableData, TablesDeleteTableResponse, TablesDuplicateTableData, TablesDuplicateTableResponse, TablesCreateTableRowData, TablesCreateTableRowResponse, TablesUpdateTableRowData, TablesUpdateTableRowResponse, TablesDeleteTableRowData, TablesDeleteTableRowResponse, TablesBulkDeleteTableRowsData, TablesBulkDeleteTableRowsResponse, TablesCreateTableReminderData, TablesCreateTableReminderResponse, TablesDeleteTableReminderData, TablesDeleteTableReminderResponse, UsersReadUsersData, UsersReadUsersResponse, UsersReadUserMeData, UsersReadUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersDeleteUserMeData, UsersDeleteUserMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminListUsersData, AdminListUsersResponse, AdminCreateUserData, AdminCreateUserResponse, AdminGetUserData, AdminGetUserResponse, AdminUpdateUserData, AdminUpdateUserResponse, AdminDeleteUserData, AdminDeleteUserResponse, AuthSignupData, AuthSignupResponse, AuthLoginData, AuthLoginResponse, AuthRefreshTokenData, AuthRefreshTokenResponse, AuthLogoutResponse, AuthGetCurrentUserInfoData, AuthGetCurrentUserInfoResponse, AuthUpdateCurrentUserData, AuthUpdateCurrentUserResponse, AuthVerifyEmailData, AuthVerifyEmailResponse, AuthResendVerificationEmailData, AuthResendVerificationEmailResponse, AuthForgotPasswordData, AuthForgotPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthUpdatePasswordData, AuthUpdatePasswordResponse, AuthSetPasswordData, AuthSetPasswordResponse, CompanySettingsGetCompanySettingsData, CompanySettingsGetCompanySettingsResponse, CompanySettingsCreateCompanySettingsData, CompanySettingsCreateCompanySettingsResponse, CompanySettingsUpdateCompanySettingsData, CompanySettingsUpdateCompanySettingsResponse, CompanySettingsDeleteCompanySettingsData, CompanySettingsDeleteCompanySettingsResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, CustomersSendCustomerEmailData, CustomersSendCustomerEmailResponse, GoogleConnectGoogleData, GoogleConnectGoogleResponse, GoogleGoogleStatusData, GoogleGoogleStatusResponse, GoogleDisconnectGoogleData, GoogleDisconnectGoogleResponse, HealthResponse, SentryDebugResponse, InvoicesGetDashboardStatsData, InvoicesGetDashboardStatsResponse, InvoicesReadInvoicesData, InvoicesReadInvoicesResponse, InvoicesCreateInvoiceData, InvoicesCreateInvoiceResponse, InvoicesReadInvoiceData, InvoicesReadInvoiceResponse, InvoicesUpdateInvoiceData, InvoicesUpdateInvoiceResponse, InvoicesDeleteInvoiceData, InvoicesDeleteInvoiceResponse, InvoicesSendInvoiceEmailData, InvoicesSendInvoiceEmailResponse, InvoicesSendInvoiceWhatsappData, InvoicesSendInvoiceWhatsappResponse, InvoicesSendInvoiceReminderData, InvoicesSendInvoiceReminderResponse, InvoiceTemplatesReadInvoiceTemplatesData, InvoiceTemplatesReadInvoiceTemplatesResponse, InvoiceTemplatesCreateInvoiceTemplateData, InvoiceTemplatesCreateInvoiceTemplateResponse, InvoiceTemplatesReadActiveInvoiceTemplateData, InvoiceTemplatesReadActiveInvoiceTemplateResponse, InvoiceTemplatesReadInvoiceTemplateData, InvoiceTemplatesReadInvoiceTemplateResponse, InvoiceTemplatesUpdateInvoiceTemplateData, InvoiceTemplatesUpdateInvoiceTemplateResponse, InvoiceTemplatesDeleteInvoiceTemplateData, InvoiceTemplatesDeleteInvoiceTemplateResponse, InvoiceTemplatesActivateInvoiceTemplateData, InvoiceTemplatesActivateInvoiceTemplateResponse, InvoiceTemplatesParseExcelPreviewData, InvoiceTemplatesParseExcelPreviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsListCategoriesData, ItemsListCategoriesResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, ItemsAdjustStockData, ItemsAdjustStockResponse, NotificationsGetNotificationsData, NotificationsGetNotificationsResponse, NotificationsCreateNotificationData, NotificationsCreateNotificationResponse, NotificationsClearAllData, NotificationsClearAllResponse, NotificationsGetNotificationData, NotificationsGetNotificationResponse, NotificationsUpdateNotificationData, NotificationsUpdateNotificationResponse, NotificationsDeleteNotificationData, NotificationsDeleteNotificationResponse, NotificationsMarkAllReadData, NotificationsMarkAllReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, TablesListTablesData, TablesListTablesResponse, TablesCreateTableData, TablesCreateTableResponse, TablesGetTableData, TablesGetTableResponse, TablesUpdateTableData, TablesUpdateTableResponse, TablesDeleteTableData, TablesDeleteTableResponse, TablesDuplicateTableData, TablesDuplicateTableResponse, TablesCreateTableRowData, TablesCreateTableRowResponse, TablesUpdateTableRowData, TablesUpdateTableRowResponse, TablesDeleteTableRowData, TablesDeleteTableRowResponse, TablesBulkDeleteTableRowsData, TablesBulkDeleteTableRowsResponse, TablesCreateTableReminderData, TablesCreateTableReminderResponse, TablesDeleteTableReminderData, TablesDeleteTableReminderResponse, UsersReadUsersData, UsersReadUsersResponse, UsersReadUserMeData, UsersReadUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersDeleteUserMeData, UsersDeleteUserMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminService {
     /**
@@ -349,6 +349,30 @@ export class AuthService {
             }
         });
     }
+
+    /**
+     * Set Password
+     * For accounts created via Google sign-in that have no password yet.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @param data.accessToken
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static setPassword(data: AuthSetPasswordData): CancelablePromise<AuthSetPasswordResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/set-password',
+            cookies: {
+                access_token: data.accessToken
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
 }
 
 export class CompanySettingsService {
@@ -558,6 +582,35 @@ export class CustomersService {
             cookies: {
                 access_token: data.accessToken
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+
+    /**
+     * Send Customer Email
+     * Emails this customer via the owner's connected Gmail account, optionally
+     * attaching one of the customer's invoices as a PDF.
+     * @param data The data for the request.
+     * @param data.id
+     * @param data.requestBody
+     * @param data.accessToken
+     * @returns Record<string, string> Successful Response
+     * @throws ApiError
+     */
+    public static sendCustomerEmail(data: CustomersSendCustomerEmailData): CancelablePromise<CustomersSendCustomerEmailResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/customers/{id}/send-email',
+            path: {
+                id: data.id
+            },
+            cookies: {
+                access_token: data.accessToken
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }

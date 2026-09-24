@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/table"
 import { companySettingsQueryOptions } from "@/features/company-settings/queries"
 import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
+import { SendEmailDialog } from "@/features/invoices/invoice-form/components/SendEmailDialog"
 import { documentConfigs } from "@/features/invoices/invoice-form/constants"
 import {
   invoiceDetailQueryOptions,
@@ -145,6 +146,7 @@ function InvoiceDetailPage() {
   const navigate = useNavigate()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const { data: companySettings } = useQuery(companySettingsQueryOptions())
   const companyDetails: Record<string, unknown> = useMemo(
     () => ({
@@ -221,12 +223,19 @@ function InvoiceDetailPage() {
   })
 
   const sendEmailMutation = useMutation({
-    mutationFn: (body: { to_email: string; subject?: string }) =>
+    mutationFn: (body: {
+      to_email: string
+      subject?: string
+      message?: string
+    }) =>
       InvoicesService.sendInvoiceEmail({
         id: invoice?.id ?? "",
         requestBody: body,
       }),
-    onSuccess: () => showSuccessToast("Invoice sent via email"),
+    onSuccess: () => {
+      showSuccessToast("Invoice sent via email")
+      setEmailDialogOpen(false)
+    },
     onError: handleError.bind(showErrorToast),
   })
 
@@ -306,10 +315,7 @@ function InvoiceDetailPage() {
       showErrorToast("No email available for this customer")
       return
     }
-    sendEmailMutation.mutate({
-      to_email: email,
-      subject: `${documentConfigs[invoice.document_type ?? "invoice"]?.singular ?? "Invoice"} ${invoice.invoiceNumber}`,
-    })
+    setEmailDialogOpen(true)
   }
 
   const handleToggleStatus = () => {
@@ -728,6 +734,21 @@ function InvoiceDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <SendEmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        defaultEmail={invoice.customer?.email ?? ""}
+        defaultSubject={`${documentConfigs[invoice.document_type ?? "invoice"]?.singular ?? "Invoice"} ${invoice.invoiceNumber}`}
+        defaultMessage={`Please find attached ${(
+          documentConfigs[invoice.document_type ?? "invoice"]?.singular ??
+            "Invoice"
+        ).toLowerCase()} ${invoice.invoiceNumber} for your review. Should you have any questions, feel free to reach out — we're happy to help.`}
+        sending={sendEmailMutation.isPending}
+        onSend={(toEmail, subject, message) =>
+          sendEmailMutation.mutate({ to_email: toEmail, subject, message })
+        }
+      />
     </div>
   )
 }

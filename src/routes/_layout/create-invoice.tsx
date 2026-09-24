@@ -35,6 +35,7 @@ import { BankDetailsSection } from "@/features/invoices/invoice-form/components/
 import { CustomerSection } from "@/features/invoices/invoice-form/components/CustomerSection"
 import { InvoicePreviewDialog } from "@/features/invoices/invoice-form/components/InvoicePreviewDialog"
 import { NotesSection } from "@/features/invoices/invoice-form/components/NotesSection"
+import { SendEmailDialog } from "@/features/invoices/invoice-form/components/SendEmailDialog"
 import { documentConfigs } from "@/features/invoices/invoice-form/constants"
 import { useInvoiceForm } from "@/features/invoices/invoice-form/hooks/useInvoiceForm"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
@@ -135,6 +136,11 @@ function CreateInvoicePage() {
     setShowBankDetails,
     setPreviewOpen,
     previewHtml,
+    emailDialogOpen,
+    setEmailDialogOpen,
+    emailDialogDefaults,
+    confirmSendEmail,
+    sendingEmail,
   } = useInvoiceForm()
 
   useDocumentTitle(documentConfig.title)
@@ -746,6 +752,16 @@ function CreateInvoicePage() {
         html={previewHtml}
         onDownload={handleDownloadPDF}
         title={`${documentConfig.singular} Preview`}
+      />
+
+      <SendEmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        defaultEmail={emailDialogDefaults.email}
+        defaultSubject={emailDialogDefaults.subject}
+        defaultMessage={emailDialogDefaults.message}
+        sending={sendingEmail}
+        onSend={confirmSendEmail}
       />
     </div>
   )
