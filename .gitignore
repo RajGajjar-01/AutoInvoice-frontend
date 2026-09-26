@@ -36,3 +36,6 @@ openapi.json
 .agent-runs
 docs/knowledge
 
+
+# Cloudflare wrangler
+.wrangler
