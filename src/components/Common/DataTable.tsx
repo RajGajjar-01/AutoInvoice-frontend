@@ -75,7 +75,7 @@ function DataTableComponent<TData, TValue>({
   }, [pageIndex, pageSize, rowCount])
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 max-w-full flex-col gap-4 overflow-hidden">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -170,7 +170,7 @@ function DataTableComponent<TData, TValue>({
             </div>
           </div>
 
-          <div className="flex items-center gap-x-6">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <div className="flex items-center gap-x-1 text-sm text-muted-foreground">
               <span>Page</span>
               <span className="font-medium text-foreground">

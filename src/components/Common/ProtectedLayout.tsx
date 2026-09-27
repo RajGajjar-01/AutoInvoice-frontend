@@ -1,7 +1,11 @@
 import { useEffect } from "react"
 import { Outlet, useNavigate } from "react-router"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
 
 function LoadingSkeleton() {
@@ -46,8 +50,12 @@ export function ProtectedLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="overflow-hidden flex flex-col">
-        <main className="flex-1 flex flex-col p-4 animate-in">
+      <SidebarInset className="flex min-w-0 max-w-full flex-col overflow-hidden">
+        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md md:hidden">
+          <SidebarTrigger />
+          <span className="truncate text-sm font-medium">UnifiedDesk</span>
+        </header>
+        <main className="flex w-full min-w-0 max-w-full flex-1 flex-col overflow-x-clip p-4 animate-in">
           <Outlet />
         </main>
       </SidebarInset>

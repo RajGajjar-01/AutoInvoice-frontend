@@ -70,7 +70,8 @@ const INVOICE_PATHS = [
 export function AppSidebar() {
   const [isHeaderHovered, setIsHeaderHovered] = useState(false)
   const { user: currentUser } = useAuth()
-  const { state, setOpen, isMobile, toggleSidebar } = useSidebar()
+  const { state, setOpen, isMobile, setOpenMobile, toggleSidebar } =
+    useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
 
@@ -93,7 +94,7 @@ export function AppSidebar() {
 
   const handleNavClick = () => {
     if (isMobile) {
-      // close mobile sheet via useSidebar — not exported directly
+      setOpenMobile(false)
     }
   }
 
