@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test"
 import {
+  communicationSchema,
+  companyProfileSchema,
+} from "../src/features/profile/schema"
+import { defaultCompany } from "../src/features/profile/types"
+import {
   bankAccountZodSchema,
   gstinZodSchema,
   ifscZodSchema,
@@ -16,6 +21,7 @@ import {
   sanitizeUppercase,
   upiZodSchema,
 } from "../src/lib/validation"
+import { getSafeErrorMessage } from "../src/utils"
 
 test.describe("Security & Validation Utilities", () => {
   test.describe("Sanitization Helpers", () => {
@@ -184,5 +190,76 @@ test.describe("Security & Validation Utilities", () => {
         expect(result.data).toBe("user@okhdfcbank")
       }
     })
+  })
+})
+
+test.describe("Profile form validation", () => {
+  test("rejects an incomplete business name and malformed payment details", () => {
+    const result = companyProfileSchema.safeParse({
+      ...defaultCompany,
+      name: "  ",
+      accountNumber: "12345",
+      ifsc: "INVALID",
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      const fields = result.error.issues.map((issue) => issue.path[0])
+      expect(fields).toEqual(
+        expect.arrayContaining(["name", "accountNumber", "ifsc"]),
+      )
+    }
+  })
+
+  test("accepts lower-case tax identifiers and optional empty contact fields", () => {
+    const result = companyProfileSchema.safeParse({
+      ...defaultCompany,
+      name: "  Acme Traders  ",
+      gstin: "22aaaaa0000a1z5",
+      pan: "abcde1234f",
+    })
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.name).toBe("Acme Traders")
+  })
+
+  test("rejects an invalid sender address and SMTP port", () => {
+    const result = communicationSchema.safeParse({
+      whatsappEnabled: false,
+      openwaBaseUrl: "",
+      openwaApiKey: "",
+      openwaSessionId: "",
+      smtpHost: "smtp.example.com",
+      smtpPort: 70000,
+      smtpUser: "",
+      smtpPassword: "",
+      smtpFromEmail: "not-an-email",
+      smtpFromName: "",
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.path[0])).toEqual(
+        expect.arrayContaining(["smtpPort", "smtpFromEmail"]),
+      )
+    }
+  })
+})
+
+test.describe("Safe API error messages", () => {
+  test("never displays server details or exception text", () => {
+    const message = getSafeErrorMessage({
+      status: 500,
+      body: { detail: "DATABASE_PASSWORD=secret" },
+      message: "Traceback: private path",
+    })
+    expect(message).toContain("service")
+    expect(message).not.toContain("DATABASE_PASSWORD")
+    expect(message).not.toContain("Traceback")
+    expect(getSafeErrorMessage(new Error("private SQL error"))).not.toContain(
+      "SQL",
+    )
+  })
+
+  test("gives a useful action for validation and connection failures", () => {
+    expect(getSafeErrorMessage({ status: 422 })).toContain("Check the form")
+    expect(getSafeErrorMessage(new Error("network"))).toContain("connection")
   })
 })

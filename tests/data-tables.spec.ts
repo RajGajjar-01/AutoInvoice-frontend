@@ -104,8 +104,8 @@ test.describe("Data tables", () => {
     await expect(clientInput).toBeFocused()
 
     const selection = await clientInput.evaluate((input) => ({
-      selectionStart: input.selectionStart,
-      selectionEnd: input.selectionEnd,
+      selectionStart: (input as HTMLInputElement).selectionStart,
+      selectionEnd: (input as HTMLInputElement).selectionEnd,
     }))
 
     expect(selection.selectionStart).toBe(selection.selectionEnd)

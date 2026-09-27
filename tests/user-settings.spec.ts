@@ -34,21 +34,32 @@ test.describe("Edit user profile", () => {
   })
   test("Edit user name with a valid name", async ({ page }) => {
     const updatedName = "Test User 2"
-    await page.getByRole("button", { name: "Edit" }).click()
+    await page.getByRole("button", { name: "Edit personal details" }).click()
     await page.getByLabel("Full name").fill(updatedName)
     await page.getByRole("button", { name: "Save" }).click()
-    await expect(page.getByText("User updated successfully")).toBeVisible()
+    await expect(page.getByText("Personal details saved")).toBeVisible()
     await expect(
-      page.locator("form").getByText(updatedName, { exact: true }),
+      page.getByText(updatedName, { exact: true }).last(),
     ).toBeVisible()
   })
   test("Edit user email with an invalid email shows error", async ({
     page,
   }) => {
-    await page.getByRole("button", { name: "Edit" }).click()
-    await page.getByLabel("Email").fill("")
+    await page.getByRole("button", { name: "Edit personal details" }).click()
+    await page.getByLabel("Email address").fill("")
     await page.locator("body").click()
-    await expect(page.getByText("Invalid email address")).toBeVisible()
+    await expect(page.getByText("Enter a valid email address")).toBeVisible()
+  })
+
+  test("Phone number saves with Enter and remains after reload", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Edit personal details" }).click()
+    await page.getByLabel("Phone number").fill("+91 98765 43210")
+    await page.getByLabel("Phone number").press("Enter")
+    await expect(page.getByText("Personal details saved")).toBeVisible()
+    await page.reload()
+    await expect(page.getByText("+91 98765 43210")).toBeVisible()
   })
 })
 test.describe("Edit user email", () => {
@@ -61,12 +72,12 @@ test.describe("Edit user email", () => {
     await logInUser(page, email, password)
     await page.goto("/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
-    await page.getByRole("button", { name: "Edit" }).click()
-    await page.getByLabel("Email").fill(updatedEmail)
+    await page.getByRole("button", { name: "Edit personal details" }).click()
+    await page.getByLabel("Email address").fill(updatedEmail)
     await page.getByRole("button", { name: "Save" }).click()
-    await expect(page.getByText("User updated successfully")).toBeVisible()
+    await expect(page.getByText("Personal details saved")).toBeVisible()
     await expect(
-      page.locator("form").getByText(updatedEmail, { exact: true }),
+      page.getByText(updatedEmail, { exact: true }).last(),
     ).toBeVisible()
   })
 })
@@ -79,11 +90,11 @@ test.describe("Cancel edit actions", () => {
     await logInUser(page, email, password)
     await page.goto("/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
-    await page.getByRole("button", { name: "Edit" }).click()
+    await page.getByRole("button", { name: "Edit personal details" }).click()
     await page.getByLabel("Full name").fill("Test User")
     await page.getByRole("button", { name: "Cancel" }).first().click()
     await expect(
-      page.locator("form").getByText(user.full_name, { exact: true }),
+      page.getByText(user.full_name ?? "", { exact: true }).last(),
     ).toBeVisible()
   })
   test("Cancel edit action restores original email", async ({ page }) => {
@@ -93,12 +104,10 @@ test.describe("Cancel edit actions", () => {
     await logInUser(page, email, password)
     await page.goto("/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
-    await page.getByRole("button", { name: "Edit" }).click()
-    await page.getByLabel("Email").fill(randomEmail())
+    await page.getByRole("button", { name: "Edit personal details" }).click()
+    await page.getByLabel("Email address").fill(randomEmail())
     await page.getByRole("button", { name: "Cancel" }).first().click()
-    await expect(
-      page.locator("form").getByText(email, { exact: true }),
-    ).toBeVisible()
+    await expect(page.getByText(email, { exact: true }).last()).toBeVisible()
   })
 })
 test.describe("Change password", () => {

@@ -13,7 +13,7 @@ async function logInUser(page, email, password) {
   await page.goto("/login")
   await page.getByTestId("email-input").fill(email)
   await page.getByTestId("password-input").fill(password)
-  await page.getByRole("button", { name: "Log In" }).click()
+  await page.getByRole("button", { name: "Sign In" }).click()
   await page.waitForURL("/dashboard")
   await expect(page.getByRole("link", { name: "Dashboard" })).toBeVisible()
 }

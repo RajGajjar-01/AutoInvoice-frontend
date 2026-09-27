@@ -42,9 +42,9 @@ test("User can reset password successfully using the link", async ({
     `${process.env.MAILCATCHER_HOST}/messages/${emailData.id}.html`,
   )
   const selector = 'a[href*="/reset-password?token="]'
-  let url = await page.getAttribute(selector, "href")
-  url = url.replace("http://localhost/", "http://localhost:5173/")
-  await page.goto(url)
+  const url = await page.getAttribute(selector, "href")
+  if (!url) throw new Error("Reset email did not contain a reset link")
+  await page.goto(url.replace("http://localhost/", "http://localhost:5173/"))
   await page.getByTestId("new-password-input").fill(newPassword)
   await page.getByTestId("confirm-password-input").fill(newPassword)
   await page.getByRole("button", { name: "Reset Password" }).click()
@@ -81,9 +81,9 @@ test("Weak new password validation", async ({ page, request }) => {
     `${process.env.MAILCATCHER_HOST}/messages/${emailData.id}.html`,
   )
   const selector = 'a[href*="/reset-password?token="]'
-  let url = await page.getAttribute(selector, "href")
-  url = url.replace("http://localhost/", "http://localhost:5173/")
-  await page.goto(url)
+  const url = await page.getAttribute(selector, "href")
+  if (!url) throw new Error("Reset email did not contain a reset link")
+  await page.goto(url.replace("http://localhost/", "http://localhost:5173/"))
   await page.getByTestId("new-password-input").fill(weakPassword)
   await page.getByTestId("confirm-password-input").fill(weakPassword)
   await page.getByRole("button", { name: "Reset Password" }).click()
