@@ -26,7 +26,7 @@ const tiers: PricingTier[] = [
     name: "Free",
     monthlyPrice: 0,
     annualPrice: 0,
-    description: "Try AutoInvoice with no commitment.",
+    description: "Try UnifiedDesk with no commitment.",
     features: [
       "5 invoices per month",
       "1 user",

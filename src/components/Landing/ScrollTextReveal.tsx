@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef } from "react"
 gsap.registerPlugin(ScrollTrigger)
 
 const REVEAL_TEXT =
-  "Most invoices take longer to format than they do to get paid. Manual GST calculations, mismatched templates, and follow-up emails eat into hours you don't have. AutoInvoice turns that into a few clicks, so every invoice looks professional, stays compliant, and gets you paid faster."
+  "Most invoices take longer to format than they do to get paid. Manual GST calculations, mismatched templates, and follow-up emails eat into hours you don't have. UnifiedDesk turns that into a few clicks, so every invoice looks professional, stays compliant, and gets you paid faster."
 
 const words = REVEAL_TEXT.split(" ")
 

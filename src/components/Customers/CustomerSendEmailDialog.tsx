@@ -75,7 +75,7 @@ export function CustomerSendEmailDialog({
   const [subject, setSubject] = useState("")
   const [message, setMessage] = useState("")
 
-  const companyName = companySettings?.name || "AutoInvoice"
+  const companyName = companySettings?.name || "UnifiedDesk"
 
   useEffect(() => {
     if (!open) return

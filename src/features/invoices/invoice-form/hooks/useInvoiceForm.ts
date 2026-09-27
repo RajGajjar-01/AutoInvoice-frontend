@@ -517,7 +517,7 @@ export function useInvoiceForm() {
           await navigator.share({
             files: [file],
             title: `Invoice ${invoiceNumber}`,
-            text: `Invoice ${invoiceNumber} from ${companyDetails.name || "AutoInvoice"}`,
+            text: `Invoice ${invoiceNumber} from ${companyDetails.name || "UnifiedDesk"}`,
           })
           return
         } catch {
@@ -565,7 +565,7 @@ export function useInvoiceForm() {
       setEmailDialogInvoiceId(id)
       setEmailDialogDefaults({
         email: validData.customerEmail || "",
-        subject: `${documentConfig.singular} ${invoiceNumber} from ${companyDetails.name || "AutoInvoice"}`,
+        subject: `${documentConfig.singular} ${invoiceNumber} from ${companyDetails.name || "UnifiedDesk"}`,
         message: `Please find attached ${documentConfig.singular.toLowerCase()} ${invoiceNumber} for your review. Should you have any questions, feel free to reach out — we're happy to help.`,
       })
       setEmailDialogOpen(true)

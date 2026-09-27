@@ -2,10 +2,10 @@ import { Link } from "react-router"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 
-const icon = "/assets/images/app-icon.svg?v=3"
-const iconLight = "/assets/images/app-icon-light.svg?v=3"
-const logo = "/assets/images/app-logo.svg?v=3"
-const logoLight = "/assets/images/app-logo-light.svg?v=3"
+const icon = "/assets/images/app-icon.svg?v=4"
+const iconLight = "/assets/images/app-icon-light.svg?v=4"
+const logo = "/assets/images/app-logo.svg?v=4"
+const logoLight = "/assets/images/app-logo-light.svg?v=4"
 
 interface LogoProps {
   variant?: "full" | "icon" | "responsive"
@@ -36,7 +36,7 @@ export function Logo({
         <>
           <img
             src={fullLogo}
-            alt="AutoInvoice logo"
+            alt="UnifiedDesk logo"
             className={cn(
               "h-9 w-auto transition-all group-data-[collapsible=icon]:hidden",
               className,
@@ -44,7 +44,7 @@ export function Logo({
           />
           <img
             src={iconLogo}
-            alt="AutoInvoice icon"
+            alt="UnifiedDesk icon"
             className={cn(
               "size-8 hidden transition-all group-data-[collapsible=icon]:block",
               className,
@@ -54,7 +54,7 @@ export function Logo({
       ) : (
         <img
           src={variant === "full" ? fullLogo : iconLogo}
-          alt="AutoInvoice logo"
+          alt="UnifiedDesk logo"
           className={cn(
             variant === "full" ? "h-9 w-auto" : "size-8",
             className,

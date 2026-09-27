@@ -15,7 +15,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 const faqs = [
   {
-    question: "Is AutoInvoice really free to start?",
+    question: "Is UnifiedDesk really free to start?",
     answer:
       "Yes. The Free plan includes 5 invoices per month with no credit card required. Sign up and start sending invoices right away.",
   },
@@ -100,7 +100,7 @@ export function FAQ() {
               Questions you probably have
             </h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Everything you need to know about AutoInvoice, GST, and billing.
+              Everything you need to know about UnifiedDesk, GST, and billing.
               Cannot find your answer here?
             </p>
             <Button variant="outline" className="mt-6" asChild>

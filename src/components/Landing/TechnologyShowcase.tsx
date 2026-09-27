@@ -204,7 +204,7 @@ export function TechnologyShowcase() {
                     Dynamic dashboard
                   </h3>
                   <p className="text-sm text-primary-foreground/70 leading-relaxed max-w-sm">
-                    AutoInvoice helps you work faster, smarter and more
+                    UnifiedDesk helps you work faster, smarter and more
                     efficiently, delivering the visibility and data-driven
                     insights to track revenue and manage invoices.
                   </p>
