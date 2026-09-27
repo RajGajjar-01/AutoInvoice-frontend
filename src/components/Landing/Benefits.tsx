@@ -17,7 +17,7 @@ const benefits: Benefit[] = [
     icon: Zap,
     title: "Invoice in 60 seconds",
     description:
-      "No learning curve. Open AutoInvoice, fill in the details, send — done.",
+      "No learning curve. Open UnifiedDesk, fill in the details, send — done.",
   },
   {
     icon: ShieldCheck,
@@ -104,12 +104,12 @@ export function Benefits() {
   }, [])
 
   return (
-    <section ref={benefitsRef} className="py-14 md:py-20 bg-muted/50">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-center">
+    <section ref={benefitsRef} className="bg-muted/50 py-14 md:py-20">
+      <div className="mx-auto max-w-6xl px-5 sm:px-6">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-5 lg:gap-16">
           <div className="lg:col-span-2">
             <h2 className="benefits-title font-display text-3xl font-semibold tracking-tight md:text-4xl mb-6">
-              Why 500+ Indian businesses choose AutoInvoice
+              Why 500+ Indian businesses choose UnifiedDesk
             </h2>
             <div className="space-y-6">
               {benefits.map((benefit) => (
@@ -136,7 +136,7 @@ export function Benefits() {
           <div className="relative lg:col-span-3">
             <div className="benefits-glow absolute inset-0 bg-gradient-to-r from-primary/10 to-blue-500/10 dark:from-primary/5 dark:to-blue-500/5 rounded-3xl blur-2xl" />
             <Card className="benefits-card relative border-2 shadow-xl">
-              <CardContent className="p-8">
+              <CardContent className="p-6 sm:p-8">
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
                     <FileText className="h-8 w-8 text-primary" />
@@ -147,13 +147,17 @@ export function Benefits() {
                   </p>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between gap-4 text-sm">
                     <span className="text-muted-foreground">From</span>
-                    <span className="font-medium">Your Company</span>
+                    <span className="text-right font-medium break-words">
+                      Your Company
+                    </span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between gap-4 text-sm">
                     <span className="text-muted-foreground">Bill To</span>
-                    <span className="font-medium">Client Name</span>
+                    <span className="text-right font-medium break-words">
+                      Client Name
+                    </span>
                   </div>
                   <div className="border-t pt-4">
                     <div className="flex justify-between text-sm mb-2">

@@ -3,7 +3,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 const LAST_UPDATED = "June 27, 2026"
 const GRIEVANCE_EMAIL = "programmingnotesbyraj@gmail.com"
-const COMPANY_NAME = "AutoInvoice"
+const COMPANY_NAME = "UnifiedDesk"
 const WEBSITE_URL = "https://autoinvoice.app"
 
 function Section({
@@ -28,7 +28,7 @@ function PrivacyPolicy() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-3xl px-6 py-16">
+      <div className="mx-auto max-w-3xl px-5 py-10 sm:px-6 md:py-16">
         <div className="mb-10">
           <RouterLink
             to="/"
@@ -36,7 +36,7 @@ function PrivacyPolicy() {
           >
             ← Back to Home
           </RouterLink>
-          <h1 className="mt-6 text-4xl font-bold text-foreground">
+          <h1 className="mt-6 text-3xl font-bold text-foreground sm:text-4xl">
             Privacy Policy
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -77,8 +77,8 @@ function PrivacyPolicy() {
           <Section title="2. Data We Collect">
             <p>We collect the following categories of personal data:</p>
 
-            <div className="rounded-lg border bg-muted/30 overflow-hidden mt-3">
-              <table className="w-full text-sm">
+            <div className="mt-3 overflow-x-auto rounded-lg border bg-muted/30">
+              <table className="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="text-left px-4 py-3 font-semibold text-foreground">
@@ -357,7 +357,7 @@ function PrivacyPolicy() {
                 Email:{" "}
                 <a
                   href={`mailto:${GRIEVANCE_EMAIL}`}
-                  className="text-primary underline underline-offset-4"
+                  className="break-all text-primary underline underline-offset-4"
                 >
                   {GRIEVANCE_EMAIL}
                 </a>
@@ -409,7 +409,7 @@ function PrivacyPolicy() {
                 Email:{" "}
                 <a
                   href={`mailto:${GRIEVANCE_EMAIL}`}
-                  className="text-primary underline underline-offset-4"
+                  className="break-all text-primary underline underline-offset-4"
                 >
                   {GRIEVANCE_EMAIL}
                 </a>

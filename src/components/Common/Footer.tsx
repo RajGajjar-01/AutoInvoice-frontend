@@ -79,7 +79,7 @@ export function Footer() {
               <Input
                 type="email"
                 placeholder="Enter your email"
-                className="h-9 flex-1"
+                className="h-9 min-w-0 flex-1"
               />
               <Button type="submit" size="sm" className="h-9 px-3">
                 <ArrowRight className="h-4 w-4" />
@@ -90,7 +90,7 @@ export function Footer() {
 
         <div className="border-t py-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} AutoInvoice. All rights reserved.
+            © {currentYear} UnifiedDesk. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             {legalLinks.map((link) =>

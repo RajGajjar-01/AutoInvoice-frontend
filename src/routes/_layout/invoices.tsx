@@ -110,7 +110,7 @@ function InvoicesPage() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center justify-between animate-in">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight">
             Invoices
@@ -135,7 +135,7 @@ function InvoicesPage() {
       </div>
 
       {/* Summary pills */}
-      <div className="grid grid-cols-3 gap-3 animate-in animate-in-delay-1">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 animate-in animate-in-delay-1">
         <Card className="bg-primary/5 border-primary/20">
           <CardContent className="py-3 px-4 flex items-center gap-3">
             <IndianRupee className="h-4 w-4 text-primary shrink-0" />
@@ -213,7 +213,7 @@ function InvoicesPage() {
       </div>
 
       {/* Status tabs */}
-      <div className="flex gap-1 border-b border-border -mt-2">
+      <div className="flex gap-1 overflow-x-auto border-b border-border -mt-2 whitespace-nowrap [&>*]:shrink-0">
         {tabs.map((tab) => (
           <button
             type="button"
@@ -262,14 +262,14 @@ function InvoicesPage() {
           )}
         </div>
       ) : (
-        <div className="rounded-lg border border-border overflow-hidden">
+        <div className="min-w-0 max-w-full overflow-hidden rounded-lg border border-border">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent bg-muted/30">
                 <TableHead className="w-[160px]">Invoice #</TableHead>
                 <TableHead>Customer</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Due</TableHead>
+                <TableHead className="hidden md:table-cell">Date</TableHead>
+                <TableHead className="hidden md:table-cell">Due</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right w-[50px]">
@@ -306,10 +306,10 @@ function InvoicesPage() {
                       )}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="hidden text-sm text-muted-foreground md:table-cell">
                     {inv.invoiceDate || "—"}
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell className="hidden text-sm md:table-cell">
                     {inv.dueDate ? (
                       <span
                         className={
@@ -347,7 +347,7 @@ function InvoicesPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Actions</span>
@@ -377,8 +377,8 @@ function InvoicesPage() {
           </Table>
 
           {/* Footer */}
-          <div className="px-4 py-2.5 border-t bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-3">
+          <div className="flex flex-col gap-2 border-t bg-muted/20 px-4 py-2.5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span className="flex flex-wrap items-center gap-3">
               Showing {filtered.length} of {totalCount} invoices
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3 w-3 text-emerald-500" />

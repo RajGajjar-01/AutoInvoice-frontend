@@ -149,7 +149,7 @@ function Dashboard() {
 
       {/* KPI cards – only when data exists */}
       {hasData && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in animate-in-delay-1">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in animate-in-delay-1">
           <KpiCard
             icon={TrendingUp}
             title="Total Revenue"

@@ -18,9 +18,7 @@ import useAuth from "@/hooks/useAuth"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function LandingPage() {
-  useDocumentTitle(
-    "AutoInvoice — Free GST Invoice Software for Indian Businesses",
-  )
+  useDocumentTitle("Free GST Invoice Software for Indian Businesses")
   const { user, isLoading } = useAuth()
 
   // Reveal the mobile sticky CTA only after the hero (with its own CTA) is scrolled past
