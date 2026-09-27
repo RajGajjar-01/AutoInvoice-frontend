@@ -219,36 +219,17 @@
     }
   }
 
-  @keyframes auth-drift {
-    0%,
-    100% {
-      transform: translate3d(0, 0, 0) scale(1);
+  @keyframes auth-paybar {
+    from {
+      width: 12%;
     }
-    50% {
-      transform: translate3d(24px, 18px, 0) scale(1.08);
-    }
-  }
-
-  @keyframes auth-float {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-6px);
+    to {
+      width: 76%;
     }
   }
 
-  .auth-orb {
-    animation: auth-drift 9s ease-in-out infinite;
-  }
-
-  .auth-orb-b {
-    animation-delay: 4.5s;
-  }
-
-  .auth-float {
-    animation: auth-float 3.6s ease-in-out infinite;
+  .auth-paybar {
+    animation: auth-paybar 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .animate-pulse-soft {
@@ -361,8 +342,7 @@
 @media (prefers-reduced-motion: reduce) {
   .landing-cta-glow,
   .landing-cta-button,
-  .auth-orb,
-  .auth-float {
+  .auth-paybar {
     transition: none;
     animation: none;
   }

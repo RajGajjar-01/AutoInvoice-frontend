@@ -8,21 +8,17 @@ interface AuthLayoutProps {
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-zinc-950 lg:flex lg:items-center lg:justify-center">
-        <div className="absolute inset-0 hero-dot-grid opacity-40" />
+      <div className="relative hidden overflow-hidden border-r border-white/10 bg-zinc-950 lg:flex lg:items-center lg:justify-center">
+        <div className="absolute inset-0 hero-dot-grid opacity-25" />
         <div
           aria-hidden="true"
-          className="auth-orb auth-orb-a absolute -top-24 -left-24 h-96 w-96 rounded-full bg-primary/40 blur-[100px]"
-        />
-        <div
-          aria-hidden="true"
-          className="auth-orb auth-orb-b absolute -right-24 -bottom-24 h-96 w-96 rounded-full bg-emerald-500/30 blur-[100px]"
+          className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"
         />
         <div className="relative z-10 flex w-full max-w-md flex-col items-center gap-6 px-8 text-center">
           <div className="animate-in">
             <Logo
               variant="full"
-              className="h-14 brightness-0 invert"
+              className="h-12 brightness-0 invert"
               asLink={false}
             />
           </div>
@@ -35,36 +31,36 @@ export function AuthLayout({ children }: AuthLayoutProps) {
               get paid faster. No credit card required.
             </p>
           </div>
-          <div className="grid w-full grid-cols-3 gap-3 animate-in animate-in-delay-2">
-            <div className="auth-float rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-md">
-              <p className="font-display text-xl font-bold text-white">60s</p>
-              <p className="mt-1 text-[11px] text-zinc-400">invoice creation</p>
+          <div className="w-full rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-sm animate-in animate-in-delay-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">
+                  INV-001 · Sharma Enterprises
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  Sent 2 days ago · UPI linked
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300">
+                Paid
+              </span>
             </div>
-            <div
-              className="auth-float rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-md"
-              style={{ animationDelay: "1.2s" }}
-            >
-              <p className="font-display text-xl font-bold text-white">5/mo</p>
-              <p className="mt-1 text-[11px] text-zinc-400">free to start</p>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="auth-paybar h-full w-3/4 rounded-full bg-emerald-400/80" />
             </div>
-            <div
-              className="auth-float rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-md"
-              style={{ animationDelay: "2.4s" }}
-            >
-              <p className="font-display text-xl font-bold text-white">GST</p>
-              <p className="mt-1 text-[11px] text-zinc-400">
-                compliant billing
-              </p>
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span className="text-zinc-500">₹59,000 received</span>
+              <span className="text-zinc-400">GST included</span>
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-zinc-500 animate-in animate-in-delay-2">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              UPI & bank details on invoices
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1">
+              60-second invoicing
             </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1">
               Payment reminders
             </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1">
               Works on mobile
             </span>
           </div>
