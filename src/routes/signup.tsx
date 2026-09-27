@@ -69,10 +69,10 @@ function SignUp() {
         >
           <div className="flex flex-col items-center gap-2 text-center">
             <h1 className="font-display text-2xl font-bold tracking-tight">
-              Create an account
+              Start free GST invoicing
             </h1>
             <p className="text-sm text-muted-foreground">
-              Get started with AutoInvoice
+              Free for Indian businesses. No credit card required.
             </p>
           </div>
 

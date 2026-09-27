@@ -60,7 +60,7 @@ function Login() {
               Welcome back
             </h1>
             <p className="text-sm text-muted-foreground">
-              Sign in to your account to continue
+              Sign in to create GST invoices in seconds
             </p>
           </div>
 
