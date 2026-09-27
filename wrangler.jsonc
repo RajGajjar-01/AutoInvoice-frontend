@@ -1,7 +1,7 @@
 // Cloudflare Workers static-assets deploy (free: static requests are unmetered).
 // Deploy: VITE_API_URL=https://<lambda-function-url> npx vite build && npx wrangler deploy
 {
-  "name": "autoinvoice",
+  "name": "unifieddesk",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "./dist",
