@@ -117,3 +117,11 @@ export const bankAccountZodSchema = z
   })
   .optional()
   .or(z.literal(""))
+
+export const upiZodSchema = z
+  .string()
+  .trim()
+  .transform((value) => value.toLowerCase())
+  .refine((value) => !value || isValidUpiId(value), {
+    message: "Enter a valid UPI ID, such as name@bank",
+  })

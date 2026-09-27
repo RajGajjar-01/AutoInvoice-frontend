@@ -1,160 +1,204 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { CircleCheck, ContactRound } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
+import { Link } from "react-router"
 import { z } from "zod"
 import { UsersService } from "@/client"
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { LoadingButton } from "@/components/ui/loading-button"
+import type { UserUpdateMe } from "@/client/types.gen"
+import { ProfileSection } from "@/components/Profile/ProfileSection"
+import { Form } from "@/components/ui/form"
+import { Field, InfoRow } from "@/features/profile/components/shared"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { formResolver } from "@/lib/form"
-import { cn } from "@/lib/utils"
-import { handleError } from "@/utils"
+import { getInitials, getSafeErrorMessage } from "@/utils"
 
-const formSchema = z.object({
-  full_name: z.string().max(30).optional(),
-  email: z.string().email({ message: "Invalid email address" }),
+const personalSchema = z.object({
+  full_name: z
+    .string()
+    .trim()
+    .min(1, "Full name is required")
+    .max(255, "Use 255 characters or fewer"),
+  email: z.email("Enter a valid email address").max(255),
+  phone: z
+    .string()
+    .trim()
+    .max(30)
+    .refine(
+      (value) =>
+        !value ||
+        (/^[+\d\s()-]+$/.test(value) && value.replace(/\D/g, "").length >= 7),
+      "Enter a valid phone number",
+    ),
 })
-
-type FormValues = z.infer<typeof formSchema>
+type PersonalValues = z.infer<typeof personalSchema>
 
 const UserInformation = () => {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const [editMode, setEditMode] = useState(false)
-  const { user: currentUser } = useAuth()
-  const form = useForm<FormValues>({
-    resolver: formResolver(formSchema),
+  const { user } = useAuth()
+  const form = useForm<PersonalValues>({
+    resolver: formResolver(personalSchema),
     mode: "onBlur",
-    criteriaMode: "all",
     defaultValues: {
-      full_name: currentUser?.full_name ?? undefined,
-      email: currentUser?.email,
+      full_name: user?.full_name ?? "",
+      email: user?.email ?? "",
+      phone: user?.phone ?? "",
     },
   })
-  const toggleEditMode = () => {
-    setEditMode(!editMode)
-  }
+
+  useEffect(() => {
+    if (user && !editMode) {
+      form.reset({
+        full_name: user.full_name ?? "",
+        email: user.email,
+        phone: user.phone ?? "",
+      })
+    }
+  }, [user, editMode, form])
+
   const mutation = useMutation({
-    mutationFn: (data: Partial<FormValues>) =>
+    mutationFn: (data: UserUpdateMe) =>
       UsersService.updateUserMe({ requestBody: data }),
-    onSuccess: () => {
-      showSuccessToast("User updated successfully")
-      toggleEditMode()
+    onSuccess: async (updated) => {
+      form.reset({
+        full_name: updated.full_name ?? "",
+        email: updated.email,
+        phone: updated.phone ?? "",
+      })
+      setEditMode(false)
+      showSuccessToast("Personal details saved")
+      await queryClient.invalidateQueries({ queryKey: ["currentUser"] })
     },
-    onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries()
-    },
+    onError: (error) =>
+      showErrorToast(
+        `Could not save personal details. ${getSafeErrorMessage(error)}`,
+      ),
   })
-  const onSubmit = (data: FormValues) => {
-    const updateData: Partial<FormValues> = {}
-    if (data.full_name !== currentUser?.full_name) {
-      updateData.full_name = data.full_name
+
+  const onSubmit = (data: PersonalValues) => {
+    if (!user || mutation.isPending) return
+    const changes: UserUpdateMe = {}
+    if (data.full_name !== (user.full_name ?? ""))
+      changes.full_name = data.full_name
+    if (data.email !== user.email) changes.email = data.email
+    if (data.phone !== (user.phone ?? "")) changes.phone = data.phone || null
+    if (Object.keys(changes).length === 0) {
+      setEditMode(false)
+      return
     }
-    if (data.email !== currentUser?.email) {
-      updateData.email = data.email
-    }
-    mutation.mutate(updateData)
+    mutation.mutate(changes)
   }
-  const onCancel = () => {
-    form.reset()
-    toggleEditMode()
+
+  const cancel = () => {
+    form.reset({
+      full_name: user?.full_name ?? "",
+      email: user?.email ?? "",
+      phone: user?.phone ?? "",
+    })
+    setEditMode(false)
   }
+
   return (
-    <div className="max-w-md">
-      <h3 className="text-lg font-semibold py-4">User Information</h3>
+    <div className="max-w-3xl">
+      <div className="flex flex-wrap items-center gap-4 border-b border-border/70 py-6">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border bg-muted text-lg font-semibold">
+          {getInitials(user?.full_name || user?.email || "U")}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-lg font-semibold">
+            {user?.full_name || "Your profile"}
+          </h2>
+          <p className="truncate text-sm text-muted-foreground">
+            {user?.email}
+          </p>
+        </div>
+        {user?.is_verified && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
+            <CircleCheck className="h-3.5 w-3.5" /> Verified email
+          </span>
+        )}
+        {user && !user.is_verified && (
+          <Link
+            to="/verify-email"
+            className="text-sm font-medium underline underline-offset-4"
+          >
+            Verify email
+          </Link>
+        )}
+      </div>
+
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-4"
-        >
-          <FormField
-            control={form.control}
-            name="full_name"
-            render={({ field }) =>
-              editMode ? (
-                <FormItem>
-                  <FormLabel>Full name</FormLabel>
-                  <FormControl>
-                    <Input type="text" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              ) : (
-                <FormItem>
-                  <FormLabel>Full name</FormLabel>
-                  <p
-                    className={cn(
-                      "py-2 truncate max-w-sm",
-                      !field.value && "text-muted-foreground",
-                    )}
-                  >
-                    {field.value || "N/A"}
-                  </p>
-                </FormItem>
-              )
-            }
-          />
-
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) =>
-              editMode ? (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              ) : (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <p className="py-2 truncate max-w-sm">{field.value}</p>
-                </FormItem>
-              )
-            }
-          />
-
-          <div className="flex gap-3">
-            {editMode ? (
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <ProfileSection
+            id="personal-details"
+            icon={ContactRound}
+            title="Personal details"
+            description="The name and contact information you use to sign in. Business details are managed separately."
+            isEditing={editMode}
+            onEdit={() => {
+              form.reset({
+                full_name: user?.full_name ?? "",
+                email: user?.email ?? "",
+                phone: user?.phone ?? "",
+              })
+              setEditMode(true)
+            }}
+            onSave={() => void form.handleSubmit(onSubmit)()}
+            onCancel={cancel}
+            isSaving={mutation.isPending}
+            viewContent={
               <>
-                <LoadingButton
-                  type="submit"
-                  loading={mutation.isPending}
-                  disabled={!form.formState.isDirty}
-                >
-                  Save
-                </LoadingButton>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                  disabled={mutation.isPending}
-                >
-                  Cancel
-                </Button>
+                <InfoRow
+                  label="Full name"
+                  value={user?.full_name || "Not added"}
+                />
+                <InfoRow label="Email address" value={user?.email} />
+                <InfoRow
+                  label="Phone number"
+                  value={user?.phone || "Not added"}
+                />
               </>
-            ) : (
-              <Button type="button" onClick={toggleEditMode}>
-                Edit
-              </Button>
-            )}
-          </div>
+            }
+            editContent={
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <Field
+                    name="full_name"
+                    label="Full name"
+                    placeholder="Your full name"
+                    required
+                    autoComplete="name"
+                  />
+                </div>
+                <Field
+                  name="email"
+                  label="Email address"
+                  type="email"
+                  placeholder="you@example.com"
+                  required
+                  autoComplete="email"
+                />
+                <Field
+                  name="phone"
+                  label="Phone number"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  autoComplete="tel"
+                />
+                <p className="text-xs text-muted-foreground sm:col-span-2">
+                  Changing your email address will require you to verify the new
+                  address.
+                </p>
+              </div>
+            }
+          />
         </form>
       </Form>
     </div>
   )
 }
+
 export default UserInformation

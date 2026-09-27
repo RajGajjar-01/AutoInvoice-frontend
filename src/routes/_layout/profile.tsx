@@ -1,7 +1,6 @@
 import {
   BadgeCheck,
   Building2,
-  CheckCircle2,
   CreditCard,
   FileText,
   Mail,
@@ -9,8 +8,9 @@ import {
   MessageSquare,
   ShieldCheck,
 } from "lucide-react"
+import { FormProvider } from "react-hook-form"
+import { Link } from "react-router"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -24,683 +24,640 @@ import {
 import { useProfileForm } from "@/features/profile/hooks/useProfileForm"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
-function AccountPage() {
-  useDocumentTitle("My Account")
+const navigation = [
+  { id: "business", label: "Business identity" },
+  { id: "contact", label: "Contact details" },
+  { id: "address", label: "Business address" },
+  { id: "tax", label: "Tax & registration" },
+  { id: "bank", label: "Bank & payment" },
+  { id: "invoicePrefs", label: "Document preferences" },
+  { id: "communication", label: "Communication" },
+]
 
+function AccountPage() {
+  useDocumentTitle("Business details")
   const {
     company,
-    draft,
-    activeSection,
     companySettings,
+    isLoading,
+    activeSection,
+    companyForm,
+    communicationForm,
+    logo,
     updateSettingsMutation,
-    whatsappEnabled,
-    setWhatsappEnabled,
-    openwaBaseUrl,
-    setOpenwaBaseUrl,
-    openwaApiKey,
-    setOpenwaApiKey,
-    openwaSessionId,
-    setOpenwaSessionId,
-    smtpHost,
-    setSmtpHost,
-    smtpPort,
-    setSmtpPort,
-    smtpUser,
-    setSmtpUser,
-    smtpPassword,
-    setSmtpPassword,
-    smtpFromEmail,
-    setSmtpFromEmail,
-    smtpFromName,
-    setSmtpFromName,
     startEdit,
     cancelEdit,
-    set,
-    saveBusinessSection,
-    saveContactSection,
-    saveGenericSection,
+    setLogo,
+    saveSection,
     saveCommunication,
     clearSmtpPassword,
     clearOpenwaApiKey,
   } = useProfileForm()
 
-  return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">My Account</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Company details that appear on every invoice you create.
-        </p>
-      </div>
+  const configured = [
+    Boolean(company.name && company.name !== "My Company"),
+    Boolean(company.email || company.phone),
+    Boolean(company.address && company.city),
+    Boolean(company.gstin || company.pan),
+    Boolean(company.bankName || company.upi),
+  ].filter(Boolean).length
+  const saving = updateSettingsMutation.isPending
+  const communicationErrors = communicationForm.formState.errors
+  const communicationRegister = communicationForm.register
 
-      {/* 1 ── Business Identity */}
-      <ProfileSection
-        id="business"
-        icon={Building2}
-        title="Business Identity"
-        isEditing={activeSection === "business"}
-        onEdit={() => startEdit("business")}
-        onSave={saveBusinessSection}
-        onCancel={cancelEdit}
-        viewContent={
-          company.name || company.tagline || company.logo ? (
-            <div className="flex items-center gap-4">
-              {company.logo && (
-                <div className="h-14 w-14 rounded-xl border bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                  <img
-                    src={company.logo}
-                    alt="logo"
-                    className="h-full w-full object-contain p-1"
+  if (isLoading) {
+    return (
+      <div role="status" className="py-12 text-sm text-muted-foreground">
+        Loading business details…
+      </div>
+    )
+  }
+
+  return (
+    <FormProvider {...companyForm}>
+      <div className="mx-auto max-w-6xl space-y-8 pb-12">
+        <header className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Workspace settings
+          </p>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">
+            Business details
+          </h1>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Keep your invoice header, contact details, and payment instructions
+            accurate. Your personal account details are in{" "}
+            <Link
+              to="/settings"
+              className="font-medium text-foreground underline underline-offset-4"
+            >
+              My profile
+            </Link>
+            .
+          </p>
+        </header>
+
+        <div className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-4 rounded-2xl border bg-card p-5 sm:grid-cols-[64px_minmax(0,1fr)_auto] sm:gap-5 sm:p-6">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted/50">
+            {company.logo ? (
+              <img
+                src={company.logo}
+                alt="Business logo"
+                className="h-full w-full object-contain p-1"
+              />
+            ) : (
+              <Building2
+                aria-hidden="true"
+                className="h-7 w-7 text-muted-foreground"
+              />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg font-semibold">
+              {company.name && company.name !== "My Company"
+                ? company.name
+                : "Set up your business"}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {company.city || company.state
+                ? [company.city, company.state].filter(Boolean).join(", ")
+                : "Add business details to make your documents yours."}
+            </p>
+          </div>
+          <div className="col-span-2 min-w-0 border-t pt-4 sm:col-span-1 sm:min-w-40 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+            <p className="text-sm font-medium">
+              {configured} of 5 essentials added
+            </p>
+            <div
+              role="progressbar"
+              aria-label="Business profile essentials"
+              aria-valuenow={configured}
+              aria-valuemin={0}
+              aria-valuemax={5}
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"
+            >
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${configured * 20}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-12">
+          <nav
+            aria-label="Business details sections"
+            className="flex gap-1 overflow-x-auto pb-2 lg:sticky lg:top-6 lg:h-fit lg:flex-col lg:overflow-visible"
+          >
+            {navigation.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className="shrink-0 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <main className="min-w-0">
+            <ProfileSection
+              id="business"
+              icon={Building2}
+              title="Business identity"
+              description="Your name and logo appear on invoices and documents."
+              isEditing={activeSection === "business"}
+              onEdit={() => startEdit("business")}
+              onSave={() => saveSection("business")}
+              onCancel={cancelEdit}
+              isSaving={saving}
+              viewContent={
+                company.name || company.logo ? (
+                  <div className="space-y-1">
+                    <InfoRow label="Business name" value={company.name} />
+                    {company.logo && <InfoRow label="Logo" value="Added" />}
+                  </div>
+                ) : (
+                  <EmptyState message="Add your business name to personalize invoices." />
+                )
+              }
+              editContent={
+                <div className="space-y-5">
+                  <Field
+                    name="name"
+                    label="Business name"
+                    placeholder="Acme Pvt. Ltd."
+                    required
+                    autoComplete="organization"
+                  />
+                  <LogoUpload logo={logo} onLogoChange={setLogo} />
+                </div>
+              }
+            />
+
+            <ProfileSection
+              id="contact"
+              icon={Mail}
+              title="Contact details"
+              description="Customers can use these details to reach your business."
+              isEditing={activeSection === "contact"}
+              onEdit={() => startEdit("contact")}
+              onSave={() => saveSection("contact")}
+              onCancel={cancelEdit}
+              isSaving={saving}
+              viewContent={
+                company.email || company.phone || company.website ? (
+                  <>
+                    <InfoRow label="Business email" value={company.email} />
+                    <InfoRow label="Phone" value={company.phone} />
+                    <InfoRow label="Website" value={company.website} />
+                  </>
+                ) : (
+                  <EmptyState message="Add an email, phone number, or website for your customers." />
+                )
+              }
+              editContent={
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    name="email"
+                    label="Business email"
+                    type="email"
+                    placeholder="hello@business.com"
+                    autoComplete="email"
+                  />
+                  <Field
+                    name="phone"
+                    label="Business phone"
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                    autoComplete="tel"
+                  />
+                  <div className="sm:col-span-2">
+                    <Field
+                      name="website"
+                      label="Website"
+                      type="url"
+                      placeholder="https://yourbusiness.com"
+                    />
+                  </div>
+                </div>
+              }
+            />
+
+            <ProfileSection
+              id="address"
+              icon={MapPin}
+              title="Business address"
+              description="Shown on documents where a business address is needed."
+              isEditing={activeSection === "address"}
+              onEdit={() => startEdit("address")}
+              onSave={() => saveSection("address")}
+              onCancel={cancelEdit}
+              isSaving={saving}
+              viewContent={
+                company.address ||
+                company.city ||
+                company.state ||
+                company.pincode ? (
+                  <>
+                    <InfoRow label="Street address" value={company.address} />
+                    <InfoRow label="City" value={company.city} />
+                    <InfoRow label="State" value={company.state} />
+                    <InfoRow label="PIN code" value={company.pincode} />
+                  </>
+                ) : (
+                  <EmptyState message="Add your business address for invoices and tax documents." />
+                )
+              }
+              editContent={
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <Field
+                      name="address"
+                      label="Street address"
+                      placeholder="Street, building, area"
+                      autoComplete="street-address"
+                    />
+                  </div>
+                  <Field
+                    name="city"
+                    label="City"
+                    placeholder="Mumbai"
+                    autoComplete="address-level2"
+                  />
+                  <Field
+                    name="state"
+                    label="State"
+                    placeholder="Maharashtra"
+                    autoComplete="address-level1"
+                  />
+                  <Field
+                    name="pincode"
+                    label="PIN code"
+                    placeholder="400001"
+                    autoComplete="postal-code"
                   />
                 </div>
-              )}
-              <div>
-                <p className="font-bold text-base">{company.name}</p>
-                {company.tagline && (
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {company.tagline}
-                  </p>
-                )}
-                {(company.gstin || company.pan) && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {company.gstin && (
-                      <Badge
-                        variant="outline"
-                        className="text-[11px] font-mono"
-                      >
-                        GST: {company.gstin}
-                      </Badge>
-                    )}
-                    {company.pan && (
-                      <Badge
-                        variant="outline"
-                        className="text-[11px] font-mono"
-                      >
-                        PAN: {company.pan}
-                      </Badge>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <EmptyState message="No business identity set yet. Click Edit to get started." />
-          )
-        }
-        editContent={
-          <div className="flex flex-col gap-4">
-            <LogoUpload
-              logo={draft.logo}
-              onLogoChange={(v) => set("logo", v)}
+              }
             />
-            <Separator />
-            <div className="grid gap-3">
-              <Field
-                label="Company Name"
-                value={draft.name}
-                onChange={(v) => set("name", v)}
-                placeholder="Acme Pvt. Ltd."
-                required
-              />
-              <Field
-                label="Tagline / Slogan"
-                value={draft.tagline}
-                onChange={(v) => set("tagline", v)}
-                placeholder="Empowering businesses worldwide"
-              />
-            </div>
-          </div>
-        }
-      />
 
-      {/* 2 ── Contact Details */}
-      <ProfileSection
-        id="contact"
-        icon={Mail}
-        title="Contact Details"
-        isEditing={activeSection === "contact"}
-        onEdit={() => startEdit("contact")}
-        onSave={saveContactSection}
-        onCancel={cancelEdit}
-        viewContent={
-          company.email || company.phone || company.website ? (
-            <>
-              <InfoRow label="Email" value={company.email} />
-              <InfoRow label="Phone" value={company.phone} />
-              <InfoRow label="Website" value={company.website} />
-            </>
-          ) : (
-            <EmptyState message="No contact details added." />
-          )
-        }
-        editContent={
-          <div className="grid gap-3">
-            <Field
-              label="Email Address"
-              value={draft.email}
-              onChange={(v) => set("email", v)}
-              placeholder="contact@yourcompany.com"
-              type="email"
-              required
-            />
-            <Field
-              label="Phone Number"
-              value={draft.phone}
-              onChange={(v) => set("phone", v)}
-              placeholder="+91 98765 43210"
-            />
-            <Field
-              label="Website"
-              value={draft.website}
-              onChange={(v) => set("website", v)}
-              placeholder="https://yourcompany.com"
-            />
-          </div>
-        }
-      />
-
-      {/* 3 ── Business Address */}
-      <ProfileSection
-        id="address"
-        icon={MapPin}
-        title="Business Address"
-        isEditing={activeSection === "address"}
-        onEdit={() => startEdit("address")}
-        onSave={saveGenericSection}
-        onCancel={cancelEdit}
-        viewContent={
-          company.address ||
-          company.city ||
-          company.state ||
-          company.pincode ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-              <div>
-                <InfoRow label="Address" value={company.address} />
-                <InfoRow label="City" value={company.city} />
-              </div>
-              <div>
-                <InfoRow label="State" value={company.state} />
-                <InfoRow label="PIN Code" value={company.pincode} />
-                <InfoRow label="Country" value={company.country} />
-              </div>
-            </div>
-          ) : (
-            <EmptyState message="No address details added." />
-          )
-        }
-        editContent={
-          <div className="flex flex-col gap-3">
-            <Field
-              label="Street Address"
-              value={draft.address}
-              onChange={(v) => set("address", v)}
-              placeholder="123 Business Avenue, Suite 400"
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <Field
-                label="City"
-                value={draft.city}
-                onChange={(v) => set("city", v)}
-                placeholder="Mumbai"
-              />
-              <Field
-                label="State"
-                value={draft.state}
-                onChange={(v) => set("state", v)}
-                placeholder="Maharashtra"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Field
-                label="PIN Code"
-                value={draft.pincode}
-                onChange={(v) => set("pincode", v)}
-                placeholder="400001"
-              />
-              <Field
-                label="Country"
-                value={draft.country}
-                onChange={(v) => set("country", v)}
-                placeholder="India"
-              />
-            </div>
-          </div>
-        }
-      />
-
-      {/* 4 ── Tax & Registration */}
-      <ProfileSection
-        id="tax"
-        icon={BadgeCheck}
-        title="Tax & Registration"
-        isEditing={activeSection === "tax"}
-        onEdit={() => startEdit("tax")}
-        onSave={saveGenericSection}
-        onCancel={cancelEdit}
-        viewContent={
-          company.gstin || company.pan ? (
-            <>
-              <InfoRow label="GSTIN" value={company.gstin} mono />
-              <MaskedInfoRow
-                label="PAN Number"
-                value={company.pan}
-                maskType="pan"
-              />
-            </>
-          ) : (
-            <EmptyState message="No tax details added." />
-          )
-        }
-        editContent={
-          <div className="grid gap-3">
-            <Field
-              label="GSTIN"
-              value={draft.gstin}
-              onChange={(v) => set("gstin", v)}
-              placeholder="22AAAAA0000A1Z5"
-              helperText="15 alphanumeric characters (e.g. 22AAAAA0000A1Z5)"
-              mono
-            />
-            <Field
-              label="PAN Number"
-              value={draft.pan}
-              onChange={(v) => set("pan", v)}
-              placeholder="AAAAA0000A"
-              helperText="10 alphanumeric characters (e.g. ABCDE1234F)"
-              mono
-            />
-          </div>
-        }
-      />
-
-      {/* 5 ── Bank & Payment */}
-      <ProfileSection
-        id="bank"
-        icon={CreditCard}
-        title="Bank & Payment Details"
-        isEditing={activeSection === "bank"}
-        onEdit={() => startEdit("bank")}
-        onSave={saveGenericSection}
-        onCancel={cancelEdit}
-        viewContent={
-          company.bankName || company.accountNumber || company.upi ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-              <div>
-                <InfoRow label="Bank Name" value={company.bankName} />
-                <InfoRow label="Account Holder" value={company.accountName} />
-                <MaskedInfoRow
-                  label="Account Number"
-                  value={company.accountNumber}
-                  maskType="account"
-                />
-              </div>
-              <div>
-                <InfoRow label="IFSC Code" value={company.ifsc} mono />
-                <InfoRow label="Branch" value={company.branch} />
-                <InfoRow label="UPI ID" value={company.upi} mono />
-              </div>
-            </div>
-          ) : (
-            <EmptyState message="No bank details added." />
-          )
-        }
-        editContent={
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <Field
-              label="Bank Name"
-              value={draft.bankName}
-              onChange={(v) => set("bankName", v)}
-              placeholder="HDFC Bank"
-            />
-            <Field
-              label="Account Holder Name"
-              value={draft.accountName}
-              onChange={(v) => set("accountName", v)}
-              placeholder="Acme Pvt. Ltd."
-              helperText="Account holder name or business title"
-            />
-            <Field
-              label="Account Number"
-              value={draft.accountNumber}
-              onChange={(v) => set("accountNumber", v)}
-              placeholder="50100123456789"
-              helperText="9 to 18 numeric digits"
-              mono
-            />
-            <Field
-              label="IFSC Code"
-              value={draft.ifsc}
-              onChange={(v) => set("ifsc", v)}
-              placeholder="HDFC0001234"
-              helperText="11 characters (e.g. HDFC0001234)"
-              mono
-            />
-            <Field
-              label="Branch"
-              value={draft.branch}
-              onChange={(v) => set("branch", v)}
-              placeholder="Bandra West, Mumbai"
-            />
-            <Field
-              label="UPI ID"
-              value={draft.upi}
-              onChange={(v) => set("upi", v)}
-              placeholder="yourname@upi"
-              helperText="e.g. username@okhdfcbank"
-              mono
-            />
-          </div>
-        }
-      />
-
-      {/* 6 ── Communication */}
-      <ProfileSection
-        id="communication"
-        icon={MessageSquare}
-        title="Communication Settings"
-        isEditing={activeSection === "communication"}
-        onEdit={() => startEdit("communication")}
-        onSave={saveCommunication}
-        onCancel={cancelEdit}
-        isSaving={updateSettingsMutation.isPending}
-        viewContent={
-          companySettings &&
-          (companySettings.whatsapp_enabled || companySettings.smtp_host) ? (
-            <div className="flex flex-wrap gap-3">
-              <div className="rounded-lg bg-muted/50 border border-border/50 px-3 py-2">
-                <p className="text-[11px] text-muted-foreground mb-0.5">
-                  WhatsApp
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-semibold">
-                    {companySettings.whatsapp_enabled ? "Enabled" : "Disabled"}
-                  </p>
-                  {company.openwaApiKeySet && (
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px] text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
-                    >
-                      <ShieldCheck className="h-3 w-3 mr-0.5" /> API Key
-                      Encrypted
-                    </Badge>
-                  )}
+            <ProfileSection
+              id="tax"
+              icon={BadgeCheck}
+              title="Tax & registration"
+              description="Add these only if they apply to your business."
+              isEditing={activeSection === "tax"}
+              onEdit={() => startEdit("tax")}
+              onSave={() => saveSection("tax")}
+              onCancel={cancelEdit}
+              isSaving={saving}
+              viewContent={
+                company.gstin || company.pan ? (
+                  <>
+                    <InfoRow label="GSTIN" value={company.gstin} mono />
+                    <MaskedInfoRow
+                      label="PAN"
+                      value={company.pan}
+                      maskType="pan"
+                    />
+                  </>
+                ) : (
+                  <EmptyState message="Add your GSTIN or PAN when you need them on documents." />
+                )
+              }
+              editContent={
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    name="gstin"
+                    label="GSTIN"
+                    placeholder="22AAAAA0000A1Z5"
+                    helperText="15 characters"
+                    mono
+                  />
+                  <Field
+                    name="pan"
+                    label="PAN"
+                    placeholder="ABCDE1234F"
+                    helperText="10 characters"
+                    mono
+                  />
                 </div>
-              </div>
-              {companySettings.smtp_host && (
-                <div className="rounded-lg bg-muted/50 border border-border/50 px-3 py-2">
-                  <p className="text-[11px] text-muted-foreground mb-0.5">
-                    SMTP Host
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold font-mono">
-                      {companySettings.smtp_host}
-                    </p>
-                    {company.smtpPasswordSet && (
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
-                      >
-                        <CheckCircle2 className="h-3 w-3 mr-0.5" /> Password
-                        Encrypted
-                      </Badge>
-                    )}
+              }
+            />
+
+            <ProfileSection
+              id="bank"
+              icon={CreditCard}
+              title="Bank & payment"
+              description="Give customers a clear way to pay you."
+              isEditing={activeSection === "bank"}
+              onEdit={() => startEdit("bank")}
+              onSave={() => saveSection("bank")}
+              onCancel={cancelEdit}
+              isSaving={saving}
+              viewContent={
+                company.bankName || company.accountNumber || company.upi ? (
+                  <>
+                    <InfoRow label="Bank" value={company.bankName} />
+                    <MaskedInfoRow
+                      label="Account number"
+                      value={company.accountNumber}
+                    />
+                    <InfoRow label="IFSC" value={company.ifsc} mono />
+                    <InfoRow label="Branch" value={company.branch} />
+                    <InfoRow label="UPI ID" value={company.upi} mono />
+                  </>
+                ) : (
+                  <EmptyState message="Add a bank account or UPI ID to include payment instructions." />
+                )
+              }
+              editContent={
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    name="bankName"
+                    label="Bank name"
+                    placeholder="HDFC Bank"
+                  />
+                  <Field
+                    name="branch"
+                    label="Branch"
+                    placeholder="Bandra West"
+                  />
+                  <Field
+                    name="accountNumber"
+                    label="Account number"
+                    placeholder="50100123456789"
+                    mono
+                  />
+                  <Field
+                    name="ifsc"
+                    label="IFSC code"
+                    placeholder="HDFC0001234"
+                    mono
+                  />
+                  <div className="sm:col-span-2">
+                    <Field
+                      name="upi"
+                      label="UPI ID"
+                      placeholder="business@upi"
+                      mono
+                    />
                   </div>
                 </div>
-              )}
-            </div>
-          ) : (
-            <EmptyState message="No communication settings configured." />
-          )
-        }
-        editContent={
-          <div className="flex flex-col gap-4">
-            <Label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={whatsappEnabled}
-                onChange={(e) => setWhatsappEnabled(e.target.checked)}
-                className="h-4 w-4 rounded border-border accent-primary"
-              />
-              <span className="text-sm font-medium">
-                Enable WhatsApp Sending
-              </span>
-            </Label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  OpenWA Base URL
-                </Label>
-                <Input
-                  value={openwaBaseUrl}
-                  onChange={(e) => setOpenwaBaseUrl(e.target.value)}
-                  placeholder="http://localhost:3000"
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium text-muted-foreground">
-                    API Key
-                  </Label>
-                  {company.openwaApiKeySet && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-emerald-600 font-medium">
-                        Configured ✓
-                      </span>
-                      <button
-                        type="button"
-                        onClick={clearOpenwaApiKey}
-                        className="text-[10px] text-destructive hover:underline"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <Input
-                  type="password"
-                  value={openwaApiKey}
-                  onChange={(e) => setOpenwaApiKey(e.target.value)}
-                  placeholder={
-                    company.openwaApiKeySet
-                      ? "•••••••• (Leave blank to keep unchanged)"
-                      : "sk-..."
-                  }
-                  className="h-9 text-sm font-mono"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Session ID
-                </Label>
-                <Input
-                  value={openwaSessionId}
-                  onChange={(e) => setOpenwaSessionId(e.target.value)}
-                  placeholder="default"
-                  className="h-9 text-sm"
-                />
-              </div>
-            </div>
-            <Separator />
-            <p className="text-xs font-semibold text-muted-foreground">
-              SMTP (Email)
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  SMTP Host
-                </Label>
-                <Input
-                  value={smtpHost}
-                  onChange={(e) => setSmtpHost(e.target.value)}
-                  placeholder="smtp.gmail.com"
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Port
-                </Label>
-                <Input
-                  value={String(smtpPort)}
-                  onChange={(e) => setSmtpPort(Number(e.target.value) || 587)}
-                  placeholder="587"
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Username
-                </Label>
-                <Input
-                  value={smtpUser}
-                  onChange={(e) => setSmtpUser(e.target.value)}
-                  placeholder="user@gmail.com"
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium text-muted-foreground">
-                    Password
-                  </Label>
-                  {company.smtpPasswordSet && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-emerald-600 font-medium">
-                        Configured ✓
-                      </span>
-                      <button
-                        type="button"
-                        onClick={clearSmtpPassword}
-                        className="text-[10px] text-destructive hover:underline"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <Input
-                  type="password"
-                  value={smtpPassword}
-                  onChange={(e) => setSmtpPassword(e.target.value)}
-                  placeholder={
-                    company.smtpPasswordSet
-                      ? "•••••••• (Leave blank to keep unchanged)"
-                      : "••••••••"
-                  }
-                  className="h-9 text-sm font-mono"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  From Email
-                </Label>
-                <Input
-                  value={smtpFromEmail}
-                  onChange={(e) => setSmtpFromEmail(e.target.value)}
-                  placeholder="invoices@company.com"
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  From Name
-                </Label>
-                <Input
-                  value={smtpFromName}
-                  onChange={(e) => setSmtpFromName(e.target.value)}
-                  placeholder="Your Company"
-                  className="h-9 text-sm"
-                />
-              </div>
-            </div>
-          </div>
-        }
-      />
-
-      {/* 7 ── Invoice Preferences */}
-      <ProfileSection
-        id="invoicePrefs"
-        icon={FileText}
-        title="Invoice Preferences"
-        isEditing={activeSection === "invoicePrefs"}
-        onEdit={() => startEdit("invoicePrefs")}
-        onSave={saveGenericSection}
-        onCancel={cancelEdit}
-        viewContent={
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {company.invoicePrefix && (
-              <div className="rounded-lg bg-muted/50 border border-border/50 px-3 py-2">
-                <p className="text-[11px] text-muted-foreground mb-0.5">
-                  Prefix
-                </p>
-                <p className="text-sm font-semibold font-mono">
-                  {company.invoicePrefix}
-                </p>
-              </div>
-            )}
-            {company.currency && (
-              <div className="rounded-lg bg-muted/50 border border-border/50 px-3 py-2">
-                <p className="text-[11px] text-muted-foreground mb-0.5">
-                  Currency
-                </p>
-                <p className="text-sm font-semibold">{company.currency}</p>
-              </div>
-            )}
-            {company.defaultPaymentTerms && (
-              <div className="rounded-lg bg-muted/50 border border-border/50 px-3 py-2">
-                <p className="text-[11px] text-muted-foreground mb-0.5">
-                  Payment Terms
-                </p>
-                <p className="text-sm font-semibold">
-                  {company.defaultPaymentTerms}
-                </p>
-              </div>
-            )}
-            {company.invoiceFooter && (
-              <div className="rounded-lg bg-muted/50 border border-border/50 px-3 py-2 col-span-full">
-                <p className="text-[11px] text-muted-foreground mb-0.5">
-                  Terms & Conditions / Note
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {company.invoiceFooter}
-                </p>
-              </div>
-            )}
-          </div>
-        }
-        editContent={
-          <div className="flex flex-col gap-3">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <Field
-                label="Invoice Prefix"
-                value={draft.invoicePrefix}
-                onChange={(v) => set("invoicePrefix", v)}
-                placeholder="INV"
-              />
-              <Field
-                label="Currency"
-                value={draft.currency}
-                onChange={(v) => set("currency", v)}
-                placeholder="INR"
-              />
-              <Field
-                label="Default Payment Terms"
-                value={draft.defaultPaymentTerms}
-                onChange={(v) => set("defaultPaymentTerms", v)}
-                placeholder="Net 30"
-              />
-            </div>
-            <Field
-              label="Terms & Conditions / Note"
-              value={draft.invoiceFooter}
-              onChange={(v) => set("invoiceFooter", v)}
-              placeholder="Thank you for your business!"
+              }
             />
-          </div>
-        }
-      />
-    </div>
+
+            <ProfileSection
+              id="invoicePrefs"
+              icon={FileText}
+              title="Document preferences"
+              description="Set numbering prefixes and the note printed on invoices."
+              isEditing={activeSection === "invoicePrefs"}
+              onEdit={() => startEdit("invoicePrefs")}
+              onSave={() => saveSection("invoicePrefs")}
+              onCancel={cancelEdit}
+              isSaving={saving}
+              viewContent={
+                <>
+                  <InfoRow
+                    label="Invoice prefix"
+                    value={company.invoicePrefix}
+                    mono
+                  />
+                  <InfoRow
+                    label="Quotation prefix"
+                    value={company.quotationPrefix}
+                    mono
+                  />
+                  <InfoRow
+                    label="Proforma prefix"
+                    value={company.proformaPrefix}
+                    mono
+                  />
+                  <InfoRow
+                    label="Challan prefix"
+                    value={company.challanPrefix}
+                    mono
+                  />
+                  <InfoRow label="Invoice note" value={company.invoiceFooter} />
+                </>
+              }
+              editContent={
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    name="invoicePrefix"
+                    label="Invoice prefix"
+                    required
+                    mono
+                  />
+                  <Field
+                    name="quotationPrefix"
+                    label="Quotation prefix"
+                    required
+                    mono
+                  />
+                  <Field
+                    name="proformaPrefix"
+                    label="Proforma prefix"
+                    required
+                    mono
+                  />
+                  <Field
+                    name="challanPrefix"
+                    label="Challan prefix"
+                    required
+                    mono
+                  />
+                  <div className="sm:col-span-2">
+                    <Field
+                      name="invoiceFooter"
+                      label="Terms and conditions"
+                      multiline
+                      placeholder="Payment terms or a note for your customer"
+                    />
+                  </div>
+                </div>
+              }
+            />
+
+            <FormProvider {...communicationForm}>
+              <ProfileSection
+                id="communication"
+                icon={MessageSquare}
+                title="Communication"
+                description="Configure WhatsApp and email delivery for your documents."
+                isEditing={activeSection === "communication"}
+                onEdit={() => startEdit("communication")}
+                onSave={saveCommunication}
+                onCancel={cancelEdit}
+                isSaving={saving}
+                viewContent={
+                  companySettings?.whatsapp_enabled ||
+                  companySettings?.smtp_host ? (
+                    <>
+                      <InfoRow
+                        label="WhatsApp"
+                        value={
+                          companySettings.whatsapp_enabled
+                            ? "Enabled"
+                            : "Disabled"
+                        }
+                      />
+                      <InfoRow
+                        label="SMTP host"
+                        value={companySettings.smtp_host}
+                      />
+                      {companySettings.openwa_api_key_set && (
+                        <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                          <ShieldCheck className="h-4 w-4" /> WhatsApp API key
+                          saved securely
+                        </p>
+                      )}
+                      {companySettings.smtp_password_set && (
+                        <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                          <ShieldCheck className="h-4 w-4" /> SMTP password
+                          saved securely
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <EmptyState message="Set up a delivery method when you're ready to send documents." />
+                  )
+                }
+                editContent={
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold">WhatsApp</h3>
+                      <label className="flex items-center gap-3 text-sm font-medium">
+                        <input
+                          type="checkbox"
+                          {...communicationRegister("whatsappEnabled")}
+                          className="h-4 w-4 accent-primary"
+                        />
+                        Enable WhatsApp sending
+                      </label>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Field
+                          name="openwaBaseUrl"
+                          label="OpenWA base URL"
+                          placeholder="https://openwa.example.com"
+                        />
+                        <Field
+                          name="openwaSessionId"
+                          label="Session ID"
+                          placeholder={
+                            companySettings?.openwa_session_id_set
+                              ? "Leave blank to keep current session"
+                              : "default"
+                          }
+                        />
+                        <div className="sm:col-span-2">
+                          <Field
+                            name="openwaApiKey"
+                            label="API key"
+                            type="password"
+                            placeholder={
+                              companySettings?.openwa_api_key_set
+                                ? "Leave blank to keep current key"
+                                : "Enter API key"
+                            }
+                            autoComplete="new-password"
+                          />
+                          {companySettings?.openwa_api_key_set && (
+                            <button
+                              type="button"
+                              disabled={saving}
+                              onClick={clearOpenwaApiKey}
+                              className="mt-2 text-xs text-destructive underline underline-offset-4"
+                            >
+                              Remove saved API key
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold">Email delivery</h3>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Field
+                          name="smtpHost"
+                          label="SMTP host"
+                          placeholder="smtp.example.com"
+                        />
+                        <div className="space-y-1.5">
+                          <Label htmlFor="smtp-port">SMTP port</Label>
+                          <Input
+                            id="smtp-port"
+                            type="number"
+                            min={1}
+                            max={65535}
+                            {...communicationRegister("smtpPort", {
+                              valueAsNumber: true,
+                            })}
+                            aria-invalid={Boolean(communicationErrors.smtpPort)}
+                            aria-describedby={
+                              communicationErrors.smtpPort
+                                ? "smtp-port-error"
+                                : undefined
+                            }
+                          />
+                          {communicationErrors.smtpPort && (
+                            <p
+                              id="smtp-port-error"
+                              className="text-sm text-destructive"
+                            >
+                              {communicationErrors.smtpPort.message}
+                            </p>
+                          )}
+                        </div>
+                        <Field
+                          name="smtpUser"
+                          label="SMTP username"
+                          placeholder="user@example.com"
+                        />
+                        <div>
+                          <Field
+                            name="smtpPassword"
+                            label="SMTP password"
+                            type="password"
+                            placeholder={
+                              companySettings?.smtp_password_set
+                                ? "Leave blank to keep current password"
+                                : "Enter password"
+                            }
+                            autoComplete="new-password"
+                          />
+                          {companySettings?.smtp_password_set && (
+                            <button
+                              type="button"
+                              disabled={saving}
+                              onClick={clearSmtpPassword}
+                              className="mt-2 text-xs text-destructive underline underline-offset-4"
+                            >
+                              Remove saved password
+                            </button>
+                          )}
+                        </div>
+                        <Field
+                          name="smtpFromEmail"
+                          label="From email"
+                          type="email"
+                          placeholder="invoices@business.com"
+                        />
+                        <Field
+                          name="smtpFromName"
+                          label="From name"
+                          placeholder={company.name || "Your business"}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+            </FormProvider>
+          </main>
+        </div>
+      </div>
+    </FormProvider>
   )
 }
 

@@ -65,21 +65,23 @@ function UserSettings() {
     <div className="flex flex-col gap-6">
       <div className="animate-in">
         <h1 className="font-display text-2xl font-bold tracking-tight">
-          User Settings
+          Account settings
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Manage your account settings and preferences
+          Manage your personal details, sign-in options, and integrations.
         </p>
       </div>
 
       <Tabs defaultValue="my-profile" className="animate-in animate-in-delay-1">
-        <TabsList>
-          {finalTabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="max-w-full overflow-x-auto pb-1">
+          <TabsList aria-label="Account settings" className="min-w-max">
+            {finalTabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
         {finalTabs.map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             <tab.component />

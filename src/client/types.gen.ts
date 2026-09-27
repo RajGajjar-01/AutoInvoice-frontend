@@ -667,6 +667,7 @@ export type UserPublic = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    phone?: (string | null);
     id: string;
     is_verified?: boolean;
     avatar_url?: (string | null);
@@ -693,12 +694,14 @@ export type UserUpdate = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    phone?: (string | null);
     password?: (string | null);
 };
 
 export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
+    phone?: (string | null);
 };
 
 export type ValidationError = {
