@@ -185,7 +185,7 @@ const AdjustStock = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-1.5 min-[380px]:grid-cols-3 sm:gap-2">
             {MODES.map((m) => {
               const Icon = m.icon
               const isActive = mode === m.key

@@ -672,7 +672,7 @@ function TableViewPage() {
               placeholder="Search rows…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-64 h-9 border-border bg-background focus:border-primary focus:ring-primary/10 placeholder:text-muted-foreground text-foreground"
+              className="h-9 w-full border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/10 sm:w-64"
             />
             <Button
               variant="outline"

@@ -179,7 +179,7 @@ const AddItem = () => {
             className="flex flex-col flex-1 min-h-0"
           >
             <div className="overflow-y-auto flex-1 pr-1">
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4 py-2 px-1">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-4 px-1 py-2 sm:grid-cols-2">
                 {/* ── Product Info ── */}
                 <div className="col-span-2">
                   <SectionLabel label="Product Info" />
@@ -202,7 +202,7 @@ const AddItem = () => {
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-2 gap-4 col-span-2">
+                <div className="col-span-1 grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="sku"

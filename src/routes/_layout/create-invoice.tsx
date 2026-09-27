@@ -215,7 +215,7 @@ function CreateInvoicePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 sm:grid-cols-4">
                   <FormItem>
                     <FormLabel>{documentConfig.short} Number</FormLabel>
                     <FormControl>
@@ -284,7 +284,7 @@ function CreateInvoicePage() {
                     )}
                   />
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <FormField
                     control={form.control}
                     name="poNumber"
@@ -348,7 +348,7 @@ function CreateInvoicePage() {
                 </div>
 
                 {documentConfig.type === "quotation" && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <FormField
                       control={form.control}
                       name="validityDate"
@@ -596,7 +596,7 @@ function CreateInvoicePage() {
           </div>
 
           <div className="space-y-6">
-            <Card className="sticky top-24">
+            <Card className="lg:sticky lg:top-24">
               <CardHeader>
                 <CardTitle className="text-lg">Summary</CardTitle>
               </CardHeader>

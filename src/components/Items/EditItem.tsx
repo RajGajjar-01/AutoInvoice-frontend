@@ -205,7 +205,7 @@ const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
               <div className="overflow-y-auto flex-1 pr-1 -mr-1">
                 <div className="grid gap-4 py-2 px-1">
                   <SectionLabel label="Product Info" />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="name"
@@ -305,7 +305,7 @@ const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
                   </div>
 
                   <SectionLabel label="Pricing" />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="salePrice"
@@ -350,7 +350,7 @@ const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
                   </div>
 
                   <SectionLabel label="Tax & Compliance" />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="taxRate"
@@ -394,7 +394,7 @@ const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
                   </div>
 
                   <SectionLabel label="Stock Settings" />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormItem>
                       <FormLabel>Current Stock</FormLabel>
                       <Input

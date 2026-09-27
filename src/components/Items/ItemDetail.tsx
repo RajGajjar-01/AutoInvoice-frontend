@@ -176,7 +176,7 @@ export function ItemDetail({ item, onDeleted }: ItemDetailProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 sm:grid-cols-4">
         <StatCard
           label="Current Stock"
           value={`${stock} ${item.unit || "pcs"}`}

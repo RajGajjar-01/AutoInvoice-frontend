@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query"
-import { AxiosError } from "axios"
 import { ArrowLeft, Check, FileSpreadsheet, Upload } from "lucide-react"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
@@ -14,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { api } from "@/lib/api"
+import { getSafeErrorMessage } from "@/utils"
 
 interface ParsedColumn {
   name: string
@@ -60,19 +60,10 @@ export function ExcelImportDialog({
       setParsedData(data)
       setStep("preview")
     },
-    onError: (error: Error) => {
-      if (error instanceof AxiosError) {
-        const detail =
-          typeof error.response?.data === "object" &&
-          error.response?.data &&
-          "detail" in error.response.data
-            ? String(error.response.data.detail)
-            : error.message
-        toast.error(detail || "Failed to parse Excel file")
-        return
-      }
-      toast.error(error.message || "Failed to parse Excel file")
-    },
+    onError: (error) =>
+      toast.error(
+        `Could not read the Excel file. ${getSafeErrorMessage(error)}`,
+      ),
   })
 
   const createMutation = useMutation({
@@ -96,9 +87,10 @@ export function ExcelImportDialog({
       onOpenChange(false)
       if (onSuccess) onSuccess()
     },
-    onError: () => {
-      toast.error("Failed to save template")
-    },
+    onError: (error) =>
+      toast.error(
+        `Could not save the imported template. ${getSafeErrorMessage(error)}`,
+      ),
   })
 
   const handleFileSelect = useCallback(
@@ -248,7 +240,7 @@ export function ExcelImportDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="template-name">Template Name</Label>
                 <Input
