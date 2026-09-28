@@ -18,7 +18,10 @@ import useAuth from "@/hooks/useAuth"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function LandingPage() {
-  useDocumentTitle("Free GST Invoice Software for Indian Businesses")
+  useDocumentTitle(
+    "Free GST Invoice Software for Indian Businesses",
+    "Create GST invoices, quotations, proformas, and delivery challans. Track payments, customers, and stock. Billing software for Indian small businesses.",
+  )
   const { user, isLoading } = useAuth()
 
   // Reveal the mobile sticky CTA only after the hero (with its own CTA) is scrolled past
@@ -73,7 +76,7 @@ function LandingPage() {
 
       <Footer />
 
-      {/* App-like sticky CTA — mobile only, revealed after the hero, hidden once signed in */}
+      {/* App-like sticky CTA, mobile only, revealed after the hero, hidden once signed in */}
       {isLoading || user ? null : (
         <div
           className={`fixed inset-x-0 bottom-0 z-50 border-t bg-background/90 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md transition-transform duration-300 sm:hidden ${

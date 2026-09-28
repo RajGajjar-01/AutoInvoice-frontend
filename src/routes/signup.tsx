@@ -39,7 +39,10 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>
 
 function SignUp() {
-  useDocumentTitle("Sign Up")
+  useDocumentTitle(
+    "Sign Up for Free GST Invoicing",
+    "Create a free UnifiedDesk account and start making GST invoices, quotations, and delivery challans for your Indian business. No credit card required.",
+  )
   useGoogleAuthMessage()
   const { signUpMutation } = useAuth()
   const form = useForm<FormValues>({

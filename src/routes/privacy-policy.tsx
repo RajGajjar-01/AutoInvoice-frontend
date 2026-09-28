@@ -24,7 +24,10 @@ function Section({
 }
 
 function PrivacyPolicy() {
-  useDocumentTitle("Privacy Policy")
+  useDocumentTitle(
+    "Privacy Policy",
+    "How UnifiedDesk collects, uses, and protects your business data.",
+  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -179,8 +182,8 @@ function PrivacyPolicy() {
             </ul>
             <p>
               We follow the principle of{" "}
-              <strong className="text-foreground">data minimisation</strong> —
-              we collect only what is necessary for the purposes stated above.
+              <strong className="text-foreground">data minimisation</strong>: we
+              collect only what is necessary for the purposes stated above.
             </p>
           </Section>
 
@@ -190,18 +193,18 @@ function PrivacyPolicy() {
             </p>
             <ul className="list-disc list-inside space-y-2 mt-2">
               <li>
-                <strong className="text-foreground">Consent</strong> — you
+                <strong className="text-foreground">Consent</strong>: you
                 provide consent at registration and when entering business
                 details
               </li>
               <li>
                 <strong className="text-foreground">
                   Contractual necessity
-                </strong>{" "}
-                — processing required to deliver the Service you signed up for
+                </strong>
+                : processing required to deliver the Service you signed up for
               </li>
               <li>
-                <strong className="text-foreground">Legal obligation</strong> —
+                <strong className="text-foreground">Legal obligation</strong>:
                 when we are required to retain records under Indian tax or
                 company law
               </li>
@@ -220,7 +223,7 @@ function PrivacyPolicy() {
             </p>
             <ul className="list-disc list-inside space-y-2 mt-2">
               <li>
-                <strong className="text-foreground">WhatsApp</strong> — when you
+                <strong className="text-foreground">WhatsApp</strong>: when you
                 choose to send reminders to customers via WhatsApp, their phone
                 number and reminder message are transmitted to WhatsApp servers
                 (operated by Meta Platforms, Inc.). This transmission is
@@ -229,13 +232,13 @@ function PrivacyPolicy() {
               <li>
                 <strong className="text-foreground">
                   Cloud infrastructure providers
-                </strong>{" "}
-                — our hosting providers may process data on our behalf under
+                </strong>
+                : our hosting providers may process data on our behalf under
                 strict confidentiality terms.
               </li>
               <li>
-                <strong className="text-foreground">Legal requirements</strong>{" "}
-                — if required by a court order, government authority, or
+                <strong className="text-foreground">Legal requirements</strong>:{" "}
+                if required by a court order, government authority, or
                 applicable Indian law.
               </li>
             </ul>
@@ -302,30 +305,30 @@ function PrivacyPolicy() {
             </p>
             <ul className="list-disc list-inside space-y-2 mt-2">
               <li>
-                <strong className="text-foreground">Right to access</strong> —
+                <strong className="text-foreground">Right to access</strong>:
                 request a summary of the personal data we hold about you
               </li>
               <li>
-                <strong className="text-foreground">Right to correction</strong>{" "}
-                — update your account and business details at any time from your
+                <strong className="text-foreground">Right to correction</strong>
+                : update your account and business details at any time from your
                 Profile settings
               </li>
               <li>
-                <strong className="text-foreground">Right to erasure</strong> —
+                <strong className="text-foreground">Right to erasure</strong>:
                 delete your account and all associated data via the Danger Zone
                 in your Profile settings
               </li>
               <li>
                 <strong className="text-foreground">
                   Right to withdraw consent
-                </strong>{" "}
-                — stop using the Service and delete your account at any time
+                </strong>
+                : stop using the Service and delete your account at any time
               </li>
               <li>
                 <strong className="text-foreground">
                   Right to grievance redressal
-                </strong>{" "}
-                — raise a complaint with our Grievance Officer (see Section 10)
+                </strong>
+                : raise a complaint with our Grievance Officer (see Section 10)
               </li>
             </ul>
             <p>

@@ -407,7 +407,7 @@ function InvoiceDetailPage() {
                   <CardTitle className="text-base">Invoice Details</CardTitle>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Issued {invoice.invoiceDate || "—"}
+                  Issued {invoice.invoiceDate || "-"}
                 </p>
               </div>
             </CardHeader>
@@ -418,7 +418,7 @@ function InvoiceDetailPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Date</p>
-                <p className="font-medium">{invoice.invoiceDate || "—"}</p>
+                <p className="font-medium">{invoice.invoiceDate || "-"}</p>
               </div>
               {invoice.dueDate && (
                 <div>
@@ -743,7 +743,7 @@ function InvoiceDetailPage() {
         defaultMessage={`Please find attached ${(
           documentConfigs[invoice.document_type ?? "invoice"]?.singular ??
             "Invoice"
-        ).toLowerCase()} ${invoice.invoiceNumber} for your review. Should you have any questions, feel free to reach out — we're happy to help.`}
+        ).toLowerCase()} ${invoice.invoiceNumber} for your review. Should you have any questions, feel free to reach out. We're happy to help.`}
         sending={sendEmailMutation.isPending}
         onSend={(toEmail, subject, message) =>
           sendEmailMutation.mutate({ to_email: toEmail, subject, message })

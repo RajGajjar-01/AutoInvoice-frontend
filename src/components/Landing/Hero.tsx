@@ -58,7 +58,7 @@ export function Hero() {
           <div className="hero-badge inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-1.5 text-sm mb-6">
             <CheckCircle2 className="h-4 w-4 text-primary" />
             <span className="text-muted-foreground">
-              Trusted by 500+ Indian businesses
+              Now in beta. Built for Indian businesses
             </span>
           </div>
 
@@ -71,9 +71,8 @@ export function Hero() {
           </h1>
 
           <p className="hero-subtitle mt-6 text-lg text-muted-foreground md:text-xl max-w-2xl leading-relaxed">
-            Create GST-compliant invoices, quotations, and challans in seconds.
-            Manage customers, track payments, and grow your business — all in
-            one place.
+            Create GST-compliant invoices, quotations, and challans. Manage
+            customers, track payments, and grow your business, all in one place.
           </p>
 
           <div className="hero-buttons mt-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">

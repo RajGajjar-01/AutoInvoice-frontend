@@ -231,7 +231,7 @@ export function ModernExcelTable({
                         data-field="description"
                         className="h-8 border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-primary/20 text-xs px-2.5 text-muted-foreground"
                       />
-                      {/* HSN/SAC Toggle — shown only when item has an hsn code */}
+                      {/* HSN/SAC Toggle, shown only when item has an hsn code */}
                       {item.hsnCode && (
                         <div className="flex items-center gap-2 px-2.5 pb-1">
                           <button

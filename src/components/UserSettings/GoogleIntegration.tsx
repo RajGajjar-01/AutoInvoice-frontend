@@ -73,7 +73,7 @@ const GoogleIntegration = () => {
               </p>
               {user && !user.has_password && (
                 <p className="text-xs text-muted-foreground">
-                  Set a password first — you sign in with Google only, so
+                  Set a password first. You sign in with Google only, so
                   disconnecting now would lock you out.
                 </p>
               )}

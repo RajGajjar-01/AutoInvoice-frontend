@@ -53,16 +53,16 @@ test.describe("Security & Validation Utilities", () => {
       expect(maskAccountNumber("50100123456789")).toBe("••••••••6789")
       expect(maskAccountNumber("123456789")).toBe("•••••6789")
       expect(maskAccountNumber("1234")).toBe("1234")
-      expect(maskAccountNumber("")).toBe("—")
-      expect(maskAccountNumber(null)).toBe("—")
+      expect(maskAccountNumber("")).toBe("-")
+      expect(maskAccountNumber(null)).toBe("-")
     })
 
     test("maskPan masks the first 6 characters of a 10-digit PAN", () => {
       expect(maskPan("ABCDE1234F")).toBe("••••••234F")
       expect(maskPan("abcde1234f")).toBe("••••••234F")
       expect(maskPan("123")).toBe("123")
-      expect(maskPan("")).toBe("—")
-      expect(maskPan(null)).toBe("—")
+      expect(maskPan("")).toBe("-")
+      expect(maskPan(null)).toBe("-")
     })
   })
 

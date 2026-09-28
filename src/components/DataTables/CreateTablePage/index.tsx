@@ -194,7 +194,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
       {/* ══════════════════════════════════════════════════════
-                TOP BAR — title, subtitle, actions
+                TOP BAR, title, subtitle, actions
             ══════════════════════════════════════════════════════ */}
       <div className="shrink-0 border-b border-border bg-background/95 backdrop-blur-sm">
         {/* Title row */}
@@ -322,7 +322,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
       </div>
 
       {/* ══════════════════════════════════════════════════════
-                SPLIT CONTENT — Preview (flex-1) | Builder (w-80)
+                SPLIT CONTENT, Preview (flex-1) | Builder (w-80)
             ══════════════════════════════════════════════════════ */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <TablePreview

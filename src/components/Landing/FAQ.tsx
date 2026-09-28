@@ -22,7 +22,7 @@ const faqs = [
   {
     question: "Does it support GST (CGST, SGST, IGST)?",
     answer:
-      "Yes. All GST types are supported, including inter-state IGST and intra-state CGST/SGST calculations. Reverse charge is also handled automatically.",
+      "Yes. All GST types are supported, including inter-state IGST and intra-state CGST/SGST calculations. Reverse charge invoices are also supported.",
   },
   {
     question: "Can I export invoices as PDF?",
@@ -47,9 +47,19 @@ const faqs = [
   {
     question: "Is my business data safe?",
     answer:
-      "Yes. All data is encrypted in transit and at rest. We do not share your data with third parties.",
+      "All traffic is encrypted over HTTPS, and sensitive settings such as email and messaging credentials are encrypted in our database. We do not sell or share your data with third parties for marketing.",
   },
 ]
+
+const faqJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
+})
 
 export function FAQ() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -90,7 +100,12 @@ export function FAQ() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-14 md:py-20 bg-muted/50">
+    <section
+      id="faq"
+      ref={sectionRef}
+      className="scroll-mt-16 py-14 md:py-20 bg-muted/50"
+    >
+      <script type="application/ld+json">{faqJsonLd}</script>
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid lg:grid-cols-5 gap-10 lg:gap-16 items-start">
           {/* Left: sticky heading block (2/5) */}

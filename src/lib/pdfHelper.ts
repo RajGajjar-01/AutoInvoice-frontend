@@ -281,7 +281,7 @@ export function buildInvoiceHtml(
       </div>
       <div>
         <div style="font-size:11px;font-weight:700;color:#555;border-bottom:2.5px solid #0E7490;padding-bottom:5px;margin-bottom:10px;text-transform:uppercase">Bill To</div>
-        <p style="font-weight:700;font-size:14px">${cd.name || "—"}</p>
+        <p style="font-weight:700;font-size:14px">${cd.name || "-"}</p>
         ${
           cd.address
             ? `<p style="color:#64748b;font-size:12px;margin-top:4px;line-height:1.4">${cd.address}</p>`
@@ -433,7 +433,7 @@ export function buildInvoiceHtml(
             : ""
         }
         <p style="color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:16px;margin-bottom:6px">Issued To</p>
-        <p style="font-weight:700;font-size:13px">${cd.name || "—"}</p>
+        <p style="font-weight:700;font-size:13px">${cd.name || "-"}</p>
         ${
           cd.address
             ? `<p style="color:#64748b;font-size:11px;margin-top:2px;line-height:1.5">${cd.address}</p>`
@@ -568,7 +568,7 @@ export function buildInvoiceHtml(
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:32px">
       <div>
         <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">ISSUED TO:</p>
-        <p style="font-weight:700;font-size:14px">${cd.name || "—"}</p>
+        <p style="font-weight:700;font-size:14px">${cd.name || "-"}</p>
         ${
           cd.address
             ? `<p style="font-size:12px;color:#6b7280;margin-top:4px;line-height:1.5">${cd.address}</p>`
@@ -736,7 +736,7 @@ export function buildInvoiceHtml(
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:20px 44px;border-bottom:1px solid #e5e7eb;font-size:12px">
     <div>
       <p style="color:#9ca3af;margin-bottom:4px;font-size:10px;text-transform:uppercase;letter-spacing:1px">Invoice To:</p>
-      <p style="font-weight:700;font-size:13px">${cd.name || "—"}</p>
+      <p style="font-weight:700;font-size:13px">${cd.name || "-"}</p>
       ${
         cd.address
           ? `<p style="color:#6b7280;margin-top:2px;line-height:1.5">${cd.address}</p>`

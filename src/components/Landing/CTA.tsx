@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react"
 import { type PointerEvent, useRef } from "react"
 import { Link } from "react-router"
+import { BrandWaves } from "@/components/Common/BrandWaves"
 
 export function CTA() {
   const glowRef = useRef<HTMLDivElement>(null)
@@ -30,10 +31,11 @@ export function CTA() {
 
   return (
     <section
-      className="landing-cta relative isolate overflow-hidden text-center text-white"
+      className="brand-panel relative isolate overflow-hidden text-center text-white"
       onPointerMove={moveGlow}
       onPointerLeave={resetGlow}
     >
+      <BrandWaves />
       <div className="landing-cta-glow" ref={glowRef} aria-hidden="true" />
       <div className="relative z-10 mx-auto flex min-h-[470px] max-w-4xl flex-col items-center justify-center px-6 py-24 sm:min-h-[540px] sm:py-28">
         <h2 className="font-display max-w-3xl text-[clamp(2.25rem,4.2vw,3.5rem)] font-medium leading-[1.12] tracking-[-0.04em]">
@@ -41,8 +43,8 @@ export function CTA() {
           <span className="text-[#f2f5fc]">easiest one.</span>
         </h2>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
-          Create professional GST invoices in minutes. Spend less time on
-          paperwork and more time on your business.
+          Create professional GST invoices and spend less time on paperwork and
+          more time on your business.
         </p>
         <Link
           to="/signup"

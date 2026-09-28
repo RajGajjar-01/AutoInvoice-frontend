@@ -182,7 +182,7 @@ export function ReminderModal({
               )}
             />
 
-            {/* Notification Type — Tabs */}
+            {/* Notification Type, Tabs */}
             <Controller
               control={form.control}
               name="notificationType"

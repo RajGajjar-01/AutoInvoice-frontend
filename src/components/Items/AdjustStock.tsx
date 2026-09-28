@@ -132,7 +132,7 @@ const AdjustStock = ({
       quantity = qty
     } else if (mode === "remove") {
       if (qty > currentStock) {
-        showErrorToast(`Cannot remove ${qty} — only ${currentStock} in stock`)
+        showErrorToast(`Cannot remove ${qty}, only ${currentStock} in stock`)
         return
       }
       quantity = -qty

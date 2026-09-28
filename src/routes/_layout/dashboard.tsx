@@ -196,7 +196,7 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base">
-                  Revenue — Last 30 Days
+                  Revenue (Last 30 Days)
                 </CardTitle>
                 <CardDescription className="text-xs">
                   Paid invoices only
@@ -317,7 +317,7 @@ function Dashboard() {
                           >
                             {inv.invoiceNumber}
                             <p className="text-xs text-muted-foreground font-sans font-normal mt-0.5">
-                              {inv.invoiceDate || "—"}
+                              {inv.invoiceDate || "-"}
                             </p>
                           </Link>
                         </TableCell>
@@ -326,7 +326,7 @@ function Dashboard() {
                             to={`/invoice-history/${inv.id}`}
                             className="block hover:text-primary transition-colors"
                           >
-                            {inv.customer?.name || "—"}
+                            {inv.customer?.name || "-"}
                           </Link>
                         </TableCell>
                         <TableCell className="text-right font-medium text-sm">

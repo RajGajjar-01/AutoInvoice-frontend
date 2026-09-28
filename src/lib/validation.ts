@@ -32,18 +32,18 @@ export function sanitizeLowercase(value?: string | null): string {
  * Data Masking Helpers (OWASP Financial Data Exposure Prevention)
  */
 export function maskAccountNumber(acc?: string | null): string {
-  if (!acc) return "—"
+  if (!acc) return "-"
   const clean = sanitizeNumeric(acc)
-  if (clean.length < 5) return clean || "—"
+  if (clean.length < 5) return clean || "-"
   const lastFour = clean.slice(-4)
   const maskedSection = "•".repeat(Math.min(clean.length - 4, 8))
   return `${maskedSection}${lastFour}`
 }
 
 export function maskPan(pan?: string | null): string {
-  if (!pan) return "—"
+  if (!pan) return "-"
   const clean = sanitizeUppercase(pan)
-  if (clean.length !== 10) return clean || "—"
+  if (clean.length !== 10) return clean || "-"
   return `••••••${clean.slice(-4)}`
 }
 

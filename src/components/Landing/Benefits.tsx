@@ -15,19 +15,19 @@ interface Benefit {
 const benefits: Benefit[] = [
   {
     icon: Zap,
-    title: "Invoice in 60 seconds",
+    title: "Quick to learn",
     description:
-      "No learning curve. Open UnifiedDesk, fill in the details, send — done.",
+      "Open UnifiedDesk, fill in the details, and send. No accounting knowledge needed.",
   },
   {
     icon: ShieldCheck,
-    title: "100% GST Compliant",
+    title: "GST calculations built in",
     description:
-      "CGST, SGST, IGST, reverse charge — handled correctly every time, automatically.",
+      "CGST, SGST, and IGST are calculated for you, and reverse charge invoices are supported.",
   },
   {
     icon: Clock,
-    title: "Save 5+ hours a week",
+    title: "Less repeat data entry",
     description:
       "Stop re-entering data across spreadsheets. Customers, items, and totals are always ready.",
   },
@@ -109,7 +109,7 @@ export function Benefits() {
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-5 lg:gap-16">
           <div className="lg:col-span-2">
             <h2 className="benefits-title font-display text-3xl font-semibold tracking-tight md:text-4xl mb-6">
-              Why 500+ Indian businesses choose UnifiedDesk
+              Why use UnifiedDesk for GST billing
             </h2>
             <div className="space-y-6">
               {benefits.map((benefit) => (

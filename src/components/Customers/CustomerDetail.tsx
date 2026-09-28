@@ -44,7 +44,7 @@ const partyTypeLabel: Record<string, string> = {
 }
 
 function currency(val: number | string | null | undefined): string {
-  if (val == null || val === "" || Number.isNaN(Number(val))) return "—"
+  if (val == null || val === "" || Number.isNaN(Number(val))) return "-"
   return `₹${Number(val).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
 }
 

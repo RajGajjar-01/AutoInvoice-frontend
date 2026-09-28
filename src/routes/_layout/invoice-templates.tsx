@@ -110,7 +110,7 @@ const builtInTemplates: BuiltInTemplate[] = [
 
 // ─── Individual themed previews ───────────────────────────────────────────────
 
-// Template 1 — Clean Teal
+// Template 1, Clean Teal
 function CleanTealPreview(): React.ReactNode {
   return (
     <div
@@ -357,7 +357,7 @@ function CleanTealPreview(): React.ReactNode {
   )
 }
 
-// Template 2 — Geometric
+// Template 2, Geometric
 function GeometricPreview(): React.ReactNode {
   return (
     <div
@@ -657,7 +657,7 @@ function GeometricPreview(): React.ReactNode {
   )
 }
 
-// Template 3 — Circle Studio
+// Template 3, Circle Studio
 function CircleStudioPreview(): React.ReactNode {
   return (
     <div
@@ -910,7 +910,7 @@ function CircleStudioPreview(): React.ReactNode {
   )
 }
 
-// Template 4 — Aizen Bold
+// Template 4, Aizen Bold
 function AizenBoldPreview(): React.ReactNode {
   return (
     <div
@@ -1164,7 +1164,7 @@ function AizenBoldPreview(): React.ReactNode {
   )
 }
 
-// Template 5 — Simple Boxed (Navy Corporate)
+// Template 5, Simple Boxed (Navy Corporate)
 function SimpleBoxedPreview(): React.ReactNode {
   return (
     <div
@@ -1714,7 +1714,7 @@ function InvoiceTemplatesPage() {
   const handlePreviewImported = () => {
     if (!importedTemplate) return
     if (importedTemplate.type === "pdf") {
-      // Open PDF data URL in new tab — browser renders it natively
+      // Open PDF data URL in new tab, browser renders it natively
       window.open(importedTemplate.dataUrl, "_blank")
     } else {
       const popup = window.open("", "_blank", "width=960,height=720")
@@ -1756,7 +1756,7 @@ function InvoiceTemplatesPage() {
             Invoice Templates
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Choose a built-in template — each has a unique design to match your
+            Choose a built-in template. Each has a unique design to match your
             business style
           </p>
         </div>
@@ -2046,7 +2046,7 @@ function InvoiceTemplatesPage() {
       >
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{previewTemplate?.name} — Full Preview</DialogTitle>
+            <DialogTitle>{previewTemplate?.name}: Full Preview</DialogTitle>
           </DialogHeader>
           {previewTemplate &&
             (() => {

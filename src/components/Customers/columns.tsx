@@ -61,7 +61,7 @@ export const columns: ColumnDef<Customer, unknown>[] = [
     header: "Phone",
     cell: ({ row }: { row: { original: Customer } }) => (
       <span className="text-muted-foreground text-sm">
-        {row.original.phone || "—"}
+        {row.original.phone || "-"}
       </span>
     ),
   },
@@ -70,7 +70,7 @@ export const columns: ColumnDef<Customer, unknown>[] = [
     header: "Email",
     cell: ({ row }: { row: { original: Customer } }) => (
       <span className="text-muted-foreground text-sm">
-        {row.original.email || "—"}
+        {row.original.email || "-"}
       </span>
     ),
   },
@@ -79,7 +79,7 @@ export const columns: ColumnDef<Customer, unknown>[] = [
     header: "GSTIN",
     cell: ({ row }: { row: { original: Customer } }) => (
       <span className="font-mono text-xs text-muted-foreground">
-        {row.original.gstin || row.original.gst || "—"}
+        {row.original.gstin || row.original.gst || "-"}
       </span>
     ),
   },

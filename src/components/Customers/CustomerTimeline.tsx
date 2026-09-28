@@ -89,7 +89,7 @@ function TimelineRow({ invoice }: TimelineRowProps) {
         month: "short",
         year: "numeric",
       })
-    : "—"
+    : "-"
 
   const dueDate = invoice.dueDate
     ? new Date(invoice.dueDate).toLocaleDateString("en-IN", {

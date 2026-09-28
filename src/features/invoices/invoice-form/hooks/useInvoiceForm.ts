@@ -525,7 +525,7 @@ export function useInvoiceForm() {
           return
         }
       } catch {
-        toast.warning("Sharing is not supported here — download instead")
+        toast.warning("Sharing is not supported here, please download instead")
       }
     }
 
@@ -566,7 +566,7 @@ export function useInvoiceForm() {
       setEmailDialogDefaults({
         email: validData.customerEmail || "",
         subject: `${documentConfig.singular} ${invoiceNumber} from ${companyDetails.name || "UnifiedDesk"}`,
-        message: `Please find attached ${documentConfig.singular.toLowerCase()} ${invoiceNumber} for your review. Should you have any questions, feel free to reach out — we're happy to help.`,
+        message: `Please find attached ${documentConfig.singular.toLowerCase()} ${invoiceNumber} for your review. Should you have any questions, feel free to reach out. We're happy to help.`,
       })
       setEmailDialogOpen(true)
     })()

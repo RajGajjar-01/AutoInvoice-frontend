@@ -29,16 +29,16 @@ const features: Feature[] = [
     icon: FileText,
     title: "Professional GST Invoices",
     description:
-      "Create GST-compliant invoices, quotations, proformas, and delivery challans in seconds — ready to share as PDF or email directly to clients.",
+      "Create GST-compliant invoices, quotations, proformas, and delivery challans ready to share as PDF or email directly to clients.",
     color: "text-primary",
     bg: "bg-primary/10",
-    stat: "Ready in under 60 seconds",
+    stat: "PDF download or email",
   },
   {
     icon: LayoutTemplate,
     title: "Multiple Templates",
     description:
-      "Clean Teal, Geometric, Circle Studio, and more — pick a design that fits your brand.",
+      "Clean Teal, Geometric, Circle Studio, and more. Pick a design that fits your brand.",
     color: "text-blue-500 dark:text-blue-400",
     bg: "bg-blue-500/10 dark:bg-blue-500/20",
   },
@@ -54,10 +54,10 @@ const features: Feature[] = [
     icon: Package,
     title: "Inventory Tracking",
     description:
-      "Track stock levels across your product catalogue, get low-stock alerts, and adjust quantities — all linked to your invoices automatically.",
+      "Track stock levels across your product catalogue, get low-stock alerts, and adjust quantities, all linked to your invoices.",
     color: "text-violet-500 dark:text-violet-400",
     bg: "bg-violet-500/10 dark:bg-violet-500/20",
-    stat: "Real-time stock alerts",
+    stat: "Low-stock alerts",
   },
   {
     icon: IndianRupee,
@@ -71,7 +71,7 @@ const features: Feature[] = [
     icon: BarChart3,
     title: "Business Dashboard",
     description:
-      "Revenue trends, top customers, outstanding receivables, and KPIs — everything you need to understand how your business is performing at a glance.",
+      "Revenue trends, top customers, outstanding receivables, and KPIs: everything you need to understand how your business is performing at a glance.",
     color: "text-rose-500 dark:text-rose-400",
     bg: "bg-rose-500/10 dark:bg-rose-500/20",
     stat: "Full revenue insights",
@@ -255,21 +255,25 @@ export function Features() {
   }, [])
 
   return (
-    <section ref={featuresRef} className="py-14 md:py-20 bg-muted/50">
+    <section
+      id="features"
+      ref={featuresRef}
+      className="scroll-mt-16 py-14 md:py-20 bg-muted/50"
+    >
       <div className="mx-auto max-w-6xl px-6">
         <div className="features-heading text-center mb-12">
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
             All the tools your business needs
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            GST-ready billing, inventory, customers, and insights — built for
+            GST-ready billing, inventory, customers, and insights, built for
             Indian small businesses and freelancers.
           </p>
         </div>
 
         {/* Alternating bento rows: wide-narrow, narrow-wide, narrow-wide.
             Wide cards grow from half-width to their final two-thirds width
-            as each row scrolls into view. Desktop only — mobile uses a carousel. */}
+            as each row scrolls into view. Desktop only; mobile uses a carousel. */}
         <div className="hidden space-y-4 md:block lg:space-y-5">
           <div className="flex flex-col gap-4 md:flex-row lg:gap-5">
             <FeatureCard
@@ -318,7 +322,7 @@ export function Features() {
         </div>
       </div>
 
-      {/* Mobile carousel — full-bleed, replaces the bento grid below md */}
+      {/* Mobile carousel, full-bleed, replaces the bento grid below md */}
       <div className="md:hidden">
         <FeatureCarousel />
       </div>

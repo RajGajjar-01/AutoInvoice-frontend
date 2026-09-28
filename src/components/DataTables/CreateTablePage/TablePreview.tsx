@@ -108,7 +108,7 @@ function SortableColumnHeader({
       }}
       title="Double-click to rename · Drag to reorder"
     >
-      {/* Drag handle — visible on hover */}
+      {/* Drag handle, visible on hover */}
       <div
         {...(isDragOverlay ? {} : attributes)}
         {...(isDragOverlay ? {} : listeners)}
@@ -144,7 +144,7 @@ function SortableColumnHeader({
         </div>
       )}
 
-      {/* Delete icon — appears on hover */}
+      {/* Delete icon, appears on hover */}
       {!isDragOverlay && canDelete && (
         <button
           type="button"
@@ -321,7 +321,7 @@ export function TablePreview({
               </DragOverlay>
             </div>
 
-            {/* ── Data rows — 5 placeholder rows ── */}
+            {/* ── Data rows, 5 placeholder rows ── */}
             {[1, 2, 3, 4, 5].map((rowIdx) => (
               <div
                 key={rowIdx}
@@ -340,7 +340,7 @@ export function TablePreview({
                     className="w-44 shrink-0 border-r border-border last:border-r-0 px-3 py-3 flex items-center"
                   >
                     <span className="text-muted-foreground/20 text-sm select-none">
-                      —
+                      -
                     </span>
                   </div>
                 ))}

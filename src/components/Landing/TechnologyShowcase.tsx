@@ -2,6 +2,7 @@ import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { ChevronDown, Plus } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
+import { Link } from "react-router"
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar"
 
 gsap.registerPlugin(ScrollTrigger)
@@ -90,8 +91,9 @@ const activities = [
     name: "Raj Patel",
     initials: "RP",
     color: "bg-primary/15 text-primary",
-    message: "Could you send the invoice for March 12? Thank you in advance 😊",
-    hasBar: true,
+    message: null,
+    action: "Invoice marked paid",
+    hasBar: false,
   },
   {
     name: "Priya Sharma",
@@ -184,11 +186,11 @@ export function TechnologyShowcase() {
         {/* ---- Header ---- */}
         <div className="tech-heading text-center mb-14">
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl max-w-lg mx-auto">
-            Latest advanced technologies to ensure everything you need
+            See your billing at a glance
           </h2>
           <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Maximize your team's productivity and security with our affordable,
-            user-friendly invoice management system.
+            Track revenue, stay on top of reminders, and keep every customer's
+            invoice history in one place.
           </p>
         </div>
 
@@ -204,17 +206,16 @@ export function TechnologyShowcase() {
                     Dynamic dashboard
                   </h3>
                   <p className="text-sm text-primary-foreground/70 leading-relaxed max-w-sm">
-                    UnifiedDesk helps you work faster, smarter and more
-                    efficiently, delivering the visibility and data-driven
-                    insights to track revenue and manage invoices.
+                    See monthly revenue, outstanding payments, and your top
+                    customers on one screen.
                   </p>
                 </div>
-                <button
-                  type="button"
+                <Link
+                  to="/signup"
                   className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary-foreground text-primary px-5 py-2.5 text-sm font-medium transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98] w-fit"
                 >
-                  Explore all
-                </button>
+                  Try it free
+                </Link>
               </div>
 
               {/* Right: chart mockup */}
@@ -249,8 +250,8 @@ export function TechnologyShowcase() {
               Smart notifications
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              Easily accessible from the notifications center, calendar or email
-              with the relevant activities.
+              Get reminders in the app and by email, and choose which
+              notifications you receive.
             </p>
 
             {/* Email notification settings */}
@@ -286,8 +287,8 @@ export function TechnologyShowcase() {
               Invoice activity
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              Discuss invoice queries, manage tasks, track approvals and
-              progress in the workspace.
+              See every invoice for a customer, with its payment status, in one
+              timeline.
             </p>
 
             {/* Activity feed */}
@@ -299,7 +300,7 @@ export function TechnologyShowcase() {
                   className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                 >
                   <Plus className="h-3 w-3" />
-                  Message
+                  New invoice
                 </button>
               </div>
               <div className="space-y-4">

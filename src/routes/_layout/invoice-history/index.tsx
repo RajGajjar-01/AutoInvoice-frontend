@@ -300,7 +300,7 @@ function InvoiceHistoryPage() {
                         className="block hover:text-primary transition-colors"
                       >
                         <span className="font-medium">
-                          {inv.customer?.name || "—"}
+                          {inv.customer?.name || "-"}
                         </span>
                         {inv.customer?.email && (
                           <span className="block text-xs text-muted-foreground mt-0.5">
@@ -310,7 +310,7 @@ function InvoiceHistoryPage() {
                       </Link>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {inv.invoiceDate || "—"}
+                      {inv.invoiceDate || "-"}
                     </TableCell>
                     <TableCell className="text-sm">
                       {inv.dueDate ? (
@@ -324,7 +324,7 @@ function InvoiceHistoryPage() {
                           {inv.dueDate}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right font-medium text-sm">

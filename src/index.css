@@ -64,7 +64,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  /* Deep Navy — #1e40af */
+  /* Deep Navy, #1e40af */
   --primary: #2563eb;
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.97 0 0);
@@ -101,7 +101,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  /* Royal Blue dark mode — #2563eb reads well on dark */
+  /* Royal Blue dark mode, #2563eb reads well on dark */
   --primary: #2563eb;
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.269 0 0);
@@ -219,19 +219,6 @@
     }
   }
 
-  @keyframes auth-paybar {
-    from {
-      width: 12%;
-    }
-    to {
-      width: 76%;
-    }
-  }
-
-  .auth-paybar {
-    animation: auth-paybar 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
   .animate-pulse-soft {
     animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
@@ -257,6 +244,30 @@
     );
   }
 
+  /* Brand-blue panel (auth side panel, landing CTA) with two soft light sources */
+  .brand-panel {
+    background: #3c6bd2;
+  }
+
+  .brand-waves {
+    mask-image: linear-gradient(to bottom, transparent 25%, black 70%);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .brand-waves-drift {
+      animation: brand-waves-drift 18s ease-in-out infinite alternate;
+    }
+  }
+
+  @keyframes brand-waves-drift {
+    from {
+      transform: translate3d(-24px, 0, 0);
+    }
+    to {
+      transform: translate3d(24px, -18px, 0);
+    }
+  }
+
   .hover-safe {
     @media (hover: hover) and (pointer: fine) {
       &:hover {
@@ -270,49 +281,6 @@
   }
 }
 
-.landing-cta {
-  --cta-faq: color-mix(in srgb, var(--muted) 50%, var(--background));
-  --cta-footer: color-mix(in srgb, var(--muted) 30%, var(--background));
-  --cta-violet: #7c3aed;
-  background: linear-gradient(
-    180deg,
-    var(--cta-faq) 0%,
-    var(--cta-faq) 18%,
-    color-mix(in srgb, var(--primary) 10%, var(--cta-faq)) 72%,
-    var(--cta-footer) 100%
-  );
-}
-
-/* Ambient, always-on glow — light rising from the bottom edge of the
-   section, rather than floating blobs, so it reads as one continuous wash. */
-.landing-cta::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      120% 100% at 32% 130%,
-      color-mix(in srgb, var(--primary) 60%, transparent),
-      transparent 65%
-    ),
-    radial-gradient(
-      120% 100% at 74% 130%,
-      color-mix(in srgb, var(--cta-violet) 50%, transparent),
-      transparent 65%
-    );
-  filter: blur(80px);
-  opacity: 0.6;
-  mask-image: linear-gradient(
-    180deg,
-    transparent 0%,
-    black 30%,
-    black 88%,
-    transparent 100%
-  );
-}
-
 .landing-cta-glow {
   position: absolute;
   z-index: 0;
@@ -323,7 +291,7 @@
   pointer-events: none;
   background: radial-gradient(
     90% 90% at 50% 130%,
-    color-mix(in srgb, var(--primary) 45%, transparent) 0%,
+    color-mix(in srgb, var(--primary) 40%, white) 0%,
     transparent 65%
   );
   filter: blur(70px);
@@ -341,8 +309,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .landing-cta-glow,
-  .landing-cta-button,
-  .auth-paybar {
+  .landing-cta-button {
     transition: none;
     animation: none;
   }

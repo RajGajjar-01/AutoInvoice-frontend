@@ -30,7 +30,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 function Login() {
-  useDocumentTitle("Log In")
+  useDocumentTitle(
+    "Log In",
+    "Log in to UnifiedDesk to create GST invoices, track payments, and manage your customers and inventory.",
+  )
   useGoogleAuthMessage()
   const { loginMutation } = useAuth()
   const form = useForm<FormValues>({
@@ -60,7 +63,7 @@ function Login() {
               Welcome back
             </h1>
             <p className="text-sm text-muted-foreground">
-              Sign in to create GST invoices in seconds
+              Sign in to create and manage your GST invoices
             </p>
           </div>
 

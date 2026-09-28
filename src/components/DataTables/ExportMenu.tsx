@@ -100,7 +100,7 @@ export function ExportMenu({ table, rows }: ExportMenuProps) {
 
         <DropdownMenuSeparator />
 
-        {/* Excel — coming soon */}
+        {/* Excel, coming soon */}
         <DropdownMenuItem disabled className="gap-2">
           <FileText className="h-4 w-4 shrink-0 opacity-50" />
           <span className="opacity-50">Export as Excel</span>
@@ -112,7 +112,7 @@ export function ExportMenu({ table, rows }: ExportMenuProps) {
           </Badge>
         </DropdownMenuItem>
 
-        {/* PDF — coming soon */}
+        {/* PDF, coming soon */}
         <DropdownMenuItem disabled className="gap-2">
           <FileText className="h-4 w-4 shrink-0 opacity-50" />
           <span className="opacity-50">Export as PDF</span>

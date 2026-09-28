@@ -151,7 +151,7 @@ export const useNotificationStore = create<NotificationState>()(
               reminderId: reminder.id,
               title: reminder.title,
               description: reminder.description
-                ? `${reminder.description} — Table: ${table.name}`
+                ? `${reminder.description} · Table: ${table.name}`
                 : `Table: ${table.name}`,
               type: "reminder",
               read: false,

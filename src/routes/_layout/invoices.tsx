@@ -297,7 +297,7 @@ function InvoicesPage() {
                       className="block hover:text-primary transition-colors"
                     >
                       <span className="font-medium">
-                        {inv.customer?.name || "—"}
+                        {inv.customer?.name || "-"}
                       </span>
                       {inv.customer?.email && (
                         <span className="block text-xs text-muted-foreground mt-0.5">
@@ -307,7 +307,7 @@ function InvoicesPage() {
                     </Link>
                   </TableCell>
                   <TableCell className="hidden text-sm text-muted-foreground md:table-cell">
-                    {inv.invoiceDate || "—"}
+                    {inv.invoiceDate || "-"}
                   </TableCell>
                   <TableCell className="hidden text-sm md:table-cell">
                     {inv.dueDate ? (
@@ -321,7 +321,7 @@ function InvoicesPage() {
                         {inv.dueDate}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right font-semibold text-sm">

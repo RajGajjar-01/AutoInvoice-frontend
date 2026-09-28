@@ -321,11 +321,11 @@ function TableCellComponent({
             onKeyDown={handleSelectKeyDown}
             onFocus={onFocus}
           >
-            <SelectValue placeholder="—">
+            <SelectValue placeholder="-">
               {value ? (
                 <span className="font-medium text-xs">{String(value)}</span>
               ) : (
-                <span className="text-muted-foreground">—</span>
+                <span className="text-muted-foreground">-</span>
               )}
             </SelectValue>
           </SelectTrigger>
@@ -359,7 +359,7 @@ function TableCellComponent({
             {String(value)}
           </span>
         ) : (
-          <span className="text-muted-foreground">—</span>
+          <span className="text-muted-foreground">-</span>
         )}
       </button>
     )
@@ -397,7 +397,7 @@ function TableCellComponent({
                 </span>
               </>
             ) : (
-              <span className="text-muted-foreground/40 select-none">—</span>
+              <span className="text-muted-foreground/40 select-none">-</span>
             )}
           </button>
         </PopoverAnchor>
@@ -549,7 +549,7 @@ function TableCellComponent({
     )
   }
 
-  // ── Text / Number / Amount — inline edit ───────────────────────────────────
+  // ── Text / Number / Amount, inline edit ───────────────────────────────────
   if (editing) {
     const inputMode =
       type === "Number" || type === "Amount (₹)" ? "decimal" : undefined
@@ -612,7 +612,7 @@ function TableCellComponent({
           {String(displayValue)}
         </span>
       ) : (
-        <span className="text-muted-foreground/40 select-none">—</span>
+        <span className="text-muted-foreground/40 select-none">-</span>
       )}
     </button>
   )

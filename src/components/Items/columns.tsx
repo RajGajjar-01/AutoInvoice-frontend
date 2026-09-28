@@ -38,7 +38,7 @@ function StockPill({ item }: { item: Item }) {
           "font-mono text-xs border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
         )}
       >
-        {stock} — Low
+        {stock} (Low)
       </Badge>
     )
   }
@@ -80,7 +80,7 @@ export const columns: ColumnDef<Item, unknown>[] = [
     header: "Category",
     cell: ({ row }: CellContext<Item, unknown>) => {
       const cat = row.original.category
-      if (!cat) return <span className="text-muted-foreground text-sm">—</span>
+      if (!cat) return <span className="text-muted-foreground text-sm">-</span>
       return (
         <Badge variant="secondary" className="text-xs">
           {cat}

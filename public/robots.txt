@@ -1,0 +1,20 @@
+User-agent: *
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /insights
+Disallow: /invoices
+Disallow: /invoice-templates
+Disallow: /invoice-history
+Disallow: /notifications
+Disallow: /profile
+Disallow: /settings
+Disallow: /create-
+Disallow: /customers
+Disallow: /items
+Disallow: /data-tables
+Disallow: /template-builder
+Disallow: /verify-email
+Disallow: /recover-password
+Disallow: /reset-password
+
+Sitemap: https://unifieddesk.autoinvoicing.workers.dev/sitemap.xml

@@ -147,7 +147,7 @@ function ColumnCard({
           )}
         </button>
 
-        {/* Delete — always visible, outside the expand button */}
+        {/* Delete, always visible, outside the expand button */}
         <button
           type="button"
           onClick={() => onRemove(index)}

@@ -53,7 +53,7 @@ function StockBadge({ item }: StockBadgeProps) {
         variant="outline"
         className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
       >
-        Low Stock — {stock} left
+        Low Stock: {stock} left
       </Badge>
     )
   return (
@@ -61,7 +61,7 @@ function StockBadge({ item }: StockBadgeProps) {
       variant="outline"
       className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
     >
-      In Stock — {stock}
+      In Stock: {stock}
     </Badge>
   )
 }

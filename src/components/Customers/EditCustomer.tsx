@@ -343,7 +343,7 @@ const EditCustomer = ({
                           />
                         </FormControl>
                         <FormDescription>
-                          Optional — printed on B2B invoices
+                          Optional. Printed on B2B invoices
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -377,7 +377,7 @@ const EditCustomer = ({
                           <FormControl>
                             <textarea
                               className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                              placeholder="Optional — if different from billing"
+                              placeholder="Optional, if different from billing"
                               {...field}
                             />
                           </FormControl>
@@ -480,7 +480,7 @@ const EditCustomer = ({
                         <FormControl>
                           <textarea
                             className="flex min-h-[72px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                            placeholder="Internal notes — not visible to the customer"
+                            placeholder="Internal notes, not visible to the customer"
                             {...field}
                           />
                         </FormControl>

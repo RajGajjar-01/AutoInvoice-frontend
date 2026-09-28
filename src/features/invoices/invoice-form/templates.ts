@@ -363,7 +363,7 @@ function cleanTealTemplate(
       </div>
       <div>
         <div style="font-size:11px;font-weight:700;color:#555;border-bottom:2.5px solid #0E7490;padding-bottom:5px;margin-bottom:10px;text-transform:uppercase">Bill To</div>
-        <p style="font-weight:700;font-size:14px">${ctx.cd.name || "—"}</p>
+        <p style="font-weight:700;font-size:14px">${ctx.cd.name || "-"}</p>
         ${ctx.cd.address ? `<p style="color:#64748b;font-size:12px;margin-top:4px;line-height:1.5">${ctx.cd.address}</p>` : ""}
         ${ctx.cd.phone ? `<p style="color:#64748b;font-size:12px">${ctx.cd.phone}</p>` : ""}
         ${ctx.cd.email ? `<p style="color:#64748b;font-size:12px">${ctx.cd.email}</p>` : ""}
@@ -452,7 +452,7 @@ function geometricTemplate(
         ${ctx.bizPhone ? `<p style="color:#64748b;font-size:11px">${ctx.bizPhone}</p>` : ""}
         ${ctx.bizGstin ? `<p style="color:#64748b;font-size:11px">GSTIN: ${ctx.bizGstin}</p>` : ""}
         <p style="color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:16px;margin-bottom:6px">Issued To</p>
-        <p style="font-weight:700;font-size:13px">${ctx.cd.name || "—"}</p>
+        <p style="font-weight:700;font-size:13px">${ctx.cd.name || "-"}</p>
         ${ctx.cd.address ? `<p style="color:#64748b;font-size:11px;margin-top:2px;line-height:1.5">${ctx.cd.address}</p>` : ""}
         ${ctx.cd.phone ? `<p style="color:#64748b;font-size:11px">${ctx.cd.phone}</p>` : ""}
         ${ctx.cd.email ? `<p style="color:#64748b;font-size:11px">${ctx.cd.email}</p>` : ""}
@@ -559,7 +559,7 @@ function circleStudioTemplate(
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:32px">
       <div>
         <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">ISSUED TO:</p>
-        <p style="font-weight:700;font-size:14px">${ctx.cd.name || "—"}</p>
+        <p style="font-weight:700;font-size:14px">${ctx.cd.name || "-"}</p>
         ${ctx.cd.address ? `<p style="font-size:12px;color:#6b7280;margin-top:4px;line-height:1.5">${ctx.cd.address}</p>` : ""}
         ${ctx.cd.phone ? `<p style="font-size:12px;color:#6b7280">${ctx.cd.phone}</p>` : ""}
         ${ctx.cd.email ? `<p style="font-size:12px;color:#6b7280">${ctx.cd.email}</p>` : ""}
@@ -651,7 +651,7 @@ function aizenBoldTemplate(
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:20px 44px;border-bottom:1px solid #e5e7eb;font-size:12px">
     <div>
       <p style="color:#9ca3af;margin-bottom:4px;font-size:10px;text-transform:uppercase;letter-spacing:1px">Invoice To:</p>
-      <p style="font-weight:700;font-size:13px">${ctx.cd.name || "—"}</p>
+      <p style="font-weight:700;font-size:13px">${ctx.cd.name || "-"}</p>
       ${ctx.cd.address ? `<p style="color:#6b7280;margin-top:2px;line-height:1.5">${ctx.cd.address}</p>` : ""}
       ${ctx.cd.phone ? `<p style="color:#6b7280">${ctx.cd.phone}</p>` : ""}
       ${ctx.cd.email ? `<p style="color:#6b7280">${ctx.cd.email}</p>` : ""}
@@ -790,7 +790,7 @@ function deliveryChallanTemplate(
       </div>
       <div>
         <div style="font-size:11px;font-weight:700;color:#555;border-bottom:2.5px solid #0E7490;padding-bottom:5px;margin-bottom:10px;text-transform:uppercase">Deliver To</div>
-        <p style="font-weight:700;font-size:14px">${ctx.cd.name || "—"}</p>
+        <p style="font-weight:700;font-size:14px">${ctx.cd.name || "-"}</p>
         ${ctx.cd.address ? `<p style="color:#64748b;font-size:12px;margin-top:4px;line-height:1.5">${ctx.cd.address}</p>` : ""}
         ${ctx.cd.phone ? `<p style="color:#64748b;font-size:12px">${ctx.cd.phone}</p>` : ""}
         ${ctx.cd.gst ? `<p style="color:#64748b;font-size:11px;margin-top:2px">GSTIN: ${ctx.cd.gst}</p>` : ""}

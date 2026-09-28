@@ -629,7 +629,7 @@ function CanvasDropZone({ onDrop }: CanvasDropZoneProps) {
       </div>
       <p className="font-medium text-sm mb-1">Start with Company Header</p>
       <p className="text-xs text-muted-foreground max-w-[200px]">
-        Click <strong>Fields</strong> on the left and add blocks — or use the
+        Click <strong>Fields</strong> on the left and add blocks, or use the
         preset layout
       </p>
       <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
@@ -1299,7 +1299,7 @@ function TemplateBuilderPage() {
                   </button>
                 </div>
                 <p className="text-[10px] text-muted-foreground px-2 pb-1 pt-1 uppercase tracking-wide font-medium">
-                  All Blocks — Click to add
+                  All Blocks: Click to add
                 </p>
                 {BLOCK_DEFS.map((def) => {
                   const Icon = def.icon
@@ -1353,7 +1353,7 @@ function TemplateBuilderPage() {
           </div>
         </Card>
 
-        {/* ═══ RIGHT PANEL — Canvas ══════════════════════════════════════════ */}
+        {/* ═══ RIGHT PANEL, Canvas ══════════════════════════════════════════ */}
         <Card className="flex flex-col overflow-hidden">
           <CardHeader className="px-4 py-2.5 border-b shrink-0">
             <div className="flex items-center justify-between">
