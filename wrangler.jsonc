@@ -1,10 +1,17 @@
 // Cloudflare Workers static-assets deploy (free: static requests are unmetered).
-// Deploy: VITE_API_URL=https://<lambda-function-url> npx vite build && npx wrangler deploy
+// worker.js proxies /api/* to Lambda so the API is same-origin (first-party cookies).
+// Deploy: VITE_API_URL= npx vite build && npx wrangler deploy
 {
   "name": "unifieddesk",
   "compatibility_date": "2026-09-01",
+  "main": "worker.js",
+  "vars": {
+    "API_ORIGIN": "https://fqzszz4yo2ed2ttrrvhncuyucq0qpwsg.lambda-url.ap-south-1.on.aws"
+  },
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
   }
 }
