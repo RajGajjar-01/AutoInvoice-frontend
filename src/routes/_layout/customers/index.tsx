@@ -164,7 +164,7 @@ function CustomersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between animate-in">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight">
             Customers
@@ -176,7 +176,7 @@ function CustomersPage() {
         <AddCustomer />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in animate-in-delay-1">
+      <div className="hidden grid-cols-1 gap-4 sm:grid sm:grid-cols-3 animate-in animate-in-delay-1">
         <StatsCard
           icon={Users}
           title="Total Parties"
@@ -203,8 +203,8 @@ function CustomersPage() {
         <CustomersEmptyState />
       ) : (
         <>
-          <div className="flex items-center gap-3 animate-in animate-in-delay-2">
-            <div className="relative max-w-sm flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center animate-in animate-in-delay-2">
+            <div className="relative w-full sm:max-w-sm sm:flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name, email, GSTIN, tags…"
@@ -214,7 +214,7 @@ function CustomersPage() {
               />
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-36">
+              <SelectTrigger className="w-full sm:w-36">
                 <SelectValue placeholder="All types" />
               </SelectTrigger>
               <SelectContent>

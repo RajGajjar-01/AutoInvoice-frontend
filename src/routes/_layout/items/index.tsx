@@ -152,7 +152,7 @@ function ItemsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between animate-in">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight">
             Items
@@ -164,7 +164,7 @@ function ItemsPage() {
         <AddItem />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in animate-in-delay-1">
+      <div className="hidden grid-cols-1 gap-4 sm:grid sm:grid-cols-3 animate-in animate-in-delay-1">
         <StatsCard
           icon={Package}
           title="Total Items"
@@ -189,8 +189,8 @@ function ItemsPage() {
         />
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap animate-in animate-in-delay-2">
-        <div className="relative max-w-sm flex-1 min-w-40">
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:flex-wrap animate-in animate-in-delay-2">
+        <div className="relative col-span-2 min-w-0 sm:max-w-sm sm:flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name, SKU, category…"
@@ -202,7 +202,7 @@ function ItemsPage() {
 
         {categories.length > 1 && (
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36">
               <Filter className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -220,7 +220,7 @@ function ItemsPage() {
         )}
 
         <Select value={stockFilter} onValueChange={setStockFilter}>
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-full sm:w-36">
             <SelectValue placeholder="Stock status" />
           </SelectTrigger>
           <SelectContent>

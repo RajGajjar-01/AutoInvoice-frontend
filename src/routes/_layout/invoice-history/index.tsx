@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/table"
 import { HistoryEmptyState } from "@/features/invoice-history/components/HistoryEmptyState"
 import { DeleteInvoiceDialog } from "@/features/invoices/components/DeleteInvoiceDialog"
+import { MobileInvoiceCard } from "@/features/invoices/components/MobileInvoiceCard"
 import { StatCard } from "@/features/invoices/components/StatCard"
 import { StatusBadge } from "@/features/invoices/components/StatusBadge"
 import type { Invoice } from "@/features/invoices/hooks/useInvoices"
@@ -175,21 +176,21 @@ function InvoiceHistoryPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between animate-in">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Invoice History</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Search, filter, and manage all your invoices
           </p>
         </div>
-        <Link to="/create-invoice">
-          <Button>
+        <Link to="/create-invoice" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <FilePlus className="mr-2 h-4 w-4" /> New Invoice
           </Button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in animate-in-delay-1">
+      <div className="hidden grid-cols-2 gap-4 md:grid lg:grid-cols-4 animate-in animate-in-delay-1">
         <StatCard
           icon={FileText}
           title="Total Invoices"
@@ -226,8 +227,8 @@ function InvoiceHistoryPage() {
       </div>
 
       {invoices.length > 0 && (
-        <div className="flex items-center gap-3 flex-wrap animate-in animate-in-delay-2">
-          <div className="relative flex-1 min-w-48 max-w-sm">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:flex-wrap animate-in animate-in-delay-2">
+          <div className="relative col-span-2 min-w-0 sm:max-w-sm sm:flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by invoice #, customer, amount…"
@@ -237,7 +238,7 @@ function InvoiceHistoryPage() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -248,7 +249,7 @@ function InvoiceHistoryPage() {
             </SelectContent>
           </Select>
           <Select value={sortOrder} onValueChange={setSortOrder}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
             <SelectContent>
@@ -266,113 +267,130 @@ function InvoiceHistoryPage() {
       ) : (
         <Card className="animate-in animate-in-delay-2">
           <CardContent className="px-0 pb-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Due</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((inv) => (
-                  <TableRow
-                    key={inv.id}
-                    className="hover:bg-muted/50 transition-colors group"
-                  >
-                    <TableCell className="font-mono text-sm font-medium">
-                      <Link
-                        to={`/invoice-history/${inv.id}`}
-                        className="hover:text-primary transition-colors"
-                      >
-                        {inv.invoiceNumber}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <Link
-                        to={`/invoice-history/${inv.id}`}
-                        className="block hover:text-primary transition-colors"
-                      >
-                        <span className="font-medium">
-                          {inv.customer?.name || "-"}
-                        </span>
-                        {inv.customer?.email && (
-                          <span className="block text-xs text-muted-foreground mt-0.5">
-                            {inv.customer.email}
-                          </span>
-                        )}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {inv.invoiceDate || "-"}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {inv.dueDate ? (
-                        <span
-                          className={
-                            inv.status === "overdue"
-                              ? "text-destructive font-medium"
-                              : "text-muted-foreground"
-                          }
-                        >
-                          {inv.dueDate}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right font-medium text-sm">
-                      {fmt(inv.grandTotal, inv.currency)}
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <StatusBadge
-                        status={inv.status}
-                        onClick={() => handleToggleStatus(inv)}
-                      />
-                    </TableCell>
-                    <TableCell
-                      className="text-right"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to={`/invoice-history/${inv.id}`}>
-                              <FileText className="mr-2 h-4 w-4" /> View Details
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleWhatsApp(inv)}>
-                            <Send className="mr-2 h-4 w-4" /> Send via WhatsApp
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteTarget(inv)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            <div className="divide-y md:hidden">
+              {filtered.map((inv) => (
+                <MobileInvoiceCard
+                  key={inv.id}
+                  invoice={inv}
+                  onStatusChange={handleToggleStatus}
+                  onWhatsApp={handleWhatsApp}
+                  onDelete={setDeleteTarget}
+                />
+              ))}
+            </div>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>Invoice #</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Due</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">
+                      <span className="sr-only">Actions</span>
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((inv) => (
+                    <TableRow
+                      key={inv.id}
+                      className="hover:bg-muted/50 transition-colors group"
+                    >
+                      <TableCell className="font-mono text-sm font-medium">
+                        <Link
+                          to={`/invoice-history/${inv.id}`}
+                          className="hover:text-primary transition-colors"
+                        >
+                          {inv.invoiceNumber}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <Link
+                          to={`/invoice-history/${inv.id}`}
+                          className="block hover:text-primary transition-colors"
+                        >
+                          <span className="font-medium">
+                            {inv.customer?.name || "-"}
+                          </span>
+                          {inv.customer?.email && (
+                            <span className="block text-xs text-muted-foreground mt-0.5">
+                              {inv.customer.email}
+                            </span>
+                          )}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {inv.invoiceDate || "-"}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {inv.dueDate ? (
+                          <span
+                            className={
+                              inv.status === "overdue"
+                                ? "text-destructive font-medium"
+                                : "text-muted-foreground"
+                            }
+                          >
+                            {inv.dueDate}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-sm">
+                        {fmt(inv.grandTotal, inv.currency)}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <StatusBadge
+                          status={inv.status}
+                          onClick={() => handleToggleStatus(inv)}
+                        />
+                      </TableCell>
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to={`/invoice-history/${inv.id}`}>
+                                <FileText className="mr-2 h-4 w-4" /> View
+                                Details
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleWhatsApp(inv)}
+                            >
+                              <Send className="mr-2 h-4 w-4" /> Send via
+                              WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setDeleteTarget(inv)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
             <div className="px-6 py-3 border-t bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
               <span>

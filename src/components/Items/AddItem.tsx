@@ -152,7 +152,7 @@ const AddItem = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Add Item
         </Button>
@@ -181,14 +181,14 @@ const AddItem = () => {
             <div className="overflow-y-auto flex-1 pr-1">
               <div className="grid grid-cols-1 gap-x-6 gap-y-4 px-1 py-2 sm:grid-cols-2">
                 {/* ── Product Info ── */}
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <SectionLabel label="Product Info" />
                 </div>
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
-                    <FormItem className="col-span-2">
+                    <FormItem className="sm:col-span-2">
                       <FormLabel>
                         Item Name <span className="text-destructive">*</span>
                       </FormLabel>

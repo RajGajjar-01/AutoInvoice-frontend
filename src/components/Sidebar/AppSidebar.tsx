@@ -98,7 +98,7 @@ export function AppSidebar() {
     }
   }
 
-  const isCollapsed = state === "collapsed"
+  const isCollapsed = !isMobile && state === "collapsed"
 
   return (
     <Sidebar

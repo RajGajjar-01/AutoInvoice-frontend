@@ -64,6 +64,15 @@ function DataTableComponent<TData, TValue>({
   const pageCount = table.getPageCount()
   const rowCount = table.getRowCount()
   const { pageIndex, pageSize } = table.getState().pagination
+  const sortableColumns = table
+    .getAllLeafColumns()
+    .filter(
+      (column) =>
+        column.getCanSort() && typeof column.columnDef.header === "string",
+    )
+  const mobileSort = sorting[0]
+    ? `${sorting[0].id}:${sorting[0].desc ? "desc" : "asc"}`
+    : "default"
   const pageRange = useMemo(() => {
     if (rowCount === 0) {
       return { start: 0, end: 0 }
@@ -76,69 +85,169 @@ function DataTableComponent<TData, TValue>({
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4 overflow-hidden">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => {
-                const canSort = header.column.getCanSort()
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <button
-                        type="button"
-                        className={cn(
-                          "inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider",
-                          canSort &&
-                            "cursor-pointer hover:text-foreground transition-colors",
-                        )}
-                        onClick={
-                          canSort
-                            ? header.column.getToggleSortingHandler()
-                            : undefined
-                        }
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                        {canSort && (
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground/60" />
-                        )}
-                      </button>
-                    )}
-                  </TableHead>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
+      {sortableColumns.length > 0 && (
+        <div className="flex items-center gap-3 sm:hidden">
+          <label
+            htmlFor="mobile-table-sort"
+            className="shrink-0 text-sm font-medium"
+          >
+            Sort by
+          </label>
+          <select
+            id="mobile-table-sort"
+            className="h-11 min-w-0 flex-1 rounded-md border border-input bg-background px-3 text-base text-foreground"
+            value={mobileSort}
+            onChange={(event) => {
+              if (event.target.value === "default") {
+                setSorting([])
+                return
+              }
+              const [id, direction] = event.target.value.split(":")
+              setSorting([{ id, desc: direction === "desc" }])
+            }}
+          >
+            <option value="default">Default order</option>
+            {sortableColumns.flatMap((column) => [
+              <option key={`${column.id}:asc`} value={`${column.id}:asc`}>
+                {String(column.columnDef.header)} ascending
+              </option>,
+              <option key={`${column.id}:desc`} value={`${column.id}:desc`}>
+                {String(column.columnDef.header)} descending
+              </option>,
+            ])}
+          </select>
+        </div>
+      )}
+      <div className="space-y-3 sm:hidden">
+        {table.getRowModel().rows.length ? (
+          table.getRowModel().rows.map((row) => {
+            const cells = row.getVisibleCells()
+            const primary = cells.find((cell) => cell.column.id !== "actions")
+            const action = cells.find((cell) => cell.column.id === "actions")
+            return (
+              <article
                 key={row.id}
-                className="transition-colors hover:bg-muted/50"
+                className="min-w-0 rounded-xl border bg-card p-4"
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1 break-words text-base font-semibold">
+                    {primary &&
+                      flexRender(
+                        primary.column.columnDef.cell,
+                        primary.getContext(),
+                      )}
+                  </div>
+                  {action && (
+                    <div className="-mr-1 -mt-1 shrink-0">
+                      {flexRender(
+                        action.column.columnDef.cell,
+                        action.getContext(),
+                      )}
+                    </div>
+                  )}
+                </div>
+                <dl className="mt-3 grid gap-2 border-t pt-3">
+                  {cells
+                    .filter(
+                      (cell) =>
+                        cell.id !== primary?.id && cell.id !== action?.id,
+                    )
+                    .map((cell) => (
+                      <div
+                        key={cell.id}
+                        className="flex min-w-0 items-start justify-between gap-3 text-sm"
+                      >
+                        <dt className="shrink-0 text-muted-foreground">
+                          {typeof cell.column.columnDef.header === "string"
+                            ? cell.column.columnDef.header
+                            : cell.column.id}
+                        </dt>
+                        <dd className="min-w-0 break-words text-right font-medium [overflow-wrap:anywhere]">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </dd>
+                      </div>
+                    ))}
+                </dl>
+              </article>
+            )
+          })
+        ) : (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            No results found.
+          </p>
+        )}
+      </div>
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {headerGroup.headers.map((header) => {
+                  const canSort = header.column.getCanSort()
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder ? null : (
+                        <button
+                          type="button"
+                          className={cn(
+                            "inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider",
+                            canSort &&
+                              "cursor-pointer hover:text-foreground transition-colors",
+                          )}
+                          onClick={
+                            canSort
+                              ? header.column.getToggleSortingHandler()
+                              : undefined
+                          }
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                          {canSort && (
+                            <ArrowUpDown className="h-3 w-3 text-muted-foreground/60" />
+                          )}
+                        </button>
+                      )}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
-            ))
-          ) : (
-            <TableRow className="hover:bg-transparent">
-              <TableCell
-                colSpan={columns.length}
-                className="h-32 text-center text-muted-foreground"
-              >
-                No results found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="transition-colors hover:bg-muted/50"
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-32 text-center text-muted-foreground"
+                >
+                  No results found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {pageCount > 1 && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20 rounded-b-lg">
@@ -184,7 +293,7 @@ function DataTableComponent<TData, TValue>({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="size-11 p-0 sm:size-8"
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
@@ -194,7 +303,7 @@ function DataTableComponent<TData, TValue>({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="size-11 p-0 sm:size-8"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
@@ -204,7 +313,7 @@ function DataTableComponent<TData, TValue>({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="size-11 p-0 sm:size-8"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
@@ -214,7 +323,7 @@ function DataTableComponent<TData, TValue>({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="size-11 p-0 sm:size-8"
                 onClick={() => table.setPageIndex(pageCount - 1)}
                 disabled={!table.getCanNextPage()}
               >

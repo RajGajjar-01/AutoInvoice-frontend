@@ -77,7 +77,22 @@ function InsightsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in animate-in-delay-1">
+      <div className="grid grid-cols-2 gap-4 border-b pb-5 md:hidden">
+        <div>
+          <p className="text-xs text-muted-foreground">Revenue</p>
+          <p className="mt-1 text-lg font-semibold">
+            {fmtShort(kpis.totalRevenue)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Outstanding</p>
+          <p className="mt-1 text-lg font-semibold">
+            {fmtShort(kpis.outstanding)}
+          </p>
+        </div>
+      </div>
+
+      <div className="hidden grid-cols-2 gap-4 md:grid lg:grid-cols-4 animate-in animate-in-delay-1">
         <InsightsKpiCard
           icon={IndianRupee}
           title="Total Revenue"

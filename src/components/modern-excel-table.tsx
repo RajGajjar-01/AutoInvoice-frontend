@@ -7,6 +7,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import type {
   InventoryItem,
@@ -116,7 +117,219 @@ export function ModernExcelTable({
 
   return (
     <div className="rounded-xl border border-border/50 bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-      <div className="overflow-x-auto">
+      <div className="space-y-3 p-3 md:hidden">
+        {items.map((item, index) => {
+          const lineBase = item.quantity * item.price
+          const lineDiscount =
+            item.discountType === "flat"
+              ? Math.min(item.discount || 0, lineBase)
+              : lineBase * ((item.discount || 0) / 100)
+          const lineTotal = (lineBase - lineDiscount) * (1 + item.tax / 100)
+
+          return (
+            <article
+              key={index}
+              className="space-y-4 rounded-lg border bg-background p-3"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">Item {index + 1}</h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Remove item ${index + 1}`}
+                  onClick={() => removeItem(index)}
+                  disabled={items.length === 1 && !item.name}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor={`line-${index}-name`}
+                  className="text-sm font-medium"
+                >
+                  Item name
+                </label>
+                <Input
+                  id={`line-${index}-name`}
+                  value={item.name}
+                  onChange={(e) => updateItem(index, "name", e.target.value)}
+                  placeholder="Enter product or service"
+                />
+                <Select
+                  value={item.itemId || ""}
+                  onValueChange={(value) =>
+                    value && handleItemSelect(index, value)
+                  }
+                  disabled={inventoryItems.length === 0}
+                >
+                  <SelectTrigger
+                    className="w-full"
+                    aria-label={`Choose saved item for line ${index + 1}`}
+                  >
+                    <SelectValue
+                      placeholder={
+                        inventoryItems.length
+                          ? "Choose a saved item"
+                          : "No saved items yet"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {inventoryItems.map((inventoryItem) => (
+                      <SelectItem
+                        key={inventoryItem.id}
+                        value={inventoryItem.id}
+                      >
+                        {inventoryItem.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={item.description}
+                  onChange={(e) =>
+                    updateItem(index, "description", e.target.value)
+                  }
+                  aria-label={`Description for item ${index + 1}`}
+                  placeholder="Description (optional)"
+                />
+                {item.hsnCode && (
+                  <button
+                    type="button"
+                    className="flex min-h-11 items-center gap-2 text-left text-xs text-muted-foreground"
+                    onClick={() =>
+                      updateItem(index, "showHsn", item.showHsn ? 0 : 1)
+                    }
+                    aria-pressed={!!item.showHsn}
+                  >
+                    <span
+                      className={`size-4 rounded border ${item.showHsn ? "border-primary bg-primary" : "border-input"}`}
+                    />
+                    Include HSN/SAC {item.hsnCode}
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label
+                    htmlFor={`line-${index}-quantity`}
+                    className="text-sm font-medium"
+                  >
+                    Quantity
+                  </label>
+                  <Input
+                    id={`line-${index}-quantity`}
+                    type="number"
+                    min="1"
+                    value={item.quantity === 0 ? "" : item.quantity}
+                    onChange={(e) =>
+                      updateItem(index, "quantity", e.target.value)
+                    }
+                  />
+                  {item.unit && (
+                    <p className="text-xs text-muted-foreground">{item.unit}</p>
+                  )}
+                </div>
+                {!hidePricing && (
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`line-${index}-price`}
+                      className="text-sm font-medium"
+                    >
+                      Price ({currencySymbol})
+                    </label>
+                    <Input
+                      id={`line-${index}-price`}
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.price === 0 ? "" : item.price}
+                      onChange={(e) =>
+                        updateItem(index, "price", e.target.value)
+                      }
+                    />
+                  </div>
+                )}
+                {!hidePricing && (
+                  <>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor={`line-${index}-tax`}
+                        className="text-sm font-medium"
+                      >
+                        Tax %
+                      </label>
+                      <Input
+                        id={`line-${index}-tax`}
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={item.tax === 0 ? "" : item.tax}
+                        onChange={(e) =>
+                          updateItem(index, "tax", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor={`line-${index}-discount`}
+                        className="text-sm font-medium"
+                      >
+                        Discount
+                      </label>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          className="min-h-11 min-w-11 rounded-md border text-sm font-semibold"
+                          onClick={() =>
+                            updateItem(
+                              index,
+                              "discountType",
+                              item.discountType === "flat" ? "percent" : "flat",
+                            )
+                          }
+                          aria-label={`Discount type: ${item.discountType === "flat" ? "flat amount" : "percent"}. Change type`}
+                        >
+                          {item.discountType === "flat" ? currencySymbol : "%"}
+                        </button>
+                        <Input
+                          id={`line-${index}-discount`}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={
+                            item.discount === 0 || !item.discount
+                              ? ""
+                              : item.discount
+                          }
+                          onChange={(e) =>
+                            updateItem(index, "discount", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              {!hidePricing && (
+                <div className="flex items-center justify-between border-t pt-3 text-sm">
+                  <span className="text-muted-foreground">Line total</span>
+                  <strong>
+                    {currencySymbol}
+                    {lineTotal.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </strong>
+                </div>
+              )}
+            </article>
+          )
+        })}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-sm border-collapse" ref={tableRef}>
           <thead>
             <tr className="bg-muted/30 border-b border-border/50">
@@ -393,6 +606,7 @@ export function ModernExcelTable({
                   )}
                   <td className="px-2 py-2 align-top pt-2.5">
                     <Button
+                      type="button"
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 transition-all rounded-full"
@@ -411,13 +625,15 @@ export function ModernExcelTable({
 
       <div className="p-3 bg-muted/10 border-t border-border/50 flex justify-between items-center group/footer">
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={addItem}
-          className="text-xs font-semibold text-primary/80 hover:text-primary hover:bg-primary/5 gap-1.5 px-3 py-1.5 rounded-lg active:scale-95 transition-all"
+          className="h-11 w-full text-sm font-semibold text-primary/80 hover:text-primary hover:bg-primary/5 gap-1.5 px-3 py-1.5 rounded-lg active:scale-95 transition-all md:h-8 md:w-auto md:text-xs"
         >
           <Plus className="h-3.5 w-3.5" />
-          New Line Item (Enter)
+          <span className="md:hidden">Add another item</span>
+          <span className="hidden md:inline">New Line Item (Enter)</span>
         </Button>
       </div>
     </div>
