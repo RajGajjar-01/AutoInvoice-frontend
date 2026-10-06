@@ -63,7 +63,11 @@ function SignUp() {
     const { confirm_password: _confirm_password, ...submitData } = data
     signUpMutation.mutate(submitData, {
       onError: (error) => {
-        if (isExistingSignupEmailError(error)) {
+        if (
+          isExistingSignupEmailError(error) &&
+          form.getValues("email").trim().toLowerCase() ===
+            submitData.email.trim().toLowerCase()
+        ) {
           form.setError(
             "email",
             { type: "server", message: "This email already has an account." },

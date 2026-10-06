@@ -92,3 +92,46 @@ test("duplicate signup explains the email conflict beside the form", async ({
     page.getByText("Some details were rejected. Check the form and try again."),
   ).toHaveCount(0)
 })
+
+test("a stale duplicate response does not mark a newly edited email", async ({
+  page,
+}) => {
+  let releaseResponse: () => void = () => {}
+  let requestReceived: () => void = () => {}
+  const responseGate = new Promise<void>((resolve) => {
+    releaseResponse = resolve
+  })
+  const requestGate = new Promise<void>((resolve) => {
+    requestReceived = resolve
+  })
+
+  await page.route("**/api/v1/**", async (route) => {
+    const { pathname } = new URL(route.request().url())
+    if (pathname === "/api/v1/auth/signup") {
+      requestReceived()
+      await responseGate
+      return route.fulfill({
+        status: 400,
+        json: { detail: "A user with this email already exists" },
+      })
+    }
+    return route.fulfill({ status: 401, json: { detail: "Not authenticated" } })
+  })
+  await page.goto("/signup")
+  await page.getByTestId("full-name-input").fill("Raj Patel")
+  await page.getByTestId("email-input").fill("old@example.com")
+  await page.getByTestId("password-input").fill("password123")
+  await page.getByTestId("confirm-password-input").fill("password123")
+  await page.getByRole("button", { name: "Create Account" }).click()
+  await requestGate
+
+  await page.getByTestId("email-input").fill("new@example.com")
+  const responsePromise = page.waitForResponse((response) =>
+    response.url().endsWith("/api/v1/auth/signup"),
+  )
+  releaseResponse()
+  await responsePromise
+  await expect(
+    page.getByText("This email already has an account."),
+  ).toHaveCount(0)
+})
