@@ -4,6 +4,7 @@ import { Link as RouterLink } from "react-router"
 import { z } from "zod"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import { GoogleAuthButton } from "@/components/Common/GoogleAuthButton"
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -15,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
-import useAuth from "@/hooks/useAuth"
+import useAuth, { isExistingSignupEmailError } from "@/hooks/useAuth"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useGoogleAuthMessage } from "@/hooks/useGoogleAuthMessage"
 
@@ -60,7 +61,17 @@ function SignUp() {
   const onSubmit = (data: FormValues) => {
     if (signUpMutation.isPending) return
     const { confirm_password: _confirm_password, ...submitData } = data
-    signUpMutation.mutate(submitData)
+    signUpMutation.mutate(submitData, {
+      onError: (error) => {
+        if (isExistingSignupEmailError(error)) {
+          form.setError(
+            "email",
+            { type: "server", message: "This email already has an account." },
+            { shouldFocus: true },
+          )
+        }
+      },
+    })
   }
 
   return (
@@ -70,7 +81,7 @@ function SignUp() {
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-6"
         >
-          <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex flex-col gap-2">
             <h1 className="font-display text-2xl font-bold tracking-tight">
               Start free GST invoicing
             </h1>
@@ -113,9 +124,39 @@ function SignUp() {
                       type="email"
                       autoComplete="email"
                       {...field}
+                      onChange={(event) => {
+                        field.onChange(event)
+                        if (form.formState.errors.email?.type === "server") {
+                          form.clearErrors("email")
+                        }
+                      }}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage
+                    role={
+                      form.formState.errors.email?.type === "server"
+                        ? "alert"
+                        : undefined
+                    }
+                  />
+                  {form.formState.errors.email?.type === "server" && (
+                    <div className="rounded-lg border border-destructive/25 bg-destructive/5 p-3">
+                      <p className="text-sm text-foreground">
+                        Sign in to continue, or reset your password if you need
+                        help.
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                        <Button variant="link" asChild className="h-auto p-0">
+                          <RouterLink to="/login">Sign in instead</RouterLink>
+                        </Button>
+                        <Button variant="link" asChild className="h-auto p-0">
+                          <RouterLink to="/recover-password">
+                            Reset password
+                          </RouterLink>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </FormItem>
               )}
             />
@@ -187,15 +228,17 @@ function SignUp() {
             .
           </p>
 
-          <div className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <RouterLink
-              to="/login"
-              className="underline underline-offset-4 hover:text-foreground transition-colors font-medium"
-            >
-              Log in
-            </RouterLink>
-          </div>
+          {form.formState.errors.email?.type !== "server" && (
+            <div className="text-center text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <RouterLink
+                to="/login"
+                className="underline underline-offset-4 hover:text-foreground transition-colors font-medium"
+              >
+                Log in
+              </RouterLink>
+            </div>
+          )}
         </form>
       </Form>
     </AuthLayout>

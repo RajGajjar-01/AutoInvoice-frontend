@@ -100,6 +100,8 @@ export function AppSidebar() {
 
   const isCollapsed = !isMobile && state === "collapsed"
 
+  if (isMobile) return null
+
   return (
     <Sidebar
       collapsible="icon"

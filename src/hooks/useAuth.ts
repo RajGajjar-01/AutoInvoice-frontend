@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router"
+import { ApiError } from "@/client"
 import { AuthService } from "@/client/sdk.gen"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
@@ -13,6 +14,17 @@ interface SignUpFormData {
 interface LoginFormData {
   email: string
   password: string
+}
+
+export function isExistingSignupEmailError(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    error.status === 400 &&
+    typeof error.body === "object" &&
+    error.body !== null &&
+    "detail" in error.body &&
+    error.body.detail === "A user with this email already exists"
+  )
 }
 
 const useAuth = () => {
@@ -62,7 +74,11 @@ const useAuth = () => {
       await queryClient.refetchQueries({ queryKey: ["currentUser"] })
       navigate("/verify-email")
     },
-    onError: (error) => handleError.call(showErrorToast, error),
+    onError: (error) => {
+      if (!isExistingSignupEmailError(error)) {
+        handleError.call(showErrorToast, error)
+      }
+    },
   })
 
   const verifyEmailMutation = useMutation({

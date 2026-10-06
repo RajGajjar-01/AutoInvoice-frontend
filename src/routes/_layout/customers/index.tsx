@@ -23,16 +23,19 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 function CustomersEmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-20 animate-in">
-      <div className="rounded-full bg-muted p-5 mb-5">
-        <ContactRound className="h-8 w-8 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold mb-2">No parties yet</h3>
-      <p className="text-muted-foreground text-sm mb-6 max-w-xs">
-        Get started by adding your first customer, supplier, or company.
-      </p>
-      <AddCustomer />
-    </div>
+    <Card className="animate-in border-dashed shadow-none">
+      <CardContent className="flex flex-col items-center py-14 text-center sm:py-20">
+        <div className="mb-5 rounded-full bg-primary/10 p-5">
+          <ContactRound className="size-8 text-primary" aria-hidden="true" />
+        </div>
+        <h3 className="mb-2 text-lg font-semibold">No parties yet</h3>
+        <p className="mb-6 max-w-xs text-sm text-muted-foreground">
+          Add your first customer, supplier, or company to keep their details
+          ready for invoices.
+        </p>
+        <AddCustomer />
+      </CardContent>
+    </Card>
   )
 }
 
@@ -173,7 +176,7 @@ function CustomersPage() {
             Manage your customers, suppliers, and companies
           </p>
         </div>
-        <AddCustomer />
+        {customers.length > 0 && <AddCustomer />}
       </div>
 
       <div className="hidden grid-cols-1 gap-4 sm:grid sm:grid-cols-3 animate-in animate-in-delay-1">
