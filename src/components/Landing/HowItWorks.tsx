@@ -69,14 +69,25 @@ export function HowItWorks() {
   return (
     <section ref={sectionRef} className="py-14 md:py-20 bg-muted/50">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="hiw-heading text-center mb-20">
-          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
-            Up and running in three steps
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
-            No accountant needed. No spreadsheets. Just your business details
-            and you are ready.
-          </p>
+        <div className="hiw-heading mb-12 flex flex-col items-center justify-center gap-6 text-center md:flex-row md:gap-12 md:text-left">
+          <div className="min-w-0 max-w-2xl">
+            <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+              Up and running in three steps
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
+              No accountant needed. No spreadsheets. Just your business details
+              and you are ready.
+            </p>
+          </div>
+          <img
+            src="/assets/illustrations/invoice-doodle.webp"
+            width={480}
+            height={480}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="pointer-events-none h-auto w-48 max-w-full shrink-0 select-none md:w-60"
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-2">
