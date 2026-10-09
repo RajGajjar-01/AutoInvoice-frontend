@@ -548,23 +548,32 @@ function CreateInvoicePage() {
                           <FormControl>
                             <button
                               type="button"
+                              role="switch"
+                              aria-checked={!!field.value}
+                              ref={field.ref}
+                              onBlur={field.onBlur}
                               onClick={() => field.onChange(!field.value)}
-                              className={`relative inline-flex w-11 h-6 rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
-                                field.value
-                                  ? "bg-primary"
-                                  : "bg-slate-300 dark:bg-slate-600"
-                              }`}
+                              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             >
                               <span
-                                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out ${
+                                aria-hidden="true"
+                                className={`relative block h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ease-in-out ${
                                   field.value
-                                    ? "translate-x-5"
-                                    : "translate-x-0.5"
+                                    ? "bg-primary"
+                                    : "bg-slate-300 dark:bg-slate-600"
                                 }`}
-                              />
+                              >
+                                <span
+                                  className={`absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out ${
+                                    field.value
+                                      ? "translate-x-5"
+                                      : "translate-x-0.5"
+                                  }`}
+                                />
+                              </span>
                             </button>
                           </FormControl>
-                          <FormLabel className="cursor-pointer">
+                          <FormLabel className="min-w-0 flex-1 cursor-pointer leading-normal">
                             Round off grand total to nearest ₹
                           </FormLabel>
                         </div>
