@@ -2,7 +2,6 @@ import gsap from "gsap"
 import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
 import { Link } from "react-router"
-import { InteractiveDotGrid } from "@/components/Landing/InteractiveDotGrid"
 import { Button } from "@/components/ui/button"
 
 export function Hero() {
@@ -50,7 +49,6 @@ export function Hero() {
       ref={heroRef}
       className="relative flex min-h-[calc(100svh-4rem)] items-center overflow-hidden"
     >
-      <InteractiveDotGrid />
       <div className="absolute top-0 left-1/2 -z-10 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-primary/6 blur-3xl" />
 
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-8 pt-12 pb-16 md:px-12 md:pt-16 md:pb-24 lg:grid-cols-2 lg:gap-10 lg:pt-20 lg:pb-28">
