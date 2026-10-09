@@ -379,6 +379,7 @@
   }
 
   .workspace-content [data-slot="card"] [data-slot="card"],
+  /* biome-ignore lint/style/noDescendingSpecificity: intentional flattening of nested cards on small screens */
   .document-form [data-slot="card"] {
     border: 0;
     border-radius: 0;

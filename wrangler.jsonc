@@ -4,7 +4,7 @@
 {
   "name": "unifieddesk",
   "compatibility_date": "2026-09-01",
-  "main": "worker.js",
+  "main": "worker.ts",
   "vars": {
     "API_ORIGIN": "https://fqzszz4yo2ed2ttrrvhncuyucq0qpwsg.lambda-url.ap-south-1.on.aws"
   },

@@ -16,5 +16,10 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "openapi-ts.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "playwright.config.ts",
+    "openapi-ts.config.ts",
+    "worker.ts"
+  ]
 }
