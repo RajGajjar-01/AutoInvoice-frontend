@@ -332,28 +332,95 @@
   }
 }
 
-@media (max-width: 639px) {
+@media (max-width: 767px) {
   body:has(input:focus, textarea:focus, [contenteditable="true"]:focus)
     nav[aria-label="Mobile navigation"] {
     display: none;
   }
 
-  [data-slot="dialog-content"] {
-    left: 0;
-    top: auto;
-    bottom: 0;
-    max-height: calc(100dvh - env(safe-area-inset-top) - 0.5rem);
-    width: 100%;
-    max-width: 100%;
-    translate: none;
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"] {
+    left: 50%;
+    top: 50%;
+    bottom: auto;
+    max-height: min(
+      88dvh,
+      calc(
+        100dvh -
+        3rem -
+        env(safe-area-inset-top) -
+        env(safe-area-inset-bottom)
+      )
+    );
+    width: calc(100% - 2rem);
+    max-width: 36rem;
+    translate: -50% -50%;
     transform: none;
-    border-radius: 1.25rem 1.25rem 0 0;
-    padding: 1.25rem 1rem calc(1.25rem + env(safe-area-inset-bottom));
+    border-radius: 1rem;
+    padding: 1.25rem 1rem;
+    overflow-x: hidden;
+    animation-name: fade-in;
   }
 
   [data-slot="dialog-header"] {
     padding-right: 2.5rem;
     text-align: left;
+  }
+
+  .workspace-content > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .workspace-content [data-slot="card"] {
+    min-width: 0;
+    gap: 1rem;
+    box-shadow: none;
+  }
+
+  .workspace-content [data-slot="card"] [data-slot="card"],
+  .document-form [data-slot="card"] {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding-block: 0;
+    box-shadow: none;
+  }
+
+  .document-form [data-slot="card"] + [data-slot="card"] {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+  }
+
+  .workspace-content [data-slot="card-header"],
+  .workspace-content [data-slot="card-content"],
+  .workspace-content [data-slot="card-footer"] {
+    padding-inline: 1rem;
+  }
+
+  .document-form [data-slot="card-header"],
+  .document-form [data-slot="card-content"] {
+    padding-inline: 0;
+  }
+
+  [data-slot="form-item"] {
+    min-width: 0;
+  }
+
+  [data-slot="form-item"] > [role="combobox"] {
+    width: 100%;
+    min-width: 0;
+  }
+
+  [data-slot="input"],
+  [data-slot="form-control"]:is(input, textarea, button),
+  textarea,
+  [data-slot="select-trigger"] {
+    font-size: 1rem;
+  }
+
+  [data-slot="textarea"] {
+    min-height: 88px;
   }
 
   [data-slot="dialog-close"] {
@@ -365,6 +432,7 @@
   }
 
   [data-slot="input"],
+  [data-slot="form-control"]:is(input, button),
   [data-slot="select-trigger"],
   [data-slot="dropdown-menu-item"],
   [data-slot="select-item"],

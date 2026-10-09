@@ -239,7 +239,7 @@ export function TablePreview({
   }
 
   return (
-    <div className="flex-1 min-w-0 flex flex-col overflow-hidden bg-muted/10">
+    <div className="flex-1 min-w-0 min-h-64 lg:min-h-0 flex flex-col overflow-hidden bg-muted/10">
       {/* ── Table card ── */}
       <div className="flex-1 min-h-0 m-4 rounded-xl border border-border overflow-hidden flex flex-col bg-card shadow-sm">
         <DndContext

@@ -336,8 +336,8 @@ function InvoiceDetailPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* ── Header ── */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
@@ -345,8 +345,8 @@ function InvoiceDetailPage() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight font-mono">
+          <div className="min-w-0">
+            <h1 className="break-words text-2xl font-bold tracking-tight font-mono">
               {invoice.invoiceNumber}
             </h1>
             <p className="text-muted-foreground text-sm mt-1">Invoice detail</p>
@@ -354,7 +354,7 @@ function InvoiceDetailPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Badge
             variant={statusVariant[invoice.status ?? "unpaid"] ?? "outline"}
             className="capitalize cursor-pointer gap-1 py-1 px-3 text-sm"
@@ -674,7 +674,7 @@ function InvoiceDetailPage() {
 
       {/* ── Preview Dialog ── */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="h-[88dvh] sm:max-w-3xl overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {documentConfigs[invoice.document_type ?? "invoice"]?.singular ??
@@ -719,11 +719,10 @@ function InvoiceDetailPage() {
                   )
                 : ""
             }
-            className="w-full flex-1 rounded-md border bg-background"
-            style={{ minHeight: "65vh" }}
+            className="min-h-0 w-full flex-1 rounded-md border bg-background"
             sandbox="allow-same-origin"
           />
-          <div className="flex justify-end gap-2 mt-3">
+          <div className="flex shrink-0 flex-wrap justify-end gap-2 mt-3">
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>
               Close
             </Button>

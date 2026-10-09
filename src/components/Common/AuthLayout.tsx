@@ -26,7 +26,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           </h2>
         </div>
       </div>
-      <div className="flex min-w-0 flex-col gap-4 p-6 md:p-10">
+      <div className="flex min-w-0 flex-col gap-6 px-5 py-6 md:p-10">
         <div className="flex items-center justify-between gap-3">
           <div className="lg:hidden">
             <Logo variant="full" className="h-8" asLink={false} />
@@ -36,7 +36,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           </div>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs animate-in">{children}</div>
+          <div className="w-full max-w-sm py-6 animate-in">{children}</div>
         </div>
       </div>
     </div>

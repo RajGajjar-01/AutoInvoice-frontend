@@ -310,7 +310,7 @@ export function ColumnEditorPanel({
     // biome-ignore lint/a11y/noStaticElementInteractions: keyboard arrow-nav between column headers; dedicated a11y pass pending
     <div
       data-panel="side-column"
-      className="w-80 flex-shrink-0 border-l border-border bg-background flex flex-col overflow-hidden outline-none focus:ring-2 focus:ring-primary/20"
+      className="w-full min-w-0 lg:w-80 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-border bg-background flex flex-col overflow-hidden outline-none focus:ring-2 focus:ring-primary/20"
       onKeyDown={(e) => {
         if (e.key === "ArrowLeft") {
           const headers = document.querySelectorAll("[data-col-id]")

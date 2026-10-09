@@ -75,7 +75,7 @@ function AccountPage() {
 
   return (
     <FormProvider {...companyForm}>
-      <div className="mx-auto max-w-6xl space-y-8 pb-12">
+      <div className="mx-auto w-full min-w-0 max-w-6xl space-y-8 pb-12">
         <header className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             Workspace settings

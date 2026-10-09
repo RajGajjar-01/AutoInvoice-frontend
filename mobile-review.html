@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UnifiedDesk · Mobile review</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #f2f4f8; color: #182438; font: 15px/1.5 system-ui, sans-serif; }
+      header { background: #fcfdff; border-bottom: 1px solid #dce2ea; padding: 22px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+      h1 { margin: 0; font-size: 23px; letter-spacing: -.6px; }
+      p { margin: 5px 0 0; color: #55647a; }
+      a { color: #245cdc; text-underline-offset: 3px; }
+      .layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); }
+      aside { padding: 24px 18px; background: #fcfdff; border-right: 1px solid #dce2ea; }
+      .group { margin: 18px 10px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 1.3px; color: #68788c; font-weight: 700; }
+      .group:first-child { margin-top: 0; }
+      button { font: inherit; cursor: pointer; }
+      nav button { display: block; width: 100%; min-height: 42px; text-align: left; border: 0; background: transparent; border-radius: 7px; color: inherit; padding: 9px 12px; }
+      nav button:hover { background: #eff3fa; }
+      nav button[aria-current="page"] { background: #e8efff; color: #194ebc; font-weight: 600; }
+      main { min-width: 0; padding: 24px; }
+      .toolbar { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+      select, .toolbar button { min-height: 40px; border: 1px solid #cbd4e1; border-radius: 7px; background: #fcfdff; color: inherit; padding: 7px 12px; font: inherit; }
+      .stage { overflow: auto; padding: 8px 12px 28px; }
+      .phone { width: max-content; margin: auto; padding: 8px; background: #182438; border-radius: 28px; box-shadow: 0 18px 48px #18243818; }
+      iframe { display: block; width: 390px; height: 844px; border: 0; border-radius: 20px; background: #fff; }
+      .hint { text-align: center; max-width: 650px; margin: 0 auto 16px; font-size: 13px; }
+      .route { font-size: 12px; color: #68788c; text-align: center; margin-top: 12px; }
+      @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } aside { border-right: 0; border-bottom: 1px solid #dce2ea; padding: 12px; } nav { display: flex; gap: 6px; overflow: auto; } nav button { width: auto; white-space: nowrap; } .group { display: none; } main { padding: 16px 0; } header { padding: 18px; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div><h1>Mobile review</h1><p>Every page. One live phone viewport.</p></div>
+      <a href="/" target="_blank" rel="noopener">Open full app ↗</a>
+    </header>
+    <div class="layout">
+      <aside><nav aria-label="Pages to review" id="pages"></nav></aside>
+      <main>
+        <div class="toolbar">
+          <label for="device">Viewport</label>
+          <select id="device">
+            <option value="390,844">Phone · 390 × 844</option>
+            <option value="320,568">Small phone · 320 × 568</option>
+            <option value="430,932">Large phone · 430 × 932</option>
+            <option value="740,390">Landscape · 740 × 390</option>
+            <option value="768,1024">Tablet · 768 × 1024</option>
+          </select>
+          <button id="reload" type="button">Reload</button>
+          <a id="open" href="/login" target="_blank" rel="noopener">Open this page ↗</a>
+        </div>
+        <p class="hint">Sign in inside the preview to review your account. This is the live app connected to your backend; forms save real changes. Open records from Customers, Items, or History to review detail pages.</p>
+        <div class="stage"><div class="phone"><iframe id="preview" src="/login" title="Live mobile app preview"></iframe></div></div>
+        <p class="route" id="route">/login</p>
+      </main>
+    </div>
+    <script type="module">
+      const groups = {
+        Workspace: [["Dashboard", "/dashboard"], ["Invoices", "/invoices"], ["Customers", "/customers"], ["Items", "/items"], ["Insights", "/insights"], ["Notifications", "/notifications"]],
+        Documents: [["Create invoice", "/create-invoice"], ["Create quotation", "/create-quotation"], ["Delivery challan", "/create-challan"], ["Proforma invoice", "/create-proforma"], ["Invoice history", "/invoice-history"], ["Templates", "/invoice-templates"], ["Template builder", "/template-builder"]],
+        Tables: [["Data tables", "/data-tables"], ["Create table", "/data-tables/new"]],
+        Account: [["Business details", "/profile"], ["My profile", "/settings"], ["Admin", "/admin"]],
+        Public: [["Landing page", "/"], ["Sign in", "/login"], ["Sign up", "/signup"], ["Recover password", "/recover-password"], ["Reset password", "/reset-password"], ["Verify email", "/verify-email"], ["Privacy policy", "/privacy-policy"]],
+      };
+      const preview = document.querySelector("#preview");
+      const pages = document.querySelector("#pages");
+      for (const [group, routes] of Object.entries(groups)) {
+        const label = document.createElement("p"); label.className = "group"; label.textContent = group; pages.append(label);
+        for (const [name, path] of routes) {
+          const button = document.createElement("button"); button.type = "button"; button.textContent = name; button.dataset.path = path;
+          button.addEventListener("click", () => { preview.src = path; }); pages.append(button);
+        }
+      }
+      function syncRoute() {
+        const path = preview.contentWindow.location.pathname;
+        for (const button of pages.querySelectorAll("button")) {
+          if (button.dataset.path === path) button.setAttribute("aria-current", "page");
+          else button.removeAttribute("aria-current");
+        }
+        document.querySelector("#route").textContent = path;
+        document.querySelector("#open").href = path;
+      }
+      preview.addEventListener("load", syncRoute);
+      setInterval(syncRoute, 1000);
+      document.querySelector("#device").addEventListener("change", (event) => {
+        const [width, height] = event.target.value.split(",");
+        preview.style.width = `${width}px`; preview.style.height = `${height}px`;
+      });
+      document.querySelector("#reload").addEventListener("click", () => preview.contentWindow.location.reload());
+    </script>
+  </body>
+</html>

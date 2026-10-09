@@ -61,7 +61,7 @@ export function CustomerSection({
             }
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Choose a customer" />
           </SelectTrigger>
           <SelectContent>

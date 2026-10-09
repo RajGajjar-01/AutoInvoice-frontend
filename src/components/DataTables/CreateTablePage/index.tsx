@@ -198,7 +198,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
             ══════════════════════════════════════════════════════ */}
       <div className="shrink-0 border-b border-border bg-background/95 backdrop-blur-sm">
         {/* Title row */}
-        <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between px-3 lg:px-6 py-4">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground">
               Create New Table
@@ -232,8 +232,8 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
         </div>
 
         {/* Table Name + Description */}
-        <div className="flex items-end gap-4 px-6 pb-4">
-          <div className="flex flex-col gap-1.5 flex-1 max-w-sm">
+        <div className="flex flex-col lg:flex-row lg:items-end gap-4 px-3 lg:px-6 pb-4">
+          <div className="flex w-full min-w-0 flex-col gap-1.5 flex-1 lg:max-w-sm">
             <Label htmlFor="table-name" className="text-xs font-medium">
               Table Name <span className="text-destructive">*</span>
             </Label>
@@ -254,7 +254,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
               </p>
             )}
           </div>
-          <div className="flex flex-col gap-1.5 flex-1 max-w-md">
+          <div className="flex w-full min-w-0 flex-col gap-1.5 flex-1 lg:max-w-md">
             <Label
               htmlFor="table-desc"
               className="text-xs font-medium text-muted-foreground"
@@ -275,7 +275,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
       {/* ══════════════════════════════════════════════════════
                 QUICK ADD STRIP
             ══════════════════════════════════════════════════════ */}
-      <div className="shrink-0 border-b border-border bg-muted/30 px-6 py-3">
+      <div className="shrink-0 border-b border-border bg-muted/30 px-3 lg:px-6 py-3">
         <div className="flex items-center gap-3 flex-wrap">
           <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
             ⚡ Quick Add
@@ -324,7 +324,7 @@ export function CreateTablePage({ templateId }: CreateTablePageProps) {
       {/* ══════════════════════════════════════════════════════
                 SPLIT CONTENT, Preview (flex-1) | Builder (w-80)
             ══════════════════════════════════════════════════════ */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
         <TablePreview
           columns={columns}
           setColumns={setColumns}

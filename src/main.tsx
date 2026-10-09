@@ -9,12 +9,7 @@ import "./index.css"
 import { queryClient } from "./queryClient"
 import { router } from "./router"
 
-const isProduction = import.meta.env.PROD
-
 OpenAPI.BASE = import.meta.env.VITE_API_URL || ""
-if (!isProduction && !import.meta.env.VITE_API_URL) {
-  OpenAPI.BASE = "http://localhost:8000"
-}
 OpenAPI.WITH_CREDENTIALS = true
 
 import "./lib/api"

@@ -207,7 +207,7 @@ export function ProtectedLayout() {
         <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b bg-background/95 px-4 backdrop-blur-md md:hidden">
           <Logo variant="full" className="h-8" asLink={false} />
         </header>
-        <main className="flex w-full min-w-0 max-w-full flex-1 flex-col overflow-x-clip px-4 pt-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] animate-in md:p-4">
+        <main className="workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-4">
           <Outlet />
         </main>
         <MobileNavigation isAdmin={user.is_superuser ?? false} />

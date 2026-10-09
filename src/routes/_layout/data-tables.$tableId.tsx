@@ -631,10 +631,10 @@ function TableViewPage() {
   const colSpanTotal = cols.length + 3 // checkbox + # + cols + actions
 
   return (
-    <div className="flex flex-col h-full min-h-screen">
-      <div className="flex-1 p-4 flex flex-col">
+    <div className="flex min-w-0 flex-col h-full min-h-screen">
+      <div className="flex min-w-0 flex-1 flex-col md:p-4">
         {/* ── Sub-header ───────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3 mb-5">
+        <div className="mb-5 flex min-w-0 flex-wrap items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
@@ -645,10 +645,10 @@ function TableViewPage() {
             Data Tables
           </Button>
           <Separator orientation="vertical" className="h-5 bg-border" />
-          <span className="text-sm font-semibold text-foreground truncate">
+          <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
             {currentTable.name}
-          </span>
-          <div className="ml-auto flex items-center gap-2">
+          </h1>
+          <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
             <Badge
               variant="outline"
               className="text-xs text-muted-foreground border-border bg-background"
@@ -667,7 +667,7 @@ function TableViewPage() {
 
         {/* ── Toolbar ───────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between gap-3 flex-wrap mb-4 table-toolbar">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 w-full items-center gap-2 sm:w-auto">
             <Input
               placeholder="Search rows…"
               value={search}

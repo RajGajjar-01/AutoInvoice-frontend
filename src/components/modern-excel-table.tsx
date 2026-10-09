@@ -116,8 +116,8 @@ export function ModernExcelTable({
   }
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-      <div className="space-y-3 p-3 md:hidden">
+    <div className="min-w-0 overflow-hidden md:rounded-xl md:border md:border-border/50 md:bg-card md:shadow-sm">
+      <div className="divide-y divide-border md:hidden">
         {items.map((item, index) => {
           const lineBase = item.quantity * item.price
           const lineDiscount =
@@ -127,10 +127,7 @@ export function ModernExcelTable({
           const lineTotal = (lineBase - lineDiscount) * (1 + item.tax / 100)
 
           return (
-            <article
-              key={index}
-              className="space-y-4 rounded-lg border bg-background p-3"
-            >
+            <article key={index} className="space-y-4 pb-5 pt-4 first:pt-0">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold">Item {index + 1}</h3>
                 <Button

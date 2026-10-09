@@ -38,11 +38,15 @@ function LandingPage() {
   return (
     <div className="flex min-h-svh flex-col bg-background pb-20 sm:pb-0">
       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5 sm:px-6">
-          <Logo variant="full" asLink={false} />
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+          <Logo
+            variant="full"
+            className="h-5 min-[380px]:h-6 sm:h-9"
+            asLink={false}
+          />
           <div className="flex items-center gap-2 sm:gap-3">
             <Appearance />
-            {isLoading ? null : user ? (
+            {isLoading || user ? (
               <Button size="sm" asChild>
                 <Link to="/dashboard">Go to Dashboard</Link>
               </Button>

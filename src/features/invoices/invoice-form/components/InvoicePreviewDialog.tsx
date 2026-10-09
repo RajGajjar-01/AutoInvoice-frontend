@@ -24,18 +24,17 @@ export function InvoicePreviewDialog({
 }: InvoicePreviewDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="h-[88dvh] sm:max-w-3xl overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{title ?? "Document Preview"}</DialogTitle>
         </DialogHeader>
         <iframe
           title="invoice-preview"
           srcDoc={open ? html : ""}
-          className="w-full flex-1 rounded-md border bg-background"
-          style={{ minHeight: "65vh" }}
+          className="min-h-0 w-full flex-1 rounded-md border bg-background"
           sandbox="allow-same-origin"
         />
-        <div className="flex justify-end gap-2 mt-3">
+        <div className="flex shrink-0 flex-wrap justify-end gap-2 mt-3">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
