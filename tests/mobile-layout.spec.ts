@@ -121,9 +121,7 @@ for (const [path, trigger, title] of [
   ["/customers", "Add Customer", "Add Party"],
   ["/items", "Add Item", "Add Item"],
 ] as const) {
-  test(`${title} form is centered, contained and scrollable`, async ({
-    page,
-  }) => {
+  test(`${title} wizard fits without scrolling`, async ({ page }) => {
     await page.goto(path)
     await page.getByRole("button", { name: trigger, exact: true }).click()
     const dialog = page.getByRole("dialog", { name: title, exact: true })
@@ -140,12 +138,35 @@ for (const [path, trigger, title] of [
         Math.abs(box!.y + box!.height / 2 - viewport.height / 2),
       ).toBeLessThan(3)
     }).toPass({ timeout: 5000 })
+    await expect(dialog.getByText("Step 1 of 3")).toBeVisible()
     const input = dialog.locator("input").first()
     await input.fill("Mobile entry")
     await expect(input).toHaveValue("Mobile entry")
-    const last = dialog.locator("input, textarea").last()
-    await last.scrollIntoViewIfNeeded()
-    await expect(last).toBeInViewport()
+    // No visible scrollbar by design; the footer stays pinned outside the
+    // scroll region so Continue/Back/Cancel are always reachable.
+    await expect(async () => {
+      const scrollbarWidth = await dialog
+        .getByTestId("wizard-body")
+        .evaluate((el) => getComputedStyle(el).scrollbarWidth)
+      expect(scrollbarWidth).toBe("none")
+    }).toPass({ timeout: 5000 })
+    // Each step must fit without an internal scrollbar.
+    for (const step of ["Step 1 of 3", "Step 2 of 3", "Step 3 of 3"]) {
+      await expect(dialog.getByText(step)).toBeVisible()
+      const next =
+        step === "Step 3 of 3"
+          ? dialog.getByRole("button", { name: /^(Add Party|Add Item)$/ })
+          : dialog.getByRole("button", { name: "Continue" })
+      await expect(next).toBeInViewport()
+      await expect(
+        dialog.getByRole("button", { name: "Cancel", exact: true }),
+      ).toBeInViewport()
+      if (step !== "Step 3 of 3") {
+        await dialog.getByRole("button", { name: "Continue" }).click()
+      }
+    }
+    await dialog.getByRole("button", { name: "Back" }).click()
+    await expect(dialog.getByText("Step 2 of 3")).toBeVisible()
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click()
     await expect(dialog).not.toBeVisible()
   })
@@ -155,16 +176,20 @@ for (const [resource, title] of [
   ["customers", "Edit Party"],
   ["items", "Edit Item"],
 ]) {
-  test(`${title} fields and cancel stay reachable`, async ({ page }) => {
+  test(`${title} wizard steps and cancel stay reachable`, async ({ page }) => {
     await page.goto(`/${resource}/${recordId}`)
     await page.getByRole("button", { name: "Edit", exact: true }).click()
     const dialog = page.getByRole("dialog", { name: title, exact: true })
     await expect(dialog).toBeVisible()
+    await expect(dialog.getByText("Step 1 of 3")).toBeVisible()
     const input = dialog.locator("input").first()
     await input.fill("Edited mobile entry")
     await expect(input).toHaveValue("Edited mobile entry")
-    await dialog.locator("input, textarea").last().scrollIntoViewIfNeeded()
-    await expect(dialog.locator("input, textarea").last()).toBeInViewport()
+    await dialog.getByRole("button", { name: "Continue" }).click()
+    await expect(dialog.getByText("Step 2 of 3")).toBeVisible()
+    await expect(
+      dialog.getByRole("button", { name: "Continue" }),
+    ).toBeInViewport()
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click()
     await expect(dialog).not.toBeVisible()
   })

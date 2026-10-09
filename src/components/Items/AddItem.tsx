@@ -1,5 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Package, Plus } from "lucide-react"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Boxes,
+  Check,
+  Package,
+  Plus,
+  Wallet,
+} from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -11,7 +19,6 @@ import {
   DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -25,6 +32,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { LoadingButton } from "@/components/ui/loading-button"
 import {
   Select,
   SelectContent,
@@ -32,11 +40,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import { formResolver } from "@/lib/form"
+import { cn } from "@/lib/utils"
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Item name is required" }).max(255),
@@ -88,19 +96,38 @@ const UNITS = [
   "pair",
 ]
 
-function SectionLabel({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-3 pt-2">
-      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
-        {label}
-      </span>
-      <Separator className="flex-1" />
-    </div>
-  )
-}
+const GST_RATES = [0, 5, 12, 18, 28]
+
+const STEPS = [
+  {
+    id: "basic",
+    label: "Basic",
+    title: "What is this item?",
+    hint: "Name and identity — only the name is required.",
+    icon: Package,
+    fields: ["name", "sku", "category", "unit"] as const,
+  },
+  {
+    id: "pricing",
+    label: "Pricing",
+    title: "Price and tax",
+    hint: "Sale price, cost and GST details.",
+    icon: Wallet,
+    fields: ["salePrice", "purchasePrice", "taxRate", "hsnCode"] as const,
+  },
+  {
+    id: "stock",
+    label: "Stock",
+    title: "Stock and more",
+    hint: "Opening stock, alerts and notes — all optional.",
+    icon: Boxes,
+    fields: ["stock", "lowStockThreshold", "description"] as const,
+  },
+] as const
 
 const AddItem = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const [step, setStep] = useState(0)
   const { showSuccessToast } = useCustomToast()
   const queryClient = useQueryClient()
 
@@ -111,6 +138,7 @@ const AddItem = () => {
       queryClient.invalidateQueries({ queryKey: itemsQueryKeys.all })
       showSuccessToast("Item added successfully")
       form.reset()
+      setStep(0)
       setIsOpen(false)
     },
   })
@@ -149,8 +177,33 @@ const AddItem = () => {
     })
   }
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open)
+    if (!open) setStep(0)
+  }
+
+  const goToStep = async (target: number) => {
+    if (target < step) {
+      setStep(target)
+      return
+    }
+    const valid = await form.trigger([...STEPS[step].fields])
+    if (valid) setStep(target)
+  }
+
+  const handleNext = async () => {
+    const valid = await form.trigger([...STEPS[step].fields])
+    if (valid) setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  }
+
+  const handleBack = () => setStep((s) => Math.max(s - 1, 0))
+
+  const isLast = step === STEPS.length - 1
+  const StepIcon = STEPS[step].icon
+  const progress = Math.round(((step + 1) / STEPS.length) * 100)
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
@@ -158,131 +211,101 @@ const AddItem = () => {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Package className="h-5 w-5 text-primary" />
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogHeader className="shrink-0 px-6 pt-6 text-left">
+          <DialogTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-1.5">
+              <Package className="h-4 w-4 text-primary" />
             </div>
-            <div>
-              <DialogTitle>Add Item</DialogTitle>
-              <DialogDescription>
-                Add a new product or service to your catalogue.
-              </DialogDescription>
-            </div>
-          </div>
+            Add Item
+          </DialogTitle>
+          <DialogDescription>
+            Step {step + 1} of {STEPS.length} — {STEPS[step].hint}
+          </DialogDescription>
         </DialogHeader>
+
+        {/* Progress — segmented steps + bar, same as customer wizard */}
+        <div className="shrink-0 px-6 pt-4">
+          <ol className="flex items-center gap-1.5" aria-label="Form progress">
+            {STEPS.map((s, i) => {
+              const Icon = s.icon
+              const done = i < step
+              const current = i === step
+              return (
+                <li key={s.id} className="flex-1">
+                  <button
+                    type="button"
+                    aria-current={current ? "step" : undefined}
+                    aria-label={`${s.label}${done ? " (completed)" : current ? " (current)" : ""}`}
+                    onClick={() => void goToStep(i)}
+                    className={cn(
+                      "flex h-8 w-full items-center justify-center gap-1.5 rounded-full text-xs font-semibold transition-colors",
+                      done && "bg-primary/10 text-primary hover:bg-primary/15",
+                      current && "bg-primary text-primary-foreground",
+                      !done &&
+                        !current &&
+                        "bg-muted text-muted-foreground hover:bg-muted/70",
+                    )}
+                  >
+                    {done ? (
+                      <Check className="h-3.5 w-3.5" />
+                    ) : (
+                      <Icon className="h-3.5 w-3.5" />
+                    )}
+                    <span className="hidden min-[400px]:inline">{s.label}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+          <div
+            className="mt-3 h-1 overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${progress}% complete`}
+          >
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col flex-1 min-h-0"
+            className="flex min-h-0 flex-1 flex-col"
           >
-            <div className="overflow-y-auto flex-1 pr-1">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-4 px-1 py-2 sm:grid-cols-2">
-                {/* ── Product Info ── */}
-                <div className="sm:col-span-2">
-                  <SectionLabel label="Product Info" />
-                </div>
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="sm:col-span-2">
-                      <FormLabel>
-                        Item Name <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. Web Design Service"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="col-span-1 grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="sku"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SKU / Item Code</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Auto-generated if blank"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g. Electronics, Services"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="unit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unit of Measure</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select unit" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {UNITS.map((u) => (
-                              <SelectItem key={u} value={u}>
-                                {u}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+            {/* Fixed-height body — no scrollbar by design */}
+            <div
+              data-testid="wizard-body"
+              className="min-h-0 flex-1 overflow-y-auto px-6 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <div
+                key={STEPS[step].id}
+                className="animate-in fade-in slide-in-from-right-2 flex flex-col gap-3 duration-200"
+              >
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <StepIcon className="h-4 w-4 text-primary" />
+                  {STEPS[step].title}
+                </p>
 
-                {/* ── Left column: Pricing + Stock ── */}
-                <div className="flex flex-col gap-4">
-                  <SectionLabel label="Pricing" />
-                  <div className="grid grid-cols-1 gap-4">
+                {step === 0 && (
+                  <>
                     <FormField
                       control={form.control}
-                      name="salePrice"
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Sale Price (₹){" "}
+                            Item Name{" "}
                             <span className="text-destructive">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
+                              placeholder="e.g. Web Design Service"
                               {...field}
                             />
                           </FormControl>
@@ -290,91 +313,59 @@ const AddItem = () => {
                         </FormItem>
                       )}
                     />
+                    <div className="grid grid-cols-1 gap-4 min-[400px]:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="sku"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>SKU / Item Code</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Auto-generated if blank"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="e.g. Electronics, Services"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
-                      name="purchasePrice"
+                      name="unit"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Purchase / Cost Price (₹)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <SectionLabel label="Stock" />
-                  <div className="grid grid-cols-1 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="stock"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Opening Stock</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              placeholder="0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lowStockThreshold"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Low Stock Alert Below</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              placeholder="5"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* ── Right column: Tax + Description ── */}
-                <div className="flex flex-col gap-4">
-                  <SectionLabel label="Tax & Compliance" />
-                  <div className="grid grid-cols-1 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="taxRate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>GST Rate (%)</FormLabel>
+                          <FormLabel>Unit of Measure</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            value={String(field.value)}
+                            defaultValue={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select GST %" />
+                                <SelectValue placeholder="Select unit" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {[0, 5, 12, 18, 28].map((rate) => (
-                                <SelectItem key={rate} value={String(rate)}>
-                                  {rate}%
+                              {UNITS.map((u) => (
+                                <SelectItem key={u} value={u}>
+                                  {u}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -383,54 +374,206 @@ const AddItem = () => {
                         </FormItem>
                       )}
                     />
+                  </>
+                )}
+
+                {step === 1 && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="salePrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Sale Price (₹){" "}
+                              <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                inputMode="decimal"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="purchasePrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cost Price (₹)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                inputMode="decimal"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 min-[400px]:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="taxRate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>GST Rate (%)</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={String(field.value)}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select GST %" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {GST_RATES.map((rate) => (
+                                  <SelectItem key={rate} value={String(rate)}>
+                                    {rate}%
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="hsnCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>HSN / SAC Code</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="e.g. 8471"
+                                inputMode="numeric"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {step === 2 && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="stock"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Opening Stock</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                inputMode="numeric"
+                                placeholder="0"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lowStockThreshold"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Low Stock Alert Below</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                inputMode="numeric"
+                                placeholder="5"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
-                      name="hsnCode"
+                      name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>HSN / SAC Code</FormLabel>
+                          <FormLabel>Description</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. 8471" {...field} />
+                            <Textarea
+                              placeholder="Optional description or notes"
+                              rows={3}
+                              className="min-h-[64px] resize-none"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
-
-                  <SectionLabel label="Description" />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Optional description or notes"
-                            rows={3}
-                            className="resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                  </>
+                )}
               </div>
             </div>
 
-            <DialogFooter className="mt-4 pt-4 border-t border-border shrink-0">
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
-                  Cancel
+            <div className="flex shrink-0 items-center gap-2 border-t border-border px-6 py-4">
+              {step > 0 ? (
+                <Button type="button" variant="outline" onClick={handleBack}>
+                  <ArrowLeft className="mr-1.5 h-4 w-4" />
+                  Back
                 </Button>
-              </DialogClose>
-              <Button type="submit">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Item
-              </Button>
-            </DialogFooter>
+              ) : (
+                <DialogClose asChild>
+                  <Button variant="ghost" type="button">
+                    Cancel
+                  </Button>
+                </DialogClose>
+              )}
+              <div className="flex-1" />
+              {step > 0 && (
+                <DialogClose asChild>
+                  <Button variant="ghost" type="button">
+                    Cancel
+                  </Button>
+                </DialogClose>
+              )}
+              {!isLast ? (
+                <Button type="button" onClick={() => void handleNext()}>
+                  Continue
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Button>
+              ) : (
+                <LoadingButton
+                  type="submit"
+                  loading={createItemMutation.isPending}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Item
+                </LoadingButton>
+              )}
+            </div>
           </form>
         </Form>
       </DialogContent>

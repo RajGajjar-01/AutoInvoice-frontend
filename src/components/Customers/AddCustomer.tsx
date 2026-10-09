@@ -304,10 +304,13 @@ const AddCustomer = () => {
             className="flex min-h-0 flex-1 flex-col"
           >
             {/* Fixed-height body — no scrollbar by design */}
-            <div className="min-h-0 flex-1 px-6 py-4">
+            <div
+              data-testid="wizard-body"
+              className="min-h-0 flex-1 overflow-y-auto px-6 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
               <div
                 key={STEPS[step].id}
-                className="animate-in fade-in slide-in-from-right-2 flex flex-col gap-4 duration-200"
+                className="animate-in fade-in slide-in-from-right-2 flex flex-col gap-3 duration-200"
               >
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   <StepIcon className="h-4 w-4 text-primary" />
