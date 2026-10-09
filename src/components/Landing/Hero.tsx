@@ -53,7 +53,7 @@ export function Hero() {
       <InteractiveDotGrid />
       <div className="absolute top-0 left-1/2 -z-10 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-primary/6 blur-3xl" />
 
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-10 px-6 pt-12 pb-16 md:pt-16 md:pb-24 lg:grid-cols-2 lg:gap-12 lg:pt-20 lg:pb-28">
+      <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-8 pt-12 pb-16 md:px-12 md:pt-16 md:pb-24 lg:grid-cols-2 lg:gap-10 lg:pt-20 lg:pb-28">
         <div className="flex min-w-0 flex-col items-center text-center lg:items-start lg:text-left">
           <div className="hero-badge inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-1.5 text-sm mb-6">
             <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -95,13 +95,13 @@ export function Hero() {
         <img
           src="/assets/illustrations/business-workspace.webp"
           srcSet="/assets/illustrations/business-workspace-small.webp 480w, /assets/illustrations/business-workspace.webp 960w"
-          sizes="(min-width: 1024px) 48vw, (min-width: 480px) 416px, calc(100vw - 48px)"
+          sizes="(min-width: 1280px) 30rem, (min-width: 1024px) 28rem, (min-width: 480px) 24rem, calc(100vw - 64px)"
           width={960}
           height={640}
           alt="A business owner at a cozy desk, organizing invoices with a laptop and a cup of tea."
           decoding="async"
           fetchPriority="high"
-          className="pointer-events-none mx-auto h-auto w-full max-w-[26rem] select-none lg:max-w-none"
+          className="pointer-events-none mx-auto h-auto w-full max-w-[22rem] select-none sm:max-w-[24rem] lg:mx-0 lg:max-w-[28rem] lg:justify-self-center xl:max-w-[30rem]"
         />
       </div>
     </section>
