@@ -9,6 +9,10 @@ import {
   Users,
 } from "lucide-react"
 import { forwardRef, useLayoutEffect, useRef, useState } from "react"
+import {
+  LandingIllustration,
+  type LandingIllustrationScene,
+} from "@/components/Landing/LandingIllustration"
 import { cn } from "@/lib/utils"
 
 gsap.registerPlugin(ScrollTrigger)
@@ -20,6 +24,7 @@ interface Feature {
   color: string
   bg: string
   stat?: string
+  illustration?: LandingIllustrationScene
 }
 
 // Wide (col-span-2) features: 0, 3, 5
@@ -28,6 +33,7 @@ const features: Feature[] = [
   {
     icon: FileText,
     title: "Professional GST Invoices",
+    illustration: "invoices",
     description:
       "Create GST-compliant invoices, quotations, proformas, and delivery challans ready to share as PDF or email directly to clients.",
     color: "text-primary",
@@ -45,6 +51,7 @@ const features: Feature[] = [
   {
     icon: Users,
     title: "Customer Management",
+    illustration: "customers",
     description:
       "Organise customers, suppliers, and parties with GST details and contact info.",
     color: "text-emerald-500 dark:text-emerald-400",
@@ -53,6 +60,7 @@ const features: Feature[] = [
   {
     icon: Package,
     title: "Inventory Tracking",
+    illustration: "inventory",
     description:
       "Track stock levels across your product catalogue, get low-stock alerts, and adjust quantities, all linked to your invoices.",
     color: "text-violet-500 dark:text-violet-400",
@@ -62,6 +70,7 @@ const features: Feature[] = [
   {
     icon: IndianRupee,
     title: "Payment Tracking",
+    illustration: "payments",
     description:
       "See paid, unpaid, and overdue invoices at a glance. Know your receivables without digging through spreadsheets.",
     color: "text-amber-500 dark:text-amber-400",
@@ -70,6 +79,7 @@ const features: Feature[] = [
   {
     icon: BarChart3,
     title: "Business Dashboard",
+    illustration: "insights",
     description:
       "Revenue trends, top customers, outstanding receivables, and KPIs: everything you need to understand how your business is performing at a glance.",
     color: "text-rose-500 dark:text-rose-400",
@@ -87,19 +97,28 @@ const FeatureCard = forwardRef<
       ref={ref}
       className={cn(
         "feature-card rounded-xl border bg-card p-6 transition-shadow duration-200 hover:shadow-md",
-        wide ? "flex gap-5 items-start" : "flex flex-col",
+        wide
+          ? "flex flex-col gap-4 xl:flex-row xl:items-center xl:gap-6"
+          : "flex flex-col",
         className,
       )}
     >
-      <div
-        className={cn(
-          "rounded-lg p-3 shrink-0",
-          feature.bg,
-          wide ? "mt-0.5" : "mb-4",
-        )}
-      >
-        <feature.icon className={cn("h-6 w-6", feature.color)} />
-      </div>
+      {feature.illustration ? (
+        <LandingIllustration
+          scene={feature.illustration}
+          className={wide ? "w-32 xl:w-40" : "mb-4 w-28"}
+        />
+      ) : (
+        <div
+          className={cn(
+            "rounded-lg p-3 shrink-0",
+            feature.bg,
+            wide ? "mt-0.5" : "mb-4",
+          )}
+        >
+          <feature.icon className={cn("h-6 w-6", feature.color)} />
+        </div>
+      )}
       <div className="min-w-0">
         <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">
@@ -150,9 +169,16 @@ function FeatureCarousel() {
             key={feature.title}
             className="flex snap-start shrink-0 basis-[82%] flex-col rounded-xl border bg-card p-6"
           >
-            <div className={cn("mb-4 w-fit rounded-lg p-3", feature.bg)}>
-              <feature.icon className={cn("h-6 w-6", feature.color)} />
-            </div>
+            {feature.illustration ? (
+              <LandingIllustration
+                scene={feature.illustration}
+                className="mb-4 w-32 self-center"
+              />
+            ) : (
+              <div className={cn("mb-4 w-fit rounded-lg p-3", feature.bg)}>
+                <feature.icon className={cn("h-6 w-6", feature.color)} />
+              </div>
+            )}
             <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {feature.description}

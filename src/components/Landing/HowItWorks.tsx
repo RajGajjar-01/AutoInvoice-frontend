@@ -1,24 +1,36 @@
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { useLayoutEffect, useRef } from "react"
+import {
+  LandingIllustration,
+  type LandingIllustrationScene,
+} from "@/components/Landing/LandingIllustration"
 
 gsap.registerPlugin(ScrollTrigger)
 
-const steps = [
+const steps: {
+  number: string
+  title: string
+  description: string
+  illustration: LandingIllustrationScene
+}[] = [
   {
     number: "01",
     title: "Set up your profile",
+    illustration: "profile",
     description: "Add your business name, GST number, logo, and address once.",
   },
   {
     number: "02",
     title: "Create your invoice",
+    illustration: "invoices",
     description:
       "Pick a template, add items with GST rates, and preview instantly.",
   },
   {
     number: "03",
     title: "Send and get paid",
+    illustration: "payments",
     description:
       "Email the PDF or download it. Track payment status in real time.",
   },
@@ -69,8 +81,8 @@ export function HowItWorks() {
   return (
     <section ref={sectionRef} className="py-14 md:py-20 bg-muted/50">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="hiw-heading mb-12 flex flex-col items-center justify-center gap-6 text-center md:flex-row md:gap-12 md:text-left">
-          <div className="min-w-0 max-w-2xl">
+        <div className="hiw-heading mb-10 text-center">
+          <div className="mx-auto min-w-0 max-w-2xl">
             <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
               Up and running in three steps
             </h2>
@@ -79,15 +91,6 @@ export function HowItWorks() {
               and you are ready.
             </p>
           </div>
-          <img
-            src="/assets/illustrations/invoice-doodle.webp"
-            width={480}
-            height={480}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="pointer-events-none h-auto w-48 max-w-full shrink-0 select-none md:w-60"
-          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-2">
@@ -97,7 +100,11 @@ export function HowItWorks() {
               className="hiw-step relative flex flex-col items-center text-center"
             >
               <div className="flex flex-col items-center">
-                <span className="font-display text-5xl md:text-6xl font-extrabold text-primary mb-4 select-none">
+                <LandingIllustration
+                  scene={step.illustration}
+                  className="mb-4 w-32 sm:w-36 md:w-40"
+                />
+                <span className="font-display text-2xl font-bold text-primary mb-3 select-none">
                   {step.number}
                 </span>
                 <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
