@@ -205,7 +205,7 @@ export function ProtectedLayout() {
       <AppSidebar />
       <SidebarInset className="flex min-w-0 max-w-full flex-col overflow-hidden">
         <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b bg-background/95 px-4 backdrop-blur-md md:hidden">
-          <Logo variant="full" className="h-8" asLink={false} />
+          <Logo variant="full" className="h-8" />
         </header>
         <main className="workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-4">
           <Outlet />

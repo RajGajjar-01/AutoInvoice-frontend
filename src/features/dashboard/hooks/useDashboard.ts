@@ -2,53 +2,45 @@ import { useQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
 import { customersListQueryOptions } from "@/features/customers/queries"
 import {
+  type ActionInvoice,
+  type ActionItem,
+  getDashboardActions,
+} from "@/features/dashboard/actions"
+import {
   invoicesListQueryOptions,
   invoicesStatsQueryOptions,
 } from "@/features/invoices/queries"
 import { itemsListQueryOptions } from "@/features/items/queries"
 import useAuth from "@/hooks/useAuth"
 
-interface Item {
-  id: string
-  name: string
-  stock?: number
-  lowStockThreshold?: number
-}
-
-interface Invoice {
-  id: string
-  invoiceNumber: string
-  invoiceDate?: string
-  status: string
-  grandTotal: number | string
-  currency?: string
-  createdAt?: string
-  customer?: { name?: string }
-}
-
 export function useDashboard() {
   const { user: currentUser } = useAuth()
-  const { data: itemsRes } = useQuery(itemsListQueryOptions())
-  const items: Item[] = (itemsRes?.data ?? []) as unknown as Item[]
+  const {
+    data: itemsRes,
+    isLoading: itemsLoading,
+    isError: itemsUnavailable,
+  } = useQuery(itemsListQueryOptions())
+  const items: ActionItem[] = (itemsRes?.data ?? []) as unknown as ActionItem[]
 
   const { data: statsRes, isLoading: statsLoading } = useQuery(
     invoicesStatsQueryOptions(),
   )
-  const { data: invoicesRes, isLoading: invoicesLoading } = useQuery(
-    invoicesListQueryOptions(),
-  )
+  const {
+    data: invoicesRes,
+    isLoading: invoicesLoading,
+    isError: invoicesUnavailable,
+  } = useQuery(invoicesListQueryOptions())
   const { data: customersRes, isLoading: customersLoading } = useQuery(
     customersListQueryOptions(),
   )
 
-  const invoices: Invoice[] = (invoicesRes?.data ?? []).filter(
+  const invoices: ActionInvoice[] = (invoicesRes?.data ?? []).filter(
     Boolean,
-  ) as unknown as Invoice[]
+  ) as unknown as ActionInvoice[]
   const customers = customersRes?.data ?? []
 
   const now = new Date()
-  const thirtyDaysAgo = new Date(now)
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  const actions = getDashboardActions(invoices, items, now)
 
   const stats = useMemo(() => {
     const overdueCount = invoices.filter((i) => i.status === "overdue").length
@@ -98,9 +90,15 @@ export function useDashboard() {
     invoices.length > 0 ||
     Number(statsRes?.total_customers ?? 0) > 0 ||
     items.length > 0
-  const isLoading = statsLoading || invoicesLoading || customersLoading
+  const isLoading =
+    statsLoading || invoicesLoading || customersLoading || itemsLoading
 
   return {
+    actions,
+    invoicesUnavailable,
+    itemsUnavailable,
+    invoiceCount: invoicesRes?.count ?? 0,
+    itemCount: itemsRes?.count ?? 0,
     stats,
     recent,
     invoices,

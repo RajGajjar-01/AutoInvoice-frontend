@@ -4,6 +4,7 @@ test.use({ storageState: { cookies: [], origins: [] } })
 
 for (const path of [
   "/",
+  "/landing",
   "/login",
   "/signup",
   "/recover-password",
@@ -52,16 +53,9 @@ for (const path of [
   })
 }
 
-test("pending landing dashboard action fits even on a small phone", async ({
-  page,
-}) => {
+test("pending session check keeps landing content hidden", async ({ page }) => {
   await page.route("**/api/v1/auth/me", () => {})
   await page.goto("/", { waitUntil: "domcontentloaded" })
-  const link = page
-    .locator("header")
-    .getByRole("link", { name: "Go to Dashboard" })
-  await expect(link).toBeVisible()
-  const box = (await link.boundingBox())!
-  expect(box.x).toBeGreaterThanOrEqual(0)
-  expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width)
+  await expect(page.locator("main")).toHaveCount(0)
+  await expect(page.getByRole("link", { name: "Log In" })).toHaveCount(0)
 })

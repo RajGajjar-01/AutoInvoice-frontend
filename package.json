@@ -13,6 +13,7 @@
     "lint:fix": "biome check --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
     "format": "biome format --write ./",
     "test": "playwright test",
+    "test:dashboard": "node --experimental-strip-types --test node-tests/dashboard-actions.test.ts",
     "test:ui": "playwright test --ui"
   },
   "dependencies": {

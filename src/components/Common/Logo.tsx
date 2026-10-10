@@ -69,7 +69,7 @@ export function Logo({
   }
 
   return (
-    <Link to="/" className="inline-flex">
+    <Link to="/landing" className="inline-flex">
       {content}
     </Link>
   )

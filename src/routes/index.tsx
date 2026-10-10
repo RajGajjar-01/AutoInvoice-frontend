@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router"
+import { Link, Navigate, useLocation } from "react-router"
 import { Appearance } from "@/components/Common/Appearance"
 import { Footer } from "@/components/Common/Footer"
 import { Logo } from "@/components/Common/Logo"
@@ -23,6 +23,7 @@ function LandingPage() {
     "Create GST invoices, quotations, proformas, and delivery challans. Track payments, customers, and stock. Billing software for Indian small businesses.",
   )
   const { user, isLoading } = useAuth()
+  const { pathname } = useLocation()
 
   // Reveal the mobile sticky CTA only after the hero (with its own CTA) is scrolled past
   const [showStickyCta, setShowStickyCta] = useState(false)
@@ -35,15 +36,14 @@ function LandingPage() {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
+  if (isLoading) return null
+  if (user && pathname === "/") return <Navigate to="/dashboard" replace />
+
   return (
     <div className="flex min-h-svh flex-col bg-background pb-20 sm:pb-0">
       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <Logo
-            variant="full"
-            className="h-5 min-[380px]:h-6 sm:h-9"
-            asLink={false}
-          />
+          <Logo variant="full" className="h-5 min-[380px]:h-6 sm:h-9" />
           <div className="flex items-center gap-2 sm:gap-3">
             <Appearance />
             {isLoading || user ? (

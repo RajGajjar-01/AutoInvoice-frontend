@@ -2,7 +2,6 @@ import {
   AlertTriangle,
   ArrowRight,
   ArrowUpRight,
-  BarChart3,
   CircleDashed,
   CircleX,
   FilePlus,
@@ -34,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { DailyActions } from "@/features/dashboard/components/DailyActions"
 import { DashboardSkeleton } from "@/features/dashboard/components/DashboardSkeleton"
 import { EmptyDashboard } from "@/features/dashboard/components/EmptyDashboard"
 import { KpiCard } from "@/features/dashboard/components/KpiCard"
@@ -70,6 +70,11 @@ function build30DayData(
 function Dashboard() {
   useDocumentTitle("Dashboard")
   const {
+    actions,
+    invoicesUnavailable,
+    itemsUnavailable,
+    invoiceCount,
+    itemCount,
     stats,
     recent,
     invoices,
@@ -85,6 +90,18 @@ function Dashboard() {
 
   if (isLoading) return <DashboardSkeleton />
 
+  const dailyActions = (
+    <DailyActions
+      {...actions}
+      invoicesUnavailable={invoicesUnavailable}
+      itemsUnavailable={itemsUnavailable}
+      invoiceCount={invoiceCount}
+      loadedInvoices={invoices.length}
+      itemCount={itemCount}
+      loadedItems={items.length}
+    />
+  )
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-6 md:hidden">
@@ -93,10 +110,10 @@ function Dashboard() {
             {greeting}, {firstName}
           </p>
           <h1 className="mt-2 text-2xl font-bold leading-tight">
-            Your next invoice starts here
+            Your business at a glance
           </h1>
           <p className="mt-2 text-sm opacity-85">
-            Create and send an invoice in a few steps.
+            Review what needs attention, then create your next invoice.
           </p>
           <Link
             to="/create-invoice"
@@ -105,6 +122,8 @@ function Dashboard() {
             <FilePlus className="size-5" aria-hidden="true" /> Create invoice
           </Link>
         </section>
+
+        {dailyActions}
 
         <section aria-labelledby="quick-actions-heading">
           <h2
@@ -134,56 +153,6 @@ function Dashboard() {
             ))}
           </div>
         </section>
-
-        {hasData &&
-          (stats.overdueCount > 0 ||
-            stats.lowStockItems > 0 ||
-            stats.outItems > 0) && (
-            <section aria-labelledby="attention-heading">
-              <h2
-                id="attention-heading"
-                className="mb-3 text-base font-semibold"
-              >
-                Needs attention
-              </h2>
-              <div className="divide-y rounded-xl border bg-card">
-                {stats.overdueCount > 0 && (
-                  <Link
-                    to="/invoices"
-                    className="flex min-h-14 items-center justify-between gap-3 px-4 text-sm active:bg-accent"
-                  >
-                    <span className="flex items-center gap-2">
-                      <CircleX
-                        className="size-4 text-destructive"
-                        aria-hidden="true"
-                      />{" "}
-                      Overdue invoices
-                    </span>
-                    <span className="font-semibold text-destructive">
-                      {stats.overdueCount}
-                    </span>
-                  </Link>
-                )}
-                {(stats.lowStockItems > 0 || stats.outItems > 0) && (
-                  <Link
-                    to="/items"
-                    className="flex min-h-14 items-center justify-between gap-3 px-4 text-sm active:bg-accent"
-                  >
-                    <span className="flex items-center gap-2">
-                      <AlertTriangle
-                        className="size-4 text-amber-600"
-                        aria-hidden="true"
-                      />{" "}
-                      Stock to review
-                    </span>
-                    <span className="font-semibold">
-                      {stats.lowStockItems + stats.outItems}
-                    </span>
-                  </Link>
-                )}
-              </div>
-            </section>
-          )}
 
         <section aria-labelledby="recent-heading">
           <div className="mb-3 flex items-center justify-between gap-3">
@@ -289,8 +258,12 @@ function Dashboard() {
           </CardContent>
         </Card>
 
+        {dailyActions}
+
         {/* Empty state – show illustrated onboarding when no data exists */}
-        {!hasData && <EmptyDashboard />}
+        {!hasData && !invoicesUnavailable && !itemsUnavailable && (
+          <EmptyDashboard />
+        )}
 
         {/* KPI cards – only when data exists */}
         {hasData && (
@@ -555,55 +528,6 @@ function Dashboard() {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Inventory Alert */}
-              {(stats.lowStockItems > 0 || stats.outItems > 0) && (
-                <Card className="border-amber-500/30">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
-                      <CardTitle className="text-base text-amber-600 dark:text-amber-400">
-                        Stock Alert
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    {stats.outItems > 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">
-                          Out of stock
-                        </span>
-                        <Badge variant="destructive" className="text-xs">
-                          {stats.outItems} items
-                        </Badge>
-                      </div>
-                    )}
-                    {stats.lowStockItems > 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">
-                          Running low
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className="text-xs border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                        >
-                          {stats.lowStockItems} items
-                        </Badge>
-                      </div>
-                    )}
-                    <Link to="/items">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full mt-2"
-                      >
-                        <BarChart3 className="mr-2 h-3.5 w-3.5" /> View
-                        Inventory
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           </div>
         )}
