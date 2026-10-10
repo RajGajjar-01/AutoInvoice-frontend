@@ -59,7 +59,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
     <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <div className="grid h-16 grid-cols-5 items-stretch">
           {mobileLinks.map(({ label, to, icon: Icon }) => {
@@ -92,7 +92,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
       </nav>
       <SheetContent
         side="bottom"
-        className="max-h-[85dvh] rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden"
+        className="max-h-[85dvh] transform-gpu overscroll-contain rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))] transition-none ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform data-[state=closed]:duration-150 data-[state=open]:duration-200 md:hidden"
       >
         <SheetHeader>
           <SheetTitle>More</SheetTitle>
