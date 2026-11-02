@@ -1,0 +1,656 @@
+[
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fnginx.conf%23location%20%2F::AutoInvoice-frontend%2Fnginx.conf%23response%20headers::profile%2Fquick%2Fall-in-scope-subsystems::CLIENT-SIDE.md%23Clickjacking",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/nginx.conf#location /",
+      "boundary": "AutoInvoice-frontend/nginx.conf#response headers",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "CLIENT-SIDE.md#Clickjacking"
+    },
+    "surface": "AutoInvoice-frontend/nginx.conf#location /",
+    "boundary": "AutoInvoice-frontend/nginx.conf#response headers",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "CLIENT-SIDE.md#Clickjacking",
+    "starting_paths": [
+      "AutoInvoice-frontend/nginx.conf",
+      "AutoInvoice-frontend/src/components/Admin/DeleteUser.jsx",
+      "AutoInvoice-frontend/src/main.jsx"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Clickjacking",
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "CLIENT-SIDE.md#Service-worker registration and scope takeover",
+        "reason": "No service worker is registered anywhere in src or public."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/nginx.conf",
+      "AutoInvoice-frontend/src/components/Admin/DeleteUser.jsx",
+      "AutoInvoice-frontend/src/main.jsx"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/nginx.conf",
+          "AutoInvoice-frontend/src/components/Admin/DeleteUser.jsx",
+          "AutoInvoice-frontend/src/main.jsx"
+        ],
+        "invariant": "Sensitive actions must not complete in a hostile frame.",
+        "method": "source",
+        "result": "No framing policy was set; exploitability depends on the same-site deployment topology.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "client/nginx-no-frame-ancestors-or-csp"
+    ],
+    "unresolved": [
+      "Deployed domain layout and proxy headers are not in source."
+    ]
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fpackage-lock.json%23dependency%20tree::AutoInvoice-frontend%2Fpackage.json%23version%20constraints::profile%2Fquick%2Fall-in-scope-subsystems::SUPPLY-CHAIN-AND-RELEASE.md%23Mutable%20and%20unbound%20build%20inputs",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/package-lock.json#dependency tree",
+      "boundary": "AutoInvoice-frontend/package.json#version constraints",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "SUPPLY-CHAIN-AND-RELEASE.md#Mutable and unbound build inputs"
+    },
+    "surface": "AutoInvoice-frontend/package-lock.json#dependency tree",
+    "boundary": "AutoInvoice-frontend/package.json#version constraints",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "SUPPLY-CHAIN-AND-RELEASE.md#Mutable and unbound build inputs",
+    "starting_paths": [
+      "AutoInvoice-frontend/package.json",
+      "AutoInvoice-frontend/package-lock.json",
+      "AutoInvoice-frontend/Dockerfile",
+      "AutoInvoice-frontend/Dockerfile.playwright",
+      "AutoInvoice-frontend/.dockerignore",
+      "AutoInvoice-frontend/openapi-ts.config.js"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [
+      "SUPPLY-CHAIN-AND-RELEASE.md#Mutable and unbound build inputs",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Generated-source and codegen provenance gaps",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Build-context inclusion",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Core discipline",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Universal moves",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "SUPPLY-CHAIN-AND-RELEASE.md#Untrusted code in a privileged workflow",
+        "reason": "The repository has no CI workflow files."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/package.json",
+      "AutoInvoice-frontend/package-lock.json",
+      "AutoInvoice-frontend/Dockerfile",
+      "AutoInvoice-frontend/Dockerfile.playwright",
+      "AutoInvoice-frontend/.dockerignore",
+      "AutoInvoice-frontend/openapi-ts.config.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/package.json",
+          "AutoInvoice-frontend/package-lock.json",
+          "AutoInvoice-frontend/Dockerfile",
+          "AutoInvoice-frontend/Dockerfile.playwright",
+          "AutoInvoice-frontend/.dockerignore",
+          "AutoInvoice-frontend/openapi-ts.config.js"
+        ],
+        "invariant": "Shipped and build-time dependencies must be free of reachable known vulnerabilities, and builds must be reproducible.",
+        "method": "source",
+        "result": "25 npm advisories (3 critical, 18 high); runtime-reachable impact not shown; npm install, mutable nginx:1 tag and EOL Node 20 base image noted.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "supply-chain/axios-1.13.4-prototype-pollution-gadgets",
+      "supply-chain/vite-7.3.1-dev-server-advisories"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Frepository%23all%20files::AutoInvoice-frontend%2Frepository%23secrets%20and%20debug%20gates::profile%2Fquick%2Fall-in-scope-subsystems::ATTACK-CLASSES.md%23Obvious%20things",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/repository#all files",
+      "boundary": "AutoInvoice-frontend/repository#secrets and debug gates",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "ATTACK-CLASSES.md#Obvious things"
+    },
+    "surface": "AutoInvoice-frontend/repository#all files",
+    "boundary": "AutoInvoice-frontend/repository#secrets and debug gates",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "ATTACK-CLASSES.md#Obvious things",
+    "starting_paths": [
+      "AutoInvoice-frontend/.gitignore",
+      "AutoInvoice-frontend/src",
+      "AutoInvoice-frontend/tests",
+      "AutoInvoice-frontend/vite.config.js",
+      "AutoInvoice-frontend/docker-compose.yml"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/.gitignore",
+      "AutoInvoice-frontend/src",
+      "AutoInvoice-frontend/tests",
+      "AutoInvoice-frontend/vite.config.js",
+      "AutoInvoice-frontend/docker-compose.yml"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/.gitignore",
+          "AutoInvoice-frontend/src",
+          "AutoInvoice-frontend/tests",
+          "AutoInvoice-frontend/vite.config.js",
+          "AutoInvoice-frontend/docker-compose.yml"
+        ],
+        "invariant": "No secrets, debug backdoors or devtools in production builds.",
+        "method": "source",
+        "result": "No secrets in tree or git history; no devtools mounted; .env ignored; tests read credentials from env.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%23postMessage%20and%20workers::AutoInvoice-frontend%2Fbrowser%23origin%20boundary::profile%2Fquick%2Fall-in-scope-subsystems::CLIENT-SIDE.md%23postMessage%20origin%20and%20source%20trust",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src#postMessage and workers",
+      "boundary": "AutoInvoice-frontend/browser#origin boundary",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "CLIENT-SIDE.md#postMessage origin and source trust"
+    },
+    "surface": "AutoInvoice-frontend/src#postMessage and workers",
+    "boundary": "AutoInvoice-frontend/browser#origin boundary",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "CLIENT-SIDE.md#postMessage origin and source trust",
+    "starting_paths": [
+      "AutoInvoice-frontend/src"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "not_applicable",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "No postMessage, BroadcastChannel, WebSocket or service worker in source."
+    ]
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%2Fclient%2Fcore%2Frequest.js%23getUrl::AutoInvoice-frontend%2Fsrc%2Fclient%2Fcore%2Frequest.js%23path%20encoder::profile%2Fquick%2Fall-in-scope-subsystems::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src/client/core/request.js#getUrl",
+      "boundary": "AutoInvoice-frontend/src/client/core/request.js#path encoder",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "AutoInvoice-frontend/src/client/core/request.js#getUrl",
+    "boundary": "AutoInvoice-frontend/src/client/core/request.js#path encoder",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "ATTACK-CLASSES.md#Resource and file handling",
+    "starting_paths": [
+      "AutoInvoice-frontend/src/client/core/request.js",
+      "AutoInvoice-frontend/src/components/Admin/DeleteUser.jsx",
+      "AutoInvoice-frontend/src/components/Items/DeleteItem.jsx"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/src/client/core/request.js",
+      "AutoInvoice-frontend/src/components/Admin/DeleteUser.jsx",
+      "AutoInvoice-frontend/src/components/Items/DeleteItem.jsx"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/src/client/core/request.js",
+          "AutoInvoice-frontend/src/components/Admin/DeleteUser.jsx",
+          "AutoInvoice-frontend/src/components/Items/DeleteItem.jsx"
+        ],
+        "invariant": "Path params must not retarget API requests.",
+        "method": "source",
+        "result": "All path params are server-issued UUIDs.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "client/api-path-param-encodeuri"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%2Fcomponents%23React%20render::AutoInvoice-frontend%2Freact-dom%23JSX%20text%20escaping::profile%2Fquick%2Fall-in-scope-subsystems::CLIENT-SIDE.md%23DOM-based%20XSS",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src/components#React render",
+      "boundary": "AutoInvoice-frontend/react-dom#JSX text escaping",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "CLIENT-SIDE.md#DOM-based XSS"
+    },
+    "surface": "AutoInvoice-frontend/src/components#React render",
+    "boundary": "AutoInvoice-frontend/react-dom#JSX text escaping",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "CLIENT-SIDE.md#DOM-based XSS",
+    "starting_paths": [
+      "AutoInvoice-frontend/src/components",
+      "AutoInvoice-frontend/src/routes",
+      "AutoInvoice-frontend/src/utils.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#DOM-based XSS",
+      "CLIENT-SIDE.md#Client-side navigation confusion",
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "CLIENT-SIDE.md#Prototype pollution and gadget chain",
+        "reason": "Covered by the supply-chain unit for axios; no recursive merge in application source."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/src/components",
+      "AutoInvoice-frontend/src/routes",
+      "AutoInvoice-frontend/src/utils.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/src/components",
+          "AutoInvoice-frontend/src/routes",
+          "AutoInvoice-frontend/src/utils.js"
+        ],
+        "invariant": "Untrusted text must never reach an HTML/script sink.",
+        "method": "source",
+        "result": "No dangerouslySetInnerHTML, innerHTML, eval or dynamic href sinks; API error text is rendered as escaped JSX text.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%2Fcomponents%2FDataTables%2FExportMenu.jsx%23exportAsCSV::AutoInvoice-frontend%2Fsrc%2Fcomponents%2FDataTables%2FtableStore.js%23in-memory%20store::profile%2Fquick%2Fall-in-scope-subsystems::ATTACK-CLASSES.md%23Injection",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src/components/DataTables/ExportMenu.jsx#exportAsCSV",
+      "boundary": "AutoInvoice-frontend/src/components/DataTables/tableStore.js#in-memory store",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "ATTACK-CLASSES.md#Injection"
+    },
+    "surface": "AutoInvoice-frontend/src/components/DataTables/ExportMenu.jsx#exportAsCSV",
+    "boundary": "AutoInvoice-frontend/src/components/DataTables/tableStore.js#in-memory store",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "ATTACK-CLASSES.md#Injection",
+    "starting_paths": [
+      "AutoInvoice-frontend/src/components/DataTables/ExportMenu.jsx",
+      "AutoInvoice-frontend/src/components/DataTables/tableStore.js",
+      "AutoInvoice-frontend/src/components/DataTables/TableCell.jsx"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/src/components/DataTables/ExportMenu.jsx",
+      "AutoInvoice-frontend/src/components/DataTables/tableStore.js",
+      "AutoInvoice-frontend/src/components/DataTables/TableCell.jsx"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/src/components/DataTables/ExportMenu.jsx",
+          "AutoInvoice-frontend/src/components/DataTables/tableStore.js",
+          "AutoInvoice-frontend/src/components/DataTables/TableCell.jsx"
+        ],
+        "invariant": "Exported files must not execute content written by another principal.",
+        "method": "source",
+        "result": "Self-authored data only; hardening applied.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "injection/csv-formula-export"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%2Fcomponents%2Ftheme-provider.jsx%23localStorage::AutoInvoice-frontend%2Fsrc%2Fcomponents%2Fui%2Fsidebar.jsx%23document.cookie::profile%2Fquick%2Fall-in-scope-subsystems::CLIENT-SIDE.md%23Browser-storage%20disclosure%20and%20stale%20authorization",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src/components/theme-provider.jsx#localStorage",
+      "boundary": "AutoInvoice-frontend/src/components/ui/sidebar.jsx#document.cookie",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "CLIENT-SIDE.md#Browser-storage disclosure and stale authorization"
+    },
+    "surface": "AutoInvoice-frontend/src/components/theme-provider.jsx#localStorage",
+    "boundary": "AutoInvoice-frontend/src/components/ui/sidebar.jsx#document.cookie",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "CLIENT-SIDE.md#Browser-storage disclosure and stale authorization",
+    "starting_paths": [
+      "AutoInvoice-frontend/src/components/theme-provider.jsx",
+      "AutoInvoice-frontend/src/components/ui/sidebar.jsx",
+      "AutoInvoice-frontend/src/hooks/useAuth.js"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Browser-storage disclosure and stale authorization",
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "CLIENT-SIDE.md#Service-worker registration and scope takeover",
+        "reason": "No service worker is registered anywhere in src or public."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/src/components/theme-provider.jsx",
+      "AutoInvoice-frontend/src/components/ui/sidebar.jsx",
+      "AutoInvoice-frontend/src/hooks/useAuth.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/src/components/theme-provider.jsx",
+          "AutoInvoice-frontend/src/components/ui/sidebar.jsx",
+          "AutoInvoice-frontend/src/hooks/useAuth.js"
+        ],
+        "invariant": "Tokens and private data must not persist in script-readable storage.",
+        "method": "source",
+        "result": "Only the theme and sidebar state are stored; auth tokens live in HttpOnly cookies and the query cache is cleared on logout.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%2Fhooks%2FuseAuth.js%23logout::AutoInvoice-backend%2Fapp%2Fapi%2Froutes%2Flogin.py%23logout::profile%2Fquick%2Fall-in-scope-subsystems::WEB-PROTOCOL-AND-AUTH.md%23Session%20fixation%20and%20invalidation",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src/hooks/useAuth.js#logout",
+      "boundary": "AutoInvoice-backend/app/api/routes/login.py#logout",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "WEB-PROTOCOL-AND-AUTH.md#Session fixation and invalidation"
+    },
+    "surface": "AutoInvoice-frontend/src/hooks/useAuth.js#logout",
+    "boundary": "AutoInvoice-backend/app/api/routes/login.py#logout",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "WEB-PROTOCOL-AND-AUTH.md#Session fixation and invalidation",
+    "starting_paths": [
+      "AutoInvoice-frontend/src/hooks/useAuth.js",
+      "AutoInvoice-backend/app/api/routes/login.py"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Session fixation and invalidation",
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+    ],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/src/hooks/useAuth.js",
+      "AutoInvoice-backend/app/api/routes/login.py"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/src/hooks/useAuth.js",
+          "AutoInvoice-backend/app/api/routes/login.py"
+        ],
+        "invariant": "Logout must not falsely signal that the session ended.",
+        "method": "source",
+        "result": "Failure leaves the UI unchanged; no false signal.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "session/logout-failure-silent"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%2Fmain.jsx%23OpenAPI.WITH_CREDENTIALS::AutoInvoice-backend%2Fapp%2Fapi%2Froutes%2Flogin.py%23set_cookie::profile%2Fquick%2Fall-in-scope-subsystems::WEB-PROTOCOL-AND-AUTH.md%23Ordinary%20CSRF",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src/main.jsx#OpenAPI.WITH_CREDENTIALS",
+      "boundary": "AutoInvoice-backend/app/api/routes/login.py#set_cookie",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "WEB-PROTOCOL-AND-AUTH.md#Ordinary CSRF"
+    },
+    "surface": "AutoInvoice-frontend/src/main.jsx#OpenAPI.WITH_CREDENTIALS",
+    "boundary": "AutoInvoice-backend/app/api/routes/login.py#set_cookie",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "WEB-PROTOCOL-AND-AUTH.md#Ordinary CSRF",
+    "starting_paths": [
+      "AutoInvoice-frontend/src/main.jsx",
+      "AutoInvoice-frontend/src/hooks/useAuth.js",
+      "AutoInvoice-frontend/src/client/core/request.js",
+      "AutoInvoice-backend/app/api/routes/login.py",
+      "AutoInvoice-backend/app/main.py"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Ordinary CSRF",
+      "WEB-PROTOCOL-AND-AUTH.md#Cookie scope and transport",
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "WEB-PROTOCOL-AND-AUTH.md#JWT verification and claim binding",
+        "reason": "JWT verification happens only in the backend, which is outside this frontend-scoped run."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/src/main.jsx",
+      "AutoInvoice-frontend/src/hooks/useAuth.js",
+      "AutoInvoice-frontend/src/client/core/request.js",
+      "AutoInvoice-backend/app/api/routes/login.py",
+      "AutoInvoice-backend/app/main.py"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/src/main.jsx",
+          "AutoInvoice-frontend/src/hooks/useAuth.js",
+          "AutoInvoice-frontend/src/client/core/request.js",
+          "AutoInvoice-backend/app/api/routes/login.py",
+          "AutoInvoice-backend/app/main.py"
+        ],
+        "invariant": "Cross-site pages must not drive credentialed state changes.",
+        "method": "source",
+        "result": "SameSite=Lax + explicit CORS allowlist block cross-site forgery.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "csrf/cookie-session-withcredentials"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%2Froutes%2F_layout%2Fadmin.jsx%23beforeLoad::AutoInvoice-backend%2Fapp%2Fapi%2Fdeps.py%23get_current_active_superuser::profile%2Fquick%2Fall-in-scope-subsystems::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src/routes/_layout/admin.jsx#beforeLoad",
+      "boundary": "AutoInvoice-backend/app/api/deps.py#get_current_active_superuser",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "AutoInvoice-frontend/src/routes/_layout/admin.jsx#beforeLoad",
+    "boundary": "AutoInvoice-backend/app/api/deps.py#get_current_active_superuser",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "ATTACK-CLASSES.md#Access control",
+    "starting_paths": [
+      "AutoInvoice-frontend/src/routes/_layout/admin.jsx",
+      "AutoInvoice-frontend/src/routes/_layout.jsx",
+      "AutoInvoice-frontend/src/components/Sidebar/AppSidebar.jsx",
+      "AutoInvoice-backend/app/api/routes/users.py",
+      "AutoInvoice-backend/app/api/deps.py"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/src/routes/_layout/admin.jsx",
+      "AutoInvoice-frontend/src/routes/_layout.jsx",
+      "AutoInvoice-frontend/src/components/Sidebar/AppSidebar.jsx",
+      "AutoInvoice-backend/app/api/routes/users.py",
+      "AutoInvoice-backend/app/api/deps.py"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/src/routes/_layout/admin.jsx",
+          "AutoInvoice-frontend/src/routes/_layout.jsx",
+          "AutoInvoice-frontend/src/components/Sidebar/AppSidebar.jsx",
+          "AutoInvoice-backend/app/api/routes/users.py",
+          "AutoInvoice-backend/app/api/deps.py"
+        ],
+        "invariant": "Admin data and actions must be authorised server-side.",
+        "method": "source",
+        "result": "Server enforces superuser on every admin endpoint; client guard is UI only.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "authz/client-only-admin-route-guard"
+    ],
+    "unresolved": []
+  },
+  {
+    "coverage_id": "AutoInvoice-frontend%2Fsrc%2Froutes%2Freset-password.jsx%23validateSearch::AutoInvoice-frontend%2Fnginx.conf%23Referrer-Policy::profile%2Fquick%2Fall-in-scope-subsystems::WEB-PROTOCOL-AND-AUTH.md%23Password%20reset%20and%20broader%20recovery",
+    "canonical_refs": {
+      "surface": "AutoInvoice-frontend/src/routes/reset-password.jsx#validateSearch",
+      "boundary": "AutoInvoice-frontend/nginx.conf#Referrer-Policy",
+      "subsystem": "profile/quick/all-in-scope-subsystems",
+      "attack_class": "WEB-PROTOCOL-AND-AUTH.md#Password reset and broader recovery"
+    },
+    "surface": "AutoInvoice-frontend/src/routes/reset-password.jsx#validateSearch",
+    "boundary": "AutoInvoice-frontend/nginx.conf#Referrer-Policy",
+    "subsystem": "All in-scope frontend subsystems (quick profile)",
+    "attack_class": "WEB-PROTOCOL-AND-AUTH.md#Password reset and broader recovery",
+    "starting_paths": [
+      "AutoInvoice-frontend/src/routes/reset-password.jsx",
+      "AutoInvoice-frontend/src/routes/recover-password.jsx",
+      "AutoInvoice-frontend/index.html"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Password reset and broader recovery",
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+    ],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-parent",
+    "reviewed_paths": [
+      "AutoInvoice-frontend/src/routes/reset-password.jsx",
+      "AutoInvoice-frontend/src/routes/recover-password.jsx",
+      "AutoInvoice-frontend/index.html"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-parent",
+        "reviewed_paths": [
+          "AutoInvoice-frontend/src/routes/reset-password.jsx",
+          "AutoInvoice-frontend/src/routes/recover-password.jsx",
+          "AutoInvoice-frontend/index.html"
+        ],
+        "invariant": "Reset tokens must not leak to other origins.",
+        "method": "source",
+        "result": "No third-party resources on the page; default referrer policy strips the query.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "secrets/reset-token-in-url-referrer"
+    ],
+    "unresolved": []
+  }
+]

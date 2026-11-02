@@ -1,0 +1,349 @@
+[
+  {
+    "verdict": "rejected",
+    "fingerprint": "authz/client-only-admin-route-guard",
+    "title": "Admin pages guarded only in the browser",
+    "description": "/admin is hidden by a client-side beforeLoad check on is_superuser. A non-superuser can skip it by changing client state.",
+    "claimed_root_cause": "admin.jsx beforeLoad enforces is_superuser in JavaScript only.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/src/routes/_layout/admin.jsx",
+        "line": 19,
+        "scope": "beforeLoad",
+        "description": "Client-side redirect when the user isn't a superuser."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/src/routes/_layout/admin.jsx",
+        "line": 13,
+        "scope": "getUsersQueryOptions",
+        "description": "Calls GET /api/v1/users/."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-backend/app/api/routes/users.py",
+        "line": 34,
+        "description": "read_users depends on get_current_active_superuser."
+      },
+      {
+        "file": "AutoInvoice-backend/app/api/routes/users.py",
+        "line": 213,
+        "description": "delete_user depends on get_current_active_superuser."
+      },
+      {
+        "file": "AutoInvoice-backend/app/api/deps.py",
+        "line": 69,
+        "description": "get_current_active_superuser raises 403 for non-superusers."
+      }
+    ],
+    "reason": "Bypassing the client guard only shows an empty UI. Every admin API the page calls (list, create, update, delete users) is enforced by the backend's get_current_active_superuser dependency, so no data or action is exposed."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "client/api-path-param-encodeuri",
+    "title": "Generated client encodes path params with encodeURI",
+    "description": "getUrl uses encodeURI, which leaves / ? # unescaped, so a crafted path parameter could retarget the request.",
+    "claimed_root_cause": "request.js getUrl default encoder is encodeURI, not encodeURIComponent.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/src/components/Admin/DeleteUser.jsx",
+        "line": 27,
+        "scope": "deleteUser",
+        "description": "Passes userId to the client."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/src/client/core/request.js",
+        "line": 54,
+        "scope": "getUrl",
+        "description": "Path param is interpolated with encodeURI."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-frontend/src/components/Admin/UserActionsMenu.jsx",
+        "line": 27,
+        "description": "DeleteUser id comes from the server-issued user record (UUID)."
+      },
+      {
+        "file": "AutoInvoice-frontend/src/client/sdk.gen.js",
+        "line": 152,
+        "description": "recoverPassword puts the requester-typed email in the path."
+      }
+    ],
+    "reason": "Every ID path param is a server-issued UUID (columns.jsx -> UserActionsMenu -> DeleteUser). The only free-text path param is the email in recoverPassword, which the requester types for their own request, so any retargeting affects only themselves."
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "client/nginx-no-frame-ancestors-or-csp",
+    "title": "Static nginx config sent no CSP, frame-ancestors or X-Frame-Options",
+    "description": "The production nginx server block served the SPA with no Content-Security-Policy, X-Frame-Options or other security headers. Superuser screens (delete user, edit user) could therefore be framed. Whether a framed click can finish an authenticated action depends on where the app is deployed.",
+    "claimed_root_cause": "nginx.conf location / serves index.html and assets with no add_header directives, so the browser gets no framing or script-source policy.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/nginx.conf",
+        "line": 4,
+        "scope": "location /",
+        "description": "Every SPA response is served from here with no security headers."
+      },
+      {
+        "kind": "propagation",
+        "file": "AutoInvoice-frontend/src/routes/_layout/admin.jsx",
+        "line": 17,
+        "scope": "Route /_layout/admin",
+        "description": "A framed superuser session reaches the admin user table."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/src/components/Admin/DeleteUser.jsx",
+        "line": 26,
+        "scope": "DeleteUser.deleteUser",
+        "description": "A click in the frame sends a credentialed DELETE /api/v1/users/{id}."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-frontend/nginx.conf",
+        "line": 1,
+        "description": "server block has no add_header, server_tokens or CSP."
+      },
+      {
+        "file": "AutoInvoice-frontend/src/main.jsx",
+        "line": 17,
+        "description": "OpenAPI.WITH_CREDENTIALS = true: API calls carry the session cookies."
+      },
+      {
+        "file": "AutoInvoice-backend/app/api/routes/login.py",
+        "line": 57,
+        "description": "Session cookie is SameSite=Lax, so a cross-site parent frame's subrequests send no cookie."
+      }
+    ],
+    "blockers": [
+      "SameSite=Lax cookies stop this from a cross-site page. A same-site origin (a sibling subdomain under the same registrable domain) or a proxy that rewrites cookies would bypass that. The repository does not show the deployed domain layout or any TLS proxy headers."
+    ],
+    "validation_plan": {
+      "local": "Serve the built dist with the old nginx.conf and the backend on two same-site loopback hostnames. Frame /admin from a third same-site test origin as a dummy superuser and check whether a click sends an authenticated DELETE for a dummy user.",
+      "deployment": "Owner: check the deployed frontend's response headers for frame-ancestors / X-Frame-Options, and list every host that shares the frontend's registrable domain."
+    }
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "csrf/cookie-session-withcredentials",
+    "title": "Cookie session with credentialed cross-origin API calls (CSRF)",
+    "description": "The SPA authenticates with cookies and sends every API call withCredentials. That could allow cross-site request forgery.",
+    "claimed_root_cause": "main.jsx sets OpenAPI.WITH_CREDENTIALS = true and uses no anti-CSRF token.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/src/main.jsx",
+        "line": 17,
+        "scope": "module init",
+        "description": "Every generated API call is credentialed."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/src/client/core/request.js",
+        "line": 160,
+        "scope": "sendRequest",
+        "description": "axios request with withCredentials."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-backend/app/api/routes/login.py",
+        "line": 57,
+        "description": "access_token cookie is HttpOnly, SameSite=Lax, and Secure outside local."
+      },
+      {
+        "file": "AutoInvoice-backend/app/main.py",
+        "line": 54,
+        "description": "CORS allow_origins is an explicit list (no wildcard or reflection) with credentials."
+      },
+      {
+        "file": "AutoInvoice-backend/app/api/routes/login.py",
+        "line": 134,
+        "description": "Logout and all state changes use POST/PATCH/DELETE, which Lax cookies don't accompany cross-site."
+      }
+    ],
+    "reason": "SameSite=Lax keeps the session cookie off cross-site POST, PATCH and DELETE requests. The explicit CORS allowlist stops a foreign origin from reading responses. No state-changing GET exists in the client API, so no cross-site forgery path remains."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "injection/csv-formula-export",
+    "title": "CSV formula injection in data-table export",
+    "description": "exportAsCSV writes cell values that start with =, +, - or @ unescaped, so spreadsheet apps would run them as formulas.",
+    "claimed_root_cause": "ExportMenu escape() quotes delimiters but doesn't neutralise formula prefixes.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/src/components/DataTables/TableCell.jsx",
+        "line": 308,
+        "scope": "TableCell",
+        "description": "User types a cell value."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/src/components/DataTables/ExportMenu.jsx",
+        "line": 28,
+        "scope": "exportAsCSV.escape",
+        "description": "Value is written to CSV unneutralised."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-frontend/src/components/DataTables/tableStore.js",
+        "line": 1,
+        "description": "Data tables are an in-memory, per-tab store with no backend persistence or sharing."
+      }
+    ],
+    "reason": "Only the exporting user can write the cells, and the store is per-tab memory, so the formula would only affect the user's own data (self-impact). It becomes a real finding once tables are shared or loaded from a backend, so the export was hardened anyway."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "secrets/reset-token-in-url-referrer",
+    "title": "Password-reset token in the URL leaking through Referer",
+    "description": "The reset link puts its token in ?token=. Without a Referrer-Policy, the full URL could leak to other origins.",
+    "claimed_root_cause": "reset-password route reads the token from the query string and nginx set no Referrer-Policy.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/src/routes/reset-password.jsx",
+        "line": 27,
+        "scope": "searchSchema",
+        "description": "Token is read from the query string."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/src/routes/reset-password.jsx",
+        "line": 83,
+        "scope": "onSubmit",
+        "description": "Token is sent to the API in the request body."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-frontend/index.html",
+        "line": 6,
+        "description": "Only a same-origin favicon link; no external resources or links in src."
+      },
+      {
+        "file": "AutoInvoice-frontend/src/index.css",
+        "line": 3,
+        "description": "Fonts are bundled through @fontsource imports."
+      }
+    ],
+    "reason": "The page loads no third-party resources or links, and the browser's default strict-origin-when-cross-origin policy strips the query string from cross-origin Referers, so the token reaches no other origin. A Referrer-Policy: no-referrer header was added as hardening."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "session/logout-failure-silent",
+    "title": "Failed logout ignored without telling the user",
+    "description": "logout() handles only the success path. If the POST fails, the session cookies stay set.",
+    "claimed_root_cause": "useAuth.logout has no catch path.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/src/hooks/useAuth.js",
+        "line": 42,
+        "scope": "logout",
+        "description": "User clicks Log out."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/src/hooks/useAuth.js",
+        "line": 49,
+        "scope": "logout.then",
+        "description": "Cache is cleared only on success."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-frontend/src/hooks/useAuth.js",
+        "line": 43,
+        "description": "POST /api/v1/login/logout; the cookies are HttpOnly and only the server can clear them."
+      }
+    ],
+    "reason": "On failure the UI doesn't change: the user stays on the authenticated page, so they aren't led to believe they've logged out and no other principal is affected. An error toast was added for clarity."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "supply-chain/axios-1.13.4-prototype-pollution-gadgets",
+    "title": "axios 1.13.4 prototype-pollution gadgets in the browser bundle",
+    "description": "axios 1.13.4 has many advisories. Several are prototype-pollution gadgets (GHSA-w9j2-pvgh-6h63, GHSA-pf86-5x62-jrwf and others) that can redirect requests or leak credentials.",
+    "claimed_root_cause": "package.json pinned axios 1.13.4, which ships in the browser bundle as the generated client's transport.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/package.json",
+        "line": 39,
+        "scope": "dependencies.axios",
+        "description": "axios 1.13.4 pinned."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/src/client/core/request.js",
+        "line": 152,
+        "scope": "sendRequest",
+        "description": "All API traffic goes through axios."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-frontend/src/client/core/request.js",
+        "line": 54,
+        "description": "Request construction uses only static generated options."
+      },
+      {
+        "file": "AutoInvoice-frontend/src/client/core/request.js",
+        "line": 40,
+        "description": "getQueryString only builds strings; a grep of src finds no Object.assign-on-input, __proto__ or deep-merge primitive."
+      }
+    ],
+    "reason": "Each gadget needs a separate prototype-pollution primitive on the page, and none exists in application source: no recursive merge of attacker keys, no URL-to-object parser. The NO_PROXY, proxy and HTTP/2 advisories affect the Node HTTP adapter, which the browser build doesn't use. The version was still upgraded (1.21.0) as hardening."
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "supply-chain/vite-7.3.1-dev-server-advisories",
+    "title": "Vite 7.3.1 dev server had file-read and fs.deny bypass advisories",
+    "description": "The locked Vite 7.3.1 (affected range 7.0.0-7.3.6) is affected by GHSA-p9ff-h696-f583, GHSA-v2wj-q39q-566r and GHSA-4w7w-66w2-5vf9, among others. They let a network peer of a running dev server read files outside the project. Whether this matters depends on whether developers expose `npm run dev` beyond loopback.",
+    "claimed_root_cause": "package.json allowed vite ^7.3.0 and package-lock.json resolved 7.3.1. Vite's dev server serves files over HTTP and WebSocket to any client that can reach it.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "AutoInvoice-frontend/package.json",
+        "line": 7,
+        "scope": "scripts.dev",
+        "description": "`npm run dev` starts the Vite dev server."
+      },
+      {
+        "kind": "sink",
+        "file": "AutoInvoice-frontend/package.json",
+        "line": 64,
+        "scope": "devDependencies.vite",
+        "description": "Resolves to the vulnerable vite 7.3.1."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "AutoInvoice-frontend/vite.config.js",
+        "line": 8,
+        "description": "No server.host is set, so the default binds to localhost only."
+      },
+      {
+        "file": "AutoInvoice-frontend/package.json",
+        "line": 64,
+        "description": "vite ^7.3.0 (lockfile 7.3.1)."
+      }
+    ],
+    "blockers": [
+      "Whether developers start the dev server with --host or in containers reachable from a shared network is a workstation habit the repository doesn't record."
+    ],
+    "validation_plan": {
+      "deployment": "Owner: confirm that no developer runbook, devcontainer or CI preview runs `vite --host` / server.host on a shared or public network. If one does, the 7.3.0 advisories are reachable."
+    }
+  }
+]

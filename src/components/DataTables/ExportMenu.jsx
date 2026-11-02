@@ -25,16 +25,19 @@ function triggerDownload(content, filename, mimeType) {
 // ─── CSV export ───────────────────────────────────────────────────────────────
 function exportAsCSV(table, rows) {
   const cols = table.columns.map((c) => c.name)
-  const escape = (val) => {
-    const str = val == null ? "" : String(val)
-    return str.includes(",") || str.includes('"') || str.includes("\n")
-      ? `"${str.replace(/"/g, '""')}"`
-      : str
+  const escapeCell = (val) => {
+    let str = val == null ? "" : String(val)
+    // CSV/formula injection (OWASP): spreadsheet apps execute cells that start
+    // with these characters. Prefix a single quote so they open as text.
+    // Plain numbers (e.g. negative amounts) are left as numbers.
+    const isPlainNumber = /^[-+]?\d+(\.\d+)?$/.test(str)
+    if (!isPlainNumber && /^[=+\-@\t\r]/.test(str)) str = `'${str}`
+    return /[",\r\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str
   }
 
-  const header = cols.map(escape).join(",")
+  const header = cols.map(escapeCell).join(",")
   const dataRows = rows.map((row) =>
-    cols.map((col) => escape(row[col])).join(","),
+    cols.map((col) => escapeCell(row[col])).join(","),
   )
   const csv = [header, ...dataRows].join("\n")
   triggerDownload(csv, `${table.name}.csv`, "text/csv;charset=utf-8;")

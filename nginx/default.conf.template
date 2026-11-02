@@ -1,0 +1,32 @@
+# Rendered at container start by the official nginx image (envsubst over
+# /etc/nginx/templates/*.template). Only ${API_URL} is substituted; nginx
+# runtime variables such as $uri are left untouched.
+server {
+  listen 80;
+
+  # Do not advertise the nginx version in headers or error pages.
+  server_tokens off;
+
+  # Security headers (OWASP Secure Headers Project). `always` makes nginx send
+  # them on error responses too. A location block that declares its own
+  # add_header stops inheriting these, so repeat them there if you add one.
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${API_URL}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+  add_header X-Frame-Options "DENY" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  # The password-reset link carries its token in the query string; never leak
+  # the full URL to any other origin.
+  add_header Referrer-Policy "no-referrer" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+  add_header Cross-Origin-Opener-Policy "same-origin" always;
+  # Enable once this site is served only over HTTPS (or set it on the
+  # TLS-terminating proxy instead):
+  # add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+
+  location / {
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+    try_files $uri /index.html =404;
+  }
+
+  include /etc/nginx/extra-conf.d/*.conf;
+}

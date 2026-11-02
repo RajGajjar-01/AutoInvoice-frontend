@@ -50,6 +50,11 @@ const useAuth = () => {
         queryClient.clear()
         navigate({ to: "/login" })
       })
+      .catch((err) => {
+        // The session cookies are only cleared by the server. If that call
+        // fails, say so instead of silently leaving the user signed in.
+        handleError.call(showErrorToast, err)
+      })
   }
 
   return {

@@ -9,35 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
-import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
-import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
-import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
-import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutRouteImport } from './routes/_layout'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutDataTablesRouteImport } from './routes/_layout/data-tables'
+import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
+import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutDataTablesIndexRouteImport } from './routes/_layout/data-tables/index'
-import { Route as LayoutDataTablesNewRouteImport } from './routes/_layout/data-tables.new'
 import { Route as LayoutDataTablesTableIdRouteImport } from './routes/_layout/data-tables.$tableId'
+import { Route as LayoutDataTablesNewRouteImport } from './routes/_layout/data-tables.new'
 
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 })
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-})
-const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
-  id: '/recover-password',
-  path: '/recover-password',
+const LayoutRoute = LayoutRouteImport.update({
+  id: '/_layout',
   getParentRoute: () => rootRouteImport,
 })
 const LoginRoute = LoginRouteImport.update({
@@ -45,33 +39,24 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 })
-const LayoutRoute = LayoutRouteImport.update({
-  id: '/_layout',
+const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
+  id: '/recover-password',
+  path: '/recover-password',
   getParentRoute: () => rootRouteImport,
 })
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 })
-const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => LayoutRoute,
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
 })
-const LayoutProfileRoute = LayoutProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => LayoutRoute,
-})
-const LayoutItemsRoute = LayoutItemsRouteImport.update({
-  id: '/items',
-  path: '/items',
-  getParentRoute: () => LayoutRoute,
-})
-const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
-  id: '/data-tables',
-  path: '/data-tables',
+const LayoutAdminRoute = LayoutAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => LayoutRoute,
 })
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
@@ -79,9 +64,24 @@ const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => LayoutRoute,
 })
-const LayoutAdminRoute = LayoutAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const LayoutDataTablesRoute = LayoutDataTablesRouteImport.update({
+  id: '/data-tables',
+  path: '/data-tables',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutItemsRoute = LayoutItemsRouteImport.update({
+  id: '/items',
+  path: '/items',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutProfileRoute = LayoutProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => LayoutRoute,
+})
+const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => LayoutRoute,
 })
 const LayoutDataTablesIndexRoute = LayoutDataTablesIndexRouteImport.update({
@@ -89,14 +89,14 @@ const LayoutDataTablesIndexRoute = LayoutDataTablesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutDataTablesRoute,
 })
-const LayoutDataTablesNewRoute = LayoutDataTablesNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => LayoutDataTablesRoute,
-})
 const LayoutDataTablesTableIdRoute = LayoutDataTablesTableIdRouteImport.update({
   id: '/$tableId',
   path: '/$tableId',
+  getParentRoute: () => LayoutDataTablesRoute,
+})
+const LayoutDataTablesNewRoute = LayoutDataTablesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
   getParentRoute: () => LayoutDataTablesRoute,
 })
 

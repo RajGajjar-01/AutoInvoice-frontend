@@ -1,0 +1,22 @@
+{
+  "run_id": "run-1",
+  "repo": "RajGajjar-01/AutoInvoice-frontend",
+  "target": "/home/user",
+  "source_ref": "AutoInvoice-frontend@69f3bc9 (clean); backend read-only for control verification",
+  "profile": "quick",
+  "scope_paths": [
+    "AutoInvoice-frontend"
+  ],
+  "budget": null,
+  "execution_policy": "sandboxed-source-and-local-only",
+  "companions": [
+    "CLIENT-SIDE.md",
+    "WEB-PROTOCOL-AND-AUTH.md",
+    "SUPPLY-CHAIN-AND-RELEASE.md"
+  ],
+  "prior_runs": [],
+  "shared_file_owners": {
+    "all": "parent"
+  },
+  "run_status": "complete"
+}
