@@ -5,3 +5,7 @@ allowBuilds:
   "@swc/core": true
   core-js: true
   esbuild: true
+
+overrides:
+  dompurify: ">=3.4.17"
+  follow-redirects: ">=1.16.2"

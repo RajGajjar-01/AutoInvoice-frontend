@@ -40,10 +40,12 @@ function triggerDownload(content: string, filename: string, mimeType: string) {
 function exportAsCSV(table: Table, rows: Row[]) {
   const cols = table.columns.map((c) => c.name)
   const csvEscape = (val: unknown) => {
-    const str = val == null ? "" : String(val)
-    return str.includes(",") || str.includes('"') || str.includes("\n")
-      ? `"${str.replace(/"/g, '""')}"`
-      : str
+    let str = val == null ? "" : String(val)
+    // CSV/formula injection: spreadsheets execute cells starting with these
+    // characters. Prefix a quote so they open as text; plain numbers stay numeric.
+    const isPlainNumber = /^[-+]?\d+(\.\d+)?$/.test(str)
+    if (!isPlainNumber && /^[=+\-@\t\r]/.test(str)) str = `'${str}`
+    return /[",\r\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str
   }
 
   const header = cols.map(csvEscape).join(",")
