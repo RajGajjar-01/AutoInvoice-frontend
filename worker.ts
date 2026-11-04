@@ -8,16 +8,6 @@ interface Env {
   }
 }
 
-// CSP is limited to frame-ancestors: a full script/style policy can't be verified without a browser.
-const SECURITY_HEADERS: Record<string, string> = {
-  "Content-Security-Policy": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
-  "X-Frame-Options": "DENY",
-  "X-Content-Type-Options": "nosniff",
-  "Referrer-Policy": "no-referrer",
-  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
-  "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
-}
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
@@ -28,9 +18,6 @@ export default {
         { redirect: "manual" },
       )
     }
-    const res = await env.ASSETS.fetch(request)
-    const out = new Response(res.body, res)
-    for (const [k, v] of Object.entries(SECURITY_HEADERS)) out.headers.set(k, v)
-    return out
+    return env.ASSETS.fetch(request)
   },
 }
