@@ -1746,7 +1746,7 @@ function InvoiceTemplatesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Link to="/invoices">
+        <Link to="/invoices" className="max-md:hidden">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
