@@ -16,8 +16,17 @@ import {
   Users,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Link, Outlet, useLocation, useNavigate } from "react-router"
+import {
+  Link,
+  Outlet,
+  ScrollRestoration,
+  useLocation,
+  useNavigate,
+  useNavigation,
+} from "react-router"
 import { Logo } from "@/components/Common/Logo"
+import { OfflineBanner } from "@/components/Common/OfflineBanner"
+import { PullToRefresh } from "@/components/Common/PullToRefresh"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import { useTheme } from "@/components/theme-provider"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -34,6 +43,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useNotificationStore } from "@/features/data-tables/notification-store"
 import useAuth from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
+import { prefetchPage } from "@/routes/pages"
 
 const mobileLinks = [
   { label: "Home", to: "/dashboard", icon: Home },
@@ -71,6 +81,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
               <Link
                 key={to}
                 to={to}
+                onPointerDown={() => prefetchPage(to)}
                 aria-current={active ? "page" : undefined}
                 className={`group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors duration-150 ${active ? "text-primary" : "text-muted-foreground"}`}
               >
@@ -114,6 +125,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
             ].map(({ label, to, icon: Icon }) => (
               <Link
                 to={to}
+                onPointerDown={() => prefetchPage(to)}
                 onClick={() => setMoreOpen(false)}
                 key={to}
                 className={cn(
@@ -282,10 +294,50 @@ function LoadingSkeleton() {
   )
 }
 
+const PULL_TO_REFRESH = new Set([
+  "/dashboard",
+  "/invoices",
+  "/invoice-history",
+  "/customers",
+  "/items",
+  "/notifications",
+])
+
+// Shown at once while the next page's code or loader is on its way.
+function PageSkeleton() {
+  return (
+    <div className="flex flex-col gap-4" aria-busy="true">
+      <div className="h-11 w-full skeleton-loading md:h-8 md:w-56" />
+      <div className="h-4 w-48 skeleton-loading" />
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="h-20 rounded-xl skeleton-loading" />
+      ))}
+    </div>
+  )
+}
+
 export function ProtectedLayout() {
   const { isLoading, user } = useAuth()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const navigation = useNavigation()
+  const switchingPage =
+    navigation.state === "loading" && navigation.location.pathname !== pathname
+
+  // Warm the tab-bar pages once the shell is idle, so the first tap is instant.
+  useEffect(() => {
+    if (!user) return
+    const warm = () => {
+      for (const { to } of mobileLinks) prefetchPage(to)
+    }
+    // Safari has no requestIdleCallback.
+    if (!("requestIdleCallback" in window)) {
+      const t = setTimeout(warm, 1500)
+      return () => clearTimeout(t)
+    }
+    const id = window.requestIdleCallback(warm)
+    return () => window.cancelIdleCallback(id)
+  }, [user])
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -303,6 +355,8 @@ export function ProtectedLayout() {
 
   // Settings is a pushed screen on phones: full slide from the right, no tab bar.
   const isSettings = pathname === "/settings"
+  // Document forms have their own bottom action bar on phones.
+  const hideTabBar = isSettings || pathname.startsWith("/create-")
 
   return (
     <SidebarProvider>
@@ -324,12 +378,15 @@ export function ProtectedLayout() {
               isSettings && "route-push",
             )}
           >
-            <Outlet />
+            {switchingPage ? <PageSkeleton /> : <Outlet />}
           </div>
         </main>
-        {!isSettings && (
+        {!hideTabBar && (
           <MobileNavigation isAdmin={user.is_superuser ?? false} />
         )}
+        <OfflineBanner />
+        {PULL_TO_REFRESH.has(pathname) && <PullToRefresh />}
+        <ScrollRestoration />
       </SidebarInset>
     </SidebarProvider>
   )

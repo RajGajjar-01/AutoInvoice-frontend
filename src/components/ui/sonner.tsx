@@ -6,15 +6,22 @@ import {
   TriangleAlertIcon,
 } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
+import { usePhoneLayout } from "@/hooks/use-mobile"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
+  const phone = usePhoneLayout()
+  // Phones: sit above the bottom tab bar, no close button (swipe dismisses).
+  const phoneOffset = { bottom: "calc(4.75rem + env(safe-area-inset-bottom))" }
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      closeButton={!phone}
+      offset={phone ? phoneOffset : undefined}
+      mobileOffset={phoneOffset}
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,

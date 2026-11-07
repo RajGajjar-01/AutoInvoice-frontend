@@ -558,8 +558,8 @@ Verified capabilities:
 - create invoice through API
 - deduct stock from local storage after save
 - build invoice HTML client-side
-- preview invoice in a dialog iframe
-- download invoice PDF using `html2pdf.js`
+- preview invoice in a dialog iframe (create page: client HTML of the draft; invoice detail page: backend `preview-html`)
+- download invoice PDF made by the backend (`GET /invoices/{id}/pdf`, saves first)
 - send invoice via WhatsApp
 - send invoice via email
 

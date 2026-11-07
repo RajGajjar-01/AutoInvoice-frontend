@@ -1,4 +1,3 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
 import {
   AlertTriangle,
   Clock,
@@ -6,15 +5,17 @@ import {
   FileText,
   IndianRupee,
   MoreHorizontal,
-  Search,
   Send,
   Trash2,
 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Link } from "react-router"
-import { InvoicesService } from "@/client/sdk.gen"
-import type { InvoiceStatus } from "@/client/types.gen"
-import { Button } from "@/components/ui/button"
+import { FilterChips } from "@/components/Common/FilterChips"
+import { ListSkeleton } from "@/components/Common/ListSkeleton"
+import { PageHeader } from "@/components/Common/PageHeader"
+import { SearchInput } from "@/components/Common/SearchInput"
+import { StatCard } from "@/components/Common/StatCard"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   DropdownMenu,
@@ -22,7 +23,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -41,65 +41,33 @@ import {
 import { HistoryEmptyState } from "@/features/invoice-history/components/HistoryEmptyState"
 import { DeleteInvoiceDialog } from "@/features/invoices/components/DeleteInvoiceDialog"
 import { MobileInvoiceCard } from "@/features/invoices/components/MobileInvoiceCard"
-import { StatCard } from "@/features/invoices/components/StatCard"
 import { StatusBadge } from "@/features/invoices/components/StatusBadge"
-import type { Invoice } from "@/features/invoices/hooks/useInvoices"
-import {
-  invoicesListQueryOptions,
-  invoicesQueryKeys,
-} from "@/features/invoices/queries"
+import { useInvoices } from "@/features/invoices/hooks/useInvoices"
 import { fmt } from "@/features/invoices/utils"
-import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { queryClient } from "@/queryClient"
+import { cn } from "@/lib/utils"
 
 function InvoiceHistoryPage() {
   useDocumentTitle("Invoice History")
-  const { data: invoicesRes } = useQuery(invoicesListQueryOptions())
-  const invoices = (invoicesRes?.data ?? []) as Invoice[]
-  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const {
+    invoices,
+    isLoading,
+    totalRevenue,
+    outstanding,
+    overdueCount,
+    deleteTarget,
+    setDeleteTarget,
+    handleToggleStatus,
+    handleDelete,
+    handleWhatsApp,
+    setStatus,
+    deleteWithUndo,
+  } = useInvoices()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [sortOrder, setSortOrder] = useState<string>("newest")
-  const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null)
-
-  const updateInvoiceMutation = useMutation({
-    mutationFn: async ({
-      id,
-      patch,
-    }: {
-      id: string
-      patch: { status: InvoiceStatus }
-    }) => {
-      return InvoicesService.updateInvoice({
-        id,
-        requestBody: patch,
-      })
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
-    },
-  })
-
-  const deleteInvoiceMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return InvoicesService.deleteInvoice({ id })
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
-      showSuccessToast("Invoice deleted")
-    },
-  })
 
   // ── Stats ────────────────────────────────────────────────────────────────
-  const totalRevenue = invoices.reduce(
-    (s, i) => s + (Number(i.grandTotal) || 0),
-    0,
-  )
-  const outstanding = invoices
-    .filter((i) => i.status === "unpaid" || i.status === "overdue")
-    .reduce((s, i) => s + (Number(i.grandTotal) || 0), 0)
-  const overdueCount = invoices.filter((i) => i.status === "overdue").length
 
   // ── Filtered + sorted ────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -135,62 +103,24 @@ function InvoiceHistoryPage() {
     return list
   }, [invoices, search, statusFilter, sortOrder])
 
-  // ── Actions ──────────────────────────────────────────────────────────────
-  const handleToggleStatus = (inv: Invoice) => {
-    const next: "paid" | "unpaid" | "overdue" =
-      inv.status === "paid"
-        ? "unpaid"
-        : inv.status === "unpaid"
-          ? "overdue"
-          : "paid"
-    updateInvoiceMutation.mutate({ id: inv.id, patch: { status: next } })
-    showSuccessToast(`Status changed to ${next}`)
-  }
-
-  const handleDelete = () => {
-    if (!deleteTarget) return
-    deleteInvoiceMutation.mutate(deleteTarget.id)
-    setDeleteTarget(null)
-  }
-
-  const sendWhatsappMutation = useMutation({
-    mutationFn: (body: { id: string; to_phone: string }) =>
-      InvoicesService.sendInvoiceWhatsapp({
-        id: body.id,
-        requestBody: { to_phone: body.to_phone },
-      }),
-    onSuccess: () => showSuccessToast("Invoice sent via WhatsApp"),
-    onError: () => showErrorToast("Failed to send via WhatsApp"),
-  })
-
-  const handleWhatsApp = (inv: Invoice) => {
-    const phone = inv.customer?.whatsapp || inv.customer?.phone
-    if (!phone) {
-      showErrorToast("No WhatsApp number available")
-      return
-    }
-    sendWhatsappMutation.mutate({ id: inv.id, to_phone: phone })
-  }
+  if (isLoading) return <ListSkeleton />
 
   const hasSearch = search.trim() !== "" || statusFilter !== "all"
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
-        <div>
-          <h1 className="max-md:sr-only text-2xl font-bold tracking-tight">
-            Invoice History
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Search, filter, and manage all your invoices
-          </p>
-        </div>
-        <Link to="/create-invoice" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">
-            <FilePlus className="mr-2 h-4 w-4" /> New Invoice
-          </Button>
-        </Link>
-      </div>
+      <PageHeader
+        title="Invoice History"
+        description="Search, filter, and manage all your invoices"
+        actions={
+          <Link
+            to="/create-invoice"
+            className={cn(buttonVariants({ size: "lg" }), "max-md:h-11")}
+          >
+            <FilePlus /> New Invoice
+          </Link>
+        }
+      />
 
       <div className="hidden grid-cols-2 gap-4 md:grid lg:grid-cols-4 animate-in animate-in-delay-1">
         <StatCard
@@ -229,42 +159,43 @@ function InvoiceHistoryPage() {
       </div>
 
       {invoices.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:flex-wrap animate-in animate-in-delay-2">
-          <div className="relative col-span-2 min-w-0 sm:max-w-sm sm:flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by invoice #, customer, amount…"
+        <div className="flex flex-col gap-3 animate-in animate-in-delay-2">
+          <div className="flex items-center gap-2">
+            <SearchInput
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              onChange={setSearch}
+              placeholder="Search by invoice #, customer, amount…"
+              className="sm:max-w-sm"
             />
+            <Select
+              value={sortOrder}
+              onValueChange={(v) => setSortOrder(v ?? "newest")}
+            >
+              <SelectTrigger
+                className="w-32 shrink-0 sm:w-36"
+                aria-label="Sort"
+              >
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="oldest">Oldest first</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select
+          <FilterChips
+            label="Invoice status"
             value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v ?? "")}
-          >
-            <SelectTrigger className="w-full sm:w-36">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="unpaid">Unpaid</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={sortOrder}
-            onValueChange={(v) => setSortOrder(v ?? "")}
-          >
-            <SelectTrigger className="w-full sm:w-36">
-              <SelectValue placeholder="Sort" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={setStatusFilter}
+            options={[
+              { value: "all", label: "All", count: invoices.length },
+              ...(["unpaid", "overdue", "paid"] as const).map((st) => ({
+                value: st,
+                label: st[0].toUpperCase() + st.slice(1),
+                count: invoices.filter((i) => i.status === st).length,
+              })),
+            ]}
+          />
         </div>
       )}
 
@@ -280,9 +211,12 @@ function InvoiceHistoryPage() {
                 <MobileInvoiceCard
                   key={inv.id}
                   invoice={inv}
-                  onStatusChange={handleToggleStatus}
                   onWhatsApp={handleWhatsApp}
                   onDelete={setDeleteTarget}
+                  onSetPaid={(inv, paid) =>
+                    setStatus(inv, paid ? "paid" : "unpaid")
+                  }
+                  onSwipeDelete={deleteWithUndo}
                 />
               ))}
             </div>
@@ -403,7 +337,7 @@ function InvoiceHistoryPage() {
               </Table>
             </div>
 
-            <div className="px-6 py-3 border-t bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
+            <div className="hidden px-6 py-3 border-t bg-muted/20 md:flex items-center justify-between text-xs text-muted-foreground">
               <span>
                 Showing {filtered.length} of {invoices.length} invoices
               </span>

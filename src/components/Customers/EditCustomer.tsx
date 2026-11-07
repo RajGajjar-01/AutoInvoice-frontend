@@ -223,9 +223,14 @@ const EditCustomer = ({
 
   const trigger =
     variant === "button" ? (
-      <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
-        <Pencil className="mr-2 h-4 w-4" />
-        Edit
+      <Button
+        variant="outline"
+        size="sm"
+        className="max-sm:size-11 max-sm:p-0"
+        onClick={() => setIsOpen(true)}
+      >
+        <Pencil />
+        <span className="max-sm:sr-only">Edit</span>
       </Button>
     ) : (
       <DropdownMenuItem
@@ -245,7 +250,7 @@ const EditCustomer = ({
     <>
       {trigger}
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogContent className="phone-fullscreen flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
           <DialogHeader className="shrink-0 px-6 pt-6 text-left">
             <DialogTitle className="flex items-center gap-2">
               <div className="rounded-lg bg-primary/10 p-1.5">

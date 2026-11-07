@@ -14,7 +14,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react"
-import { memo, useMemo, useState } from "react"
+import { Fragment, memo, type ReactNode, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -36,11 +36,14 @@ import { cn } from "@/lib/utils"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  /** Phone row for one item. Without it, phones get a label/value card per row. */
+  mobileRow?: (item: TData) => ReactNode
 }
 
 function DataTableComponent<TData, TValue>({
   columns,
   data,
+  mobileRow,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState({
@@ -118,7 +121,14 @@ function DataTableComponent<TData, TValue>({
           </select>
         </div>
       )}
-      <div className="space-y-3 sm:hidden">
+      {mobileRow && (
+        <div className="divide-y overflow-hidden rounded-xl border bg-card sm:hidden">
+          {table.getRowModel().rows.map((row) => (
+            <Fragment key={row.id}>{mobileRow(row.original)}</Fragment>
+          ))}
+        </div>
+      )}
+      <div className={cn("space-y-3 sm:hidden", mobileRow && "hidden")}>
         {table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => {
             const cells = row.getVisibleCells()

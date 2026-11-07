@@ -3,16 +3,26 @@ import {
   Download,
   Eye,
   Mail,
+  MoreHorizontal,
   PackagePlus,
   Percent,
   Save,
   Send,
+  Share2,
   Truck,
 } from "lucide-react"
+import { createPortal } from "react-dom"
 import { Link, useNavigate } from "react-router"
 import { ModernExcelTable } from "@/components/modern-excel-table"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Form,
   FormControl,
@@ -39,6 +49,8 @@ import { SendEmailDialog } from "@/features/invoices/invoice-form/components/Sen
 import { documentConfigs } from "@/features/invoices/invoice-form/constants"
 import { useInvoiceForm } from "@/features/invoices/invoice-form/hooks/useInvoiceForm"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { useKeyboardInset } from "@/hooks/useKeyboardInset"
+import { canShareFiles } from "@/lib/share"
 
 // ── Amount in Words ─────────────────────────────────────────────────────
 const ones = [
@@ -104,6 +116,81 @@ const documentRouteMap: Record<string, string> = {
   quotation: "/create-quotation",
   challan: "/create-challan",
   proforma: "/create-proforma",
+}
+
+interface PhoneActionBarProps {
+  label: string
+  value: string
+  saveLabel: string
+  onPreview: () => void
+  onDownload: () => void
+  onShare: () => void
+  onEmail: () => void
+}
+
+// Phones: Save and the running total stay pinned to the bottom, above the keyboard.
+function PhoneActionBar({
+  label,
+  value,
+  saveLabel,
+  onPreview,
+  onDownload,
+  onShare,
+  onEmail,
+}: PhoneActionBarProps) {
+  const keyboard = useKeyboardInset()
+  const share = canShareFiles()
+  // Portal: the page wrapper animates transform, which would pin a fixed bar to it.
+  return createPortal(
+    <div
+      className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm md:hidden"
+      style={{ bottom: keyboard }}
+    >
+      <div className="flex items-center gap-2">
+        <div className="mr-auto min-w-0">
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="truncate text-lg font-bold tabular-nums text-primary">
+            {value}
+          </p>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-11"
+                aria-label="More actions"
+              />
+            }
+          >
+            <MoreHorizontal className="size-5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-52">
+            <DropdownMenuItem onClick={onPreview}>
+              <Eye /> Preview
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDownload}>
+              <Download /> Download PDF
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onShare}>
+              {share ? <Share2 /> : <Send />}
+              {share ? "Share PDF" : "Send via WhatsApp"}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEmail}>
+              <Mail /> Send via Email
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button type="submit" form="document-form" className="h-11 px-5">
+          <Save /> {saveLabel}
+        </Button>
+      </div>
+    </div>,
+    document.body,
+  )
 }
 
 function CreateInvoicePage() {
@@ -190,6 +277,7 @@ function CreateInvoicePage() {
 
       <Form {...form}>
         <form
+          id="document-form"
           onSubmit={form.handleSubmit(onSubmit)}
           className="document-form grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-4"
         >
@@ -706,7 +794,7 @@ function CreateInvoicePage() {
 
                 <Separator />
 
-                <div className="space-y-2 pt-2">
+                <div className="space-y-2 pt-2 max-md:hidden">
                   <Button
                     type="button"
                     className="w-full"
@@ -754,6 +842,20 @@ function CreateInvoicePage() {
           </div>
         </form>
       </Form>
+
+      <PhoneActionBar
+        label={hidePricing ? "Items" : "Total"}
+        value={
+          hidePricing
+            ? String(items.filter((i) => i.name).length)
+            : `${currencySymbol}${(roundOff ? Math.round(grandTotal) : grandTotal).toFixed(2)}`
+        }
+        saveLabel={`Save ${documentConfig.singular}`}
+        onPreview={handlePreviewAndPrint}
+        onDownload={handleDownloadPDF}
+        onShare={handleWhatsApp}
+        onEmail={handleEmail}
+      />
 
       <InvoicePreviewDialog
         open={previewOpen}

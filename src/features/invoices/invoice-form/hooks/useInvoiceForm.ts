@@ -1,15 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import html2pdf from "html2pdf.js"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useSearchParams } from "react-router"
-import { toast } from "sonner"
 import {
   CustomersService,
   InvoicesService,
   ItemsService,
 } from "@/client/sdk.gen"
-import type { InvoiceCreate } from "@/client/types.gen"
+import type { InvoiceBankDetails, InvoiceCreate } from "@/client/types.gen"
 import { companySettingsQueryOptions } from "@/features/company-settings/queries"
 import {
   customersListQueryOptions,
@@ -18,8 +16,11 @@ import {
 import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
 import { invoicesQueryKeys } from "@/features/invoices/queries"
 import { itemsListQueryOptions, itemsQueryKeys } from "@/features/items/queries"
+import { usePhoneLayout } from "@/hooks/use-mobile"
 import useCustomToast from "@/hooks/useCustomToast"
 import { formResolver } from "@/lib/form"
+import { fetchInvoicePdf, invoicePdfFilename } from "@/lib/invoicePdf"
+import { canShareFiles, downloadFile, shareFile } from "@/lib/share"
 import { queryClient } from "@/queryClient"
 import { handleError } from "@/utils"
 import {
@@ -54,6 +55,23 @@ const documentPrefixKeys = {
   proforma: "proforma_prefix",
 } as const
 
+/** Per-invoice bank details, sent only when the user turned them on. */
+function invoiceBankDetails(
+  showBankDetails: boolean,
+  formData: InvoiceFormData,
+): InvoiceBankDetails | null {
+  if (!showBankDetails) return null
+  const details: InvoiceBankDetails = {
+    bank_name: formData.bankName?.trim() || null,
+    account_name: formData.accountName?.trim() || null,
+    account_number: formData.accountNumber?.trim() || null,
+    ifsc: formData.ifsc?.trim().toUpperCase() || null,
+    branch: formData.branch?.trim() || null,
+    upi: formData.upi?.trim() || null,
+  }
+  return Object.values(details).some(Boolean) ? details : null
+}
+
 export function useInvoiceForm() {
   const { data: itemsRes } = useQuery(itemsListQueryOptions())
   const inventoryItems: InventoryItem[] = useMemo(
@@ -84,7 +102,16 @@ export function useInvoiceForm() {
     [companySettings],
   )
   const { showSuccessToast, showErrorToast } = useCustomToast()
-  const savedRef = useRef<boolean>(false)
+  // The save that is running now. A second Save/Download/Share click while
+  // it runs waits for the same save instead of starting another one.
+  const saveInFlightRef = useRef<Promise<string | null> | null>(null)
+  // The invoice this form has saved, and the payload it was saved with.
+  // A later Save, Download or Share updates that invoice instead of making
+  // a duplicate, and skips the request when nothing changed.
+  const savedIdRef = useRef<string | null>(null)
+  const savedPayloadRef = useRef<string | null>(null)
+  // Phones get the native share sheet; a download is hard to find there.
+  const sharePdf = usePhoneLayout() && canShareFiles()
   const [searchParams] = useSearchParams()
   const preselectedCustomerId = searchParams.get("customerId") ?? undefined
   const preselectedItemId = searchParams.get("itemId") ?? undefined
@@ -299,91 +326,118 @@ export function useInvoiceForm() {
         showErrorToast("Please add at least one item")
         return null
       }
-      if (savedRef.current) return null
-      savedRef.current = true
+      if (saveInFlightRef.current) return saveInFlightRef.current
 
-      let createdId: string | null = null
-      try {
-        let customerId = selectedCustomerId
-        if (!customerId || customerId === "__new__") {
-          const existing = (customersRes?.data ?? []).find(
-            (c): c is NonNullable<typeof c> => {
-              if (!c) return false
-              return (
-                (c.email &&
-                  formData.customerEmail &&
-                  c.email.toLowerCase() ===
-                    formData.customerEmail.toLowerCase()) ||
-                c.name.trim().toLowerCase() ===
-                  formData.customerName.trim().toLowerCase()
-              )
-            },
-          )
-          if (existing) {
-            customerId = existing.id
-          } else {
-            const created = await createCustomerMutation.mutateAsync({
-              name: formData.customerName,
-              phone: formData.customerPhone || null,
-              email: formData.customerEmail || null,
-              address: formData.customerAddress || null,
-              gst: formData.customerGst
-                ? formData.customerGst.toUpperCase()
-                : null,
-            })
-            customerId = created.id
-          }
-          setSelectedCustomerId(customerId)
-        }
-
-        const payload = buildInvoicePayload(
-          invoiceNumber,
-          documentConfig,
-          formData,
-          items,
-          calculations.subtotal,
-          calculations.totalTax,
-          calculations.grandTotal,
-          calculations.invoiceDiscount,
-        )
-        payload.customer_id = customerId
-
-        const created = await createInvoiceMutation.mutateAsync(payload)
-        createdId = created.id
-        showSuccessToast(`${documentConfig.singular} saved successfully`)
-
-        if (documentConfig.deductsStock) {
-          for (const line of items) {
-            if (!line.itemId || !line.quantity) continue
-            try {
-              await ItemsService.adjustStock({
-                id: line.itemId,
-                quantity: -line.quantity,
-                reason: `${documentConfig.singular} ${invoiceNumber}`,
-                reference: invoiceNumber,
+      const run = async (): Promise<string | null> => {
+        let createdId: string | null = null
+        try {
+          let customerId = selectedCustomerId
+          if (!customerId || customerId === "__new__") {
+            const existing = (customersRes?.data ?? []).find(
+              (c): c is NonNullable<typeof c> => {
+                if (!c) return false
+                return (
+                  (c.email &&
+                    formData.customerEmail &&
+                    c.email.toLowerCase() ===
+                      formData.customerEmail.toLowerCase()) ||
+                  c.name.trim().toLowerCase() ===
+                    formData.customerName.trim().toLowerCase()
+                )
+              },
+            )
+            if (existing) {
+              customerId = existing.id
+            } else {
+              const created = await createCustomerMutation.mutateAsync({
+                name: formData.customerName,
+                phone: formData.customerPhone || null,
+                email: formData.customerEmail || null,
+                address: formData.customerAddress || null,
+                gst: formData.customerGst
+                  ? formData.customerGst.toUpperCase()
+                  : null,
               })
-            } catch {
-              showErrorToast(
-                `Failed to deduct stock for "${line.name}". Stock may be insufficient.`,
-              )
+              customerId = created.id
             }
+            setSelectedCustomerId(customerId)
           }
-          await queryClient.invalidateQueries({
-            queryKey: itemsQueryKeys.all,
-          })
+
+          const payload = buildInvoicePayload(
+            invoiceNumber,
+            documentConfig,
+            formData,
+            items,
+            calculations.subtotal,
+            calculations.totalTax,
+            calculations.grandTotal,
+            calculations.invoiceDiscount,
+            invoiceBankDetails(showBankDetails, formData),
+          )
+          payload.customer_id = customerId
+          const payloadKey = JSON.stringify(payload)
+
+          if (savedIdRef.current) {
+            createdId = savedIdRef.current
+            if (payloadKey !== savedPayloadRef.current) {
+              await InvoicesService.updateInvoice({
+                id: savedIdRef.current,
+                requestBody: payload,
+              })
+              savedPayloadRef.current = payloadKey
+              await queryClient.invalidateQueries({
+                queryKey: invoicesQueryKeys.all,
+              })
+              showSuccessToast(`${documentConfig.singular} updated`)
+            }
+            return createdId
+          }
+
+          const created = await createInvoiceMutation.mutateAsync(payload)
+          createdId = created.id
+          savedIdRef.current = created.id
+          savedPayloadRef.current = payloadKey
+          showSuccessToast(`${documentConfig.singular} saved successfully`)
+
+          // Stock moves only on the first save of this document.
+          if (documentConfig.deductsStock) {
+            for (const line of items) {
+              if (!line.itemId || !line.quantity) continue
+              try {
+                await ItemsService.adjustStock({
+                  id: line.itemId,
+                  quantity: -line.quantity,
+                  reason: `${documentConfig.singular} ${invoiceNumber}`,
+                  reference: invoiceNumber,
+                })
+              } catch {
+                showErrorToast(
+                  `Failed to deduct stock for "${line.name}". Stock may be insufficient.`,
+                )
+              }
+            }
+            await queryClient.invalidateQueries({
+              queryKey: itemsQueryKeys.all,
+            })
+          }
+        } catch {
+          showErrorToast(
+            `Failed to save ${documentConfig.singular.toLowerCase()}`,
+          )
         }
-      } catch {
-        showErrorToast(
-          `Failed to save ${documentConfig.singular.toLowerCase()}`,
-        )
+        return createdId
       }
 
-      setTimeout(() => {
-        savedRef.current = false
-      }, 1000)
-      return createdId
+      const pending = run()
+      saveInFlightRef.current = pending
+      try {
+        return await pending
+      } finally {
+        saveInFlightRef.current = null
+      }
     },
     [
+      showBankDetails,
       items,
       selectedCustomerId,
       customersRes,
@@ -401,55 +455,56 @@ export function useInvoiceForm() {
     await saveInvoice(formData)
   }
 
-  const printInvoice = useCallback(() => {
-    const html = buildInvoiceHtml({
-      formData: form.getValues(),
-      companyDetails,
-      items,
-      invoiceNumber,
-      selectedTemplate,
+  // Saves (or updates) the document, then has the backend make the PDF.
+  const savedDocumentPdf = useCallback(
+    async (validData: InvoiceFormData): Promise<File | null> => {
+      const id = await saveInvoice(validData)
+      if (!id) return null
+      showSuccessToast("Preparing PDF…")
+      try {
+        return await fetchInvoicePdf(
+          id,
+          invoicePdfFilename(documentConfig.pdfTitle, invoiceNumber),
+        )
+      } catch (error) {
+        showErrorToast(
+          error instanceof Error ? error.message : "Could not create the PDF",
+        )
+        return null
+      }
+    },
+    [
+      saveInvoice,
       documentConfig,
-      ...calculations,
-      shippingCharge,
-      extraChargeAmount,
-      extraChargeLabel,
-      activeBankDetails: getActiveBankDetails(
-        showBankDetails,
-        form.getValues(),
-        companyDetails,
-      ),
-    })
-
-    const iframe = document.createElement("iframe")
-    iframe.style.display = "none"
-    document.body.appendChild(iframe)
-    const doc = iframe.contentDocument || iframe.contentWindow?.document
-    if (!doc) return
-    doc.open()
-    doc.write(html)
-    doc.close()
-    iframe.contentWindow?.focus()
-    setTimeout(() => {
-      iframe.contentWindow?.print()
-      setTimeout(() => document.body.removeChild(iframe), 1000)
-    }, 500)
-  }, [
-    form,
-    companyDetails,
-    items,
-    invoiceNumber,
-    selectedTemplate,
-    calculations,
-    shippingCharge,
-    extraChargeAmount,
-    extraChargeLabel,
-    showBankDetails,
-    documentConfig,
-  ])
+      invoiceNumber,
+      showSuccessToast,
+      showErrorToast,
+    ],
+  )
 
   const handleDownloadPDF = useCallback(() => {
-    printInvoice()
-  }, [printInvoice])
+    void form.handleSubmit(
+      async (validData) => {
+        const file = await savedDocumentPdf(validData)
+        if (!file) return
+        if (sharePdf) {
+          await shareFile(file, `${documentConfig.singular} ${invoiceNumber}`)
+        } else {
+          downloadFile(file)
+          showSuccessToast("PDF downloaded")
+        }
+      },
+      () => showErrorToast("Please fix the highlighted fields first"),
+    )()
+  }, [
+    form,
+    savedDocumentPdf,
+    sharePdf,
+    documentConfig,
+    invoiceNumber,
+    showSuccessToast,
+    showErrorToast,
+  ])
 
   const handlePreviewAndPrint = useCallback(() => {
     setPreviewOpen(true)
@@ -464,25 +519,6 @@ export function useInvoiceForm() {
       return
     }
 
-    const html = buildInvoiceHtml({
-      formData: form.getValues(),
-      companyDetails,
-      items,
-      invoiceNumber,
-      selectedTemplate,
-      documentConfig,
-      ...calculations,
-      shippingCharge,
-      extraChargeAmount,
-      extraChargeLabel,
-      activeBankDetails: getActiveBankDetails(
-        showBankDetails,
-        form.getValues(),
-        companyDetails,
-      ),
-    })
-
-    const filename = `${invoiceNumber}.pdf`
     const formData = form.getValues()
     const text = buildWhatsAppText(
       invoiceNumber,
@@ -493,63 +529,31 @@ export function useInvoiceForm() {
       documentConfig,
     )
 
-    if (typeof navigator !== "undefined" && navigator.share) {
-      showSuccessToast("Generating PDF for sharing...")
-      try {
-        const opt = {
-          margin: 0,
-          filename,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, logging: false },
-          jsPDF: {
-            unit: "mm",
-            format: "a4" as const,
-            orientation: "portrait" as const,
-          },
-        }
-        const pdfBlob = await html2pdf()
-          // biome-ignore lint/suspicious/noExplicitAny: html2pdf.js ships ambient types inside its module declaration that aren't exported; options type cannot be imported
-          .set(opt as any)
-          .from(html)
-          .output("blob")
-        const file = new File([pdfBlob], filename, { type: "application/pdf" })
-        try {
-          await navigator.share({
-            files: [file],
-            title: `Invoice ${invoiceNumber}`,
-            text: `Invoice ${invoiceNumber} from ${companyDetails.name || "UnifiedDesk"}`,
-          })
-          return
-        } catch {
-          await navigator.share({ title: `Invoice ${invoiceNumber}`, text })
-          return
-        }
-      } catch {
-        toast.warning("Sharing is not supported here, please download instead")
-      }
+    if (canShareFiles()) {
+      await form.handleSubmit(
+        async (validData) => {
+          const file = await savedDocumentPdf(validData)
+          if (file) await shareFile(file, `Invoice ${invoiceNumber}`, text)
+        },
+        () => showErrorToast("Please fix the highlighted fields first"),
+      )()
+      return
     }
 
-    if (typeof navigator !== "undefined" && !navigator.share) {
-      showSuccessToast(
-        "Summary shared. On Desktop, please download and attach PDF manually.",
-      )
-    }
+    showSuccessToast(
+      "Summary shared. On Desktop, please download and attach PDF manually.",
+    )
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
   }, [
     items,
     form,
-    companyDetails,
     invoiceNumber,
-    selectedTemplate,
     calculations,
-    shippingCharge,
-    extraChargeAmount,
-    extraChargeLabel,
-    showBankDetails,
     currencySymbol,
+    documentConfig,
+    savedDocumentPdf,
     showErrorToast,
     showSuccessToast,
-    documentConfig,
   ])
 
   const handleEmail = useCallback(() => {
@@ -649,7 +653,6 @@ export function useInvoiceForm() {
     removeItem,
     updateItem,
     onSubmit,
-    printInvoice,
     handleDownloadPDF,
     handlePreviewAndPrint,
     handleWhatsApp,

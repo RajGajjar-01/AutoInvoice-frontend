@@ -391,6 +391,26 @@
     text-align: left;
   }
 
+  /* Form wizards open full screen on phones, like a native "new contact" screen.
+     The height stops at the keyboard (iOS overlays it; Android resizes the page). */
+  [data-slot="dialog-content"].phone-fullscreen {
+    inset: 0;
+    translate: none;
+    width: 100%;
+    max-width: none;
+    height: calc(100dvh - var(--keyboard-inset, 0px));
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+
+  /* Keyboard open: give the fields the room; the step pills stay for navigation. */
+  :root[data-keyboard] .phone-fullscreen [data-slot="dialog-description"],
+  :root[data-keyboard] .phone-fullscreen [role="progressbar"] {
+    display: none;
+  }
+
   .workspace-content > * {
     min-width: 0;
     max-width: 100%;
@@ -535,5 +555,20 @@
     transition-duration: 0.01ms !important;
     /* biome-ignore lint/complexity/noImportantStyles: Reduced motion must override smooth scrolling. */
     scroll-behavior: auto !important;
+  }
+}
+
+/* Route changes from list rows (Link viewTransition): short cross-fade, and the
+   row title morphs into the detail header through a shared view-transition-name. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
   }
 }

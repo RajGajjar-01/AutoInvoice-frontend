@@ -15,7 +15,16 @@ for (const [path, action] of [
     page,
   }) => {
     await page.goto(path)
-    await page.getByRole("button", { name: action, exact: true }).click()
+    // Phones keep the create-page actions in the bottom bar's menu.
+    const phoneMenu = page.getByRole("button", { name: "More actions" })
+    if (path === "/create-invoice")
+      await page.locator("#document-form").waitFor()
+    if (path === "/create-invoice" && (await phoneMenu.isVisible())) {
+      await phoneMenu.click()
+      await page.getByRole("menuitem", { name: "Preview" }).click()
+    } else {
+      await page.getByRole("button", { name: action, exact: true }).click()
+    }
     const dialog = page.getByRole("dialog", {
       name: "Invoice Preview",
       exact: true,
@@ -130,6 +139,14 @@ for (const [path, trigger, title] of [
       const box = await dialog.boundingBox()
       const viewport = page.viewportSize()!
       expect(box).not.toBeNull()
+      // Phones: full screen, so the keyboard never squeezes the form.
+      if (viewport.width < 768) {
+        expect(box!.x).toBe(0)
+        expect(box!.y).toBe(0)
+        expect(box!.width).toBe(viewport.width)
+        expect(Math.round(box!.height)).toBe(viewport.height)
+        return
+      }
       expect(box!.x).toBeGreaterThanOrEqual(12)
       expect(box!.y).toBeGreaterThanOrEqual(12)
       expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width - 12)

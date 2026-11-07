@@ -1,23 +1,21 @@
 import { useQuery } from "@tanstack/react-query"
-import type { LucideIcon } from "lucide-react"
 import { Building2, ContactRound, Search, Users } from "lucide-react"
 import { useDeferredValue, useMemo, useState } from "react"
 import { DataTable } from "@/components/Common/DataTable"
+import { FilterChips } from "@/components/Common/FilterChips"
+import { InitialsAvatar, ListRow } from "@/components/Common/ListRow"
+import { ListSkeleton } from "@/components/Common/ListSkeleton"
+import { PageHeader } from "@/components/Common/PageHeader"
+import { SearchInput } from "@/components/Common/SearchInput"
+import { StatCard } from "@/components/Common/StatCard"
 import AddCustomer from "@/components/Customers/AddCustomer"
+import { CustomerActionsMenu } from "@/components/Customers/CustomerActionsMenu"
 import {
   type Customer as BaseCustomer,
   columns,
 } from "@/components/Customers/columns"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { customersListQueryOptions } from "@/features/customers/queries"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
@@ -39,61 +37,32 @@ function CustomersEmptyState() {
   )
 }
 
-function CustomersSkeleton() {
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <Skeleton className="h-9 w-36" />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-24 rounded-xl border bg-card p-6">
-            <Skeleton className="h-4 w-24 mb-3" />
-            <Skeleton className="h-8 w-16" />
-          </div>
-        ))}
-      </div>
-      <div className="h-8 w-full skeleton-loading" />
-      <div className="h-64 rounded-xl border bg-card">
-        <Skeleton className="h-full w-full" />
-      </div>
-    </div>
-  )
+const partyLabel: Record<string, string> = {
+  customer: "Customer",
+  supplier: "Supplier",
+  both: "Customer & supplier",
 }
 
-interface StatsCardProps {
-  icon: LucideIcon
-  title: string
-  value: number
-  iconClass: string
-  valueClass?: string
-}
-
-function StatsCard({
-  icon: Icon,
-  title,
-  value,
-  iconClass,
-  valueClass,
-}: StatsCardProps) {
+function CustomerRow({ customer }: { customer: Customer }) {
+  const type = customer.partyType ?? "customer"
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <div className={`rounded-lg p-2 ${iconClass}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-bold ${valueClass ?? ""}`}>{value}</div>
-      </CardContent>
-    </Card>
+    <ListRow
+      to={`/customers/${customer.id}`}
+      leading={<InitialsAvatar name={customer.name} />}
+      title={customer.name}
+      subtitle={
+        [customer.phone, customer.email].filter(Boolean).join(" · ") ||
+        partyLabel[type]
+      }
+      trailing={
+        type !== "customer" && (
+          <Badge variant="secondary" className="text-[11px]">
+            {type === "both" ? "Both" : partyLabel[type]}
+          </Badge>
+        )
+      }
+      actions={<CustomerActionsMenu customer={customer} />}
+    />
   )
 }
 
@@ -138,7 +107,9 @@ function CustomersPage() {
     const q = deferredSearch.trim().toLowerCase()
 
     return customers.filter((customer) => {
-      if (typeFilter !== "all" && customer.partyType !== typeFilter) {
+      // "both" counts as a customer and as a supplier, same as the chip counts.
+      const type = customer.partyType ?? "customer"
+      if (typeFilter !== "all" && type !== typeFilter && type !== "both") {
         return false
       }
 
@@ -163,37 +134,31 @@ function CustomersPage() {
 
   const totalCount = customers.length
 
-  if (isLoading) return <CustomersSkeleton />
+  if (isLoading) return <ListSkeleton avatar />
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
-        <div>
-          <h1 className="max-md:sr-only font-display text-2xl font-bold tracking-tight">
-            Customers
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Manage your customers, suppliers, and companies
-          </p>
-        </div>
-        {customers.length > 0 && <AddCustomer />}
-      </div>
+      <PageHeader
+        title="Customers"
+        description="Manage your customers, suppliers, and companies"
+        actions={customers.length > 0 && <AddCustomer />}
+      />
 
       <div className="hidden grid-cols-1 gap-4 sm:grid sm:grid-cols-3 animate-in animate-in-delay-1">
-        <StatsCard
+        <StatCard
           icon={Users}
           title="Total Parties"
           value={totalCount}
           iconClass="bg-primary/10 text-primary"
         />
-        <StatsCard
+        <StatCard
           icon={ContactRound}
           title="Customers"
           value={customerCount}
           iconClass="bg-emerald-500/10 text-emerald-500"
           valueClass="text-emerald-600 dark:text-emerald-400"
         />
-        <StatsCard
+        <StatCard
           icon={Building2}
           title="Suppliers"
           value={supplierCount}
@@ -206,30 +171,23 @@ function CustomersPage() {
         <CustomersEmptyState />
       ) : (
         <>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center animate-in animate-in-delay-2">
-            <div className="relative w-full sm:max-w-sm sm:flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, email, GSTIN, tags…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select
+          <div className="flex flex-col gap-3 animate-in animate-in-delay-2">
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Search by name, email, GSTIN, tags…"
+              className="sm:max-w-sm"
+            />
+            <FilterChips
+              label="Party type"
               value={typeFilter}
-              onValueChange={(v) => setTypeFilter(v ?? "")}
-            >
-              <SelectTrigger className="w-full sm:w-36">
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="customer">Customers</SelectItem>
-                <SelectItem value="supplier">Suppliers</SelectItem>
-                <SelectItem value="both">Both</SelectItem>
-              </SelectContent>
-            </Select>
+              onChange={setTypeFilter}
+              options={[
+                { value: "all", label: "All", count: totalCount },
+                { value: "customer", label: "Customers", count: customerCount },
+                { value: "supplier", label: "Suppliers", count: supplierCount },
+              ]}
+            />
           </div>
 
           {filtered.length === 0 ? (
@@ -244,7 +202,11 @@ function CustomersPage() {
             </div>
           ) : (
             <div className="animate-in animate-in-delay-2">
-              <DataTable columns={columns} data={filtered} />
+              <DataTable
+                columns={columns}
+                data={filtered}
+                mobileRow={(c) => <CustomerRow customer={c} />}
+              />
             </div>
           )}
         </>

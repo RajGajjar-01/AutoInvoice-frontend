@@ -76,10 +76,16 @@ export function ExportMenu({ table, rows }: ExportMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="outline" size="sm" className="gap-2" />}
+        render={
+          <Button
+            variant="outline"
+            aria-label="Export"
+            className="size-11 shrink-0 p-0 sm:h-9 sm:w-auto sm:px-3"
+          />
+        }
       >
-        <Download className="h-4 w-4" />
-        Export
+        <Download />
+        <span className="max-sm:sr-only">Export</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         {/* CSV */}
