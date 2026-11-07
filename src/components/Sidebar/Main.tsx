@@ -8,6 +8,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { prefetchPage } from "@/routes/pages"
 
 interface SidebarItem {
   title: string
@@ -41,7 +42,12 @@ export function Main({ items }: MainProps) {
                   isActive={isActive}
                   asChild
                 >
-                  <RouterLink to={item.path} onClick={handleMenuClick}>
+                  <RouterLink
+                    to={item.path}
+                    onClick={handleMenuClick}
+                    onPointerEnter={() => prefetchPage(item.path)}
+                    onFocus={() => prefetchPage(item.path)}
+                  >
                     <item.icon />
                     <span>{item.title}</span>
                   </RouterLink>
