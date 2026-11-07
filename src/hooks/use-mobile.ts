@@ -17,3 +17,18 @@ export function useIsMobile() {
 
   return !!isMobile
 }
+
+const PHONE_QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`
+
+// Reads the media query synchronously so phones never flash the desktop layout first.
+export function usePhoneLayout() {
+  return React.useSyncExternalStore(
+    (notify) => {
+      const mql = window.matchMedia(PHONE_QUERY)
+      mql.addEventListener("change", notify)
+      return () => mql.removeEventListener("change", notify)
+    },
+    () => window.matchMedia(PHONE_QUERY).matches,
+    () => false,
+  )
+}

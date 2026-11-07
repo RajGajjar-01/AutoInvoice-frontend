@@ -2,9 +2,11 @@ import { ArrowLeft, ArrowUpRight, Check, LockKeyhole } from "lucide-react"
 import type { ReactNode } from "react"
 import { Link } from "react-router"
 import { Appearance } from "@/components/Common/Appearance"
+import { AuthLayout } from "@/components/Common/AuthLayout"
 import { Logo } from "@/components/Common/Logo"
+import { usePhoneLayout } from "@/hooks/use-mobile"
 
-/** The entry screens have their own visual scope; recovery pages keep AuthLayout. */
+/** Phones get the shared bottom-sheet AuthLayout; tablets and desktop keep the entry design below. */
 export function AuthEntryLayout({
   children,
   signup = false,
@@ -12,6 +14,7 @@ export function AuthEntryLayout({
   children: ReactNode
   signup?: boolean
 }) {
+  if (usePhoneLayout()) return <AuthLayout>{children}</AuthLayout>
   return (
     <div
       className={`auth-entry ${signup ? "auth-entry-signup" : "auth-entry-login"}`}
