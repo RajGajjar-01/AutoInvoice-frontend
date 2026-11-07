@@ -154,6 +154,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     tooltip={item.title}
+                    className="rounded-xl transition-colors data-[active=true]:bg-primary/15"
                     isActive={currentPath === item.path}
                     asChild
                   >
@@ -227,6 +228,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     tooltip={item.title}
+                    className="rounded-xl transition-colors data-[active=true]:bg-primary/15"
                     isActive={currentPath === item.path}
                     asChild
                   >
@@ -242,7 +244,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="border-t p-3">
         <SidebarMenu>
           <SidebarAppearance />
         </SidebarMenu>

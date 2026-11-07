@@ -2,7 +2,11 @@ import { defineConfig, devices } from "@playwright/test"
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: ["mobile-layout.spec.ts", "mobile-public.spec.ts"],
+  testMatch: [
+    "mobile-layout.spec.ts",
+    "mobile-public.spec.ts",
+    "mobile-settings.spec.ts",
+  ],
   fullyParallel: true,
   workers: 2,
   reporter: "list",

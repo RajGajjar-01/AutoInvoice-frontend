@@ -59,7 +59,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
     <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-30 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <div className="grid h-16 grid-cols-5 items-stretch">
           {mobileLinks.map(({ label, to, icon: Icon }) => {
@@ -71,7 +71,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
                 key={to}
                 to={to}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors active:bg-accent ${active ? "text-primary" : "text-muted-foreground"}`}
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-[color,background-color,transform] duration-200 motion-safe:active:scale-95 active:bg-accent ${active ? "text-primary" : "text-muted-foreground"}`}
               >
                 <Icon className="size-5" aria-hidden="true" />
                 <span>{label}</span>
@@ -92,8 +92,12 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
       </nav>
       <SheetContent
         side="bottom"
-        className="max-h-[85dvh] transform-gpu overscroll-contain rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))] transition-none ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform data-[state=closed]:duration-150 data-[state=open]:duration-200 md:hidden"
+        className="max-h-[85dvh] transform-gpu overscroll-contain rounded-t-3xl pb-[max(1rem,env(safe-area-inset-bottom))] transition-[transform,opacity] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform data-[state=closed]:duration-150 data-[state=open]:duration-200 md:hidden"
       >
+        <div
+          aria-hidden="true"
+          className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/25"
+        />
         <SheetHeader>
           <SheetTitle>More</SheetTitle>
           <SheetDescription>Other pages and account options</SheetDescription>
@@ -107,7 +111,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
               key={to}
               variant="ghost"
               asChild
-              className="h-11 justify-start"
+              className="h-12 justify-start rounded-xl"
             >
               <Link to={to} onClick={() => setMoreOpen(false)}>
                 <Icon aria-hidden="true" />
@@ -118,13 +122,21 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
         </nav>
         <Separator />
         <div className="grid gap-1 px-4">
-          <Button variant="ghost" asChild className="h-11 justify-start">
+          <Button
+            variant="ghost"
+            asChild
+            className="h-12 justify-start rounded-xl"
+          >
             <Link to="/profile" onClick={() => setMoreOpen(false)}>
               <UserCircle aria-hidden="true" />
               Profile
             </Link>
           </Button>
-          <Button variant="ghost" asChild className="h-11 justify-start">
+          <Button
+            variant="ghost"
+            asChild
+            className="h-12 justify-start rounded-xl"
+          >
             <Link to="/settings" onClick={() => setMoreOpen(false)}>
               <Settings aria-hidden="true" />
               Settings
@@ -132,7 +144,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
           </Button>
           <Button
             variant="ghost"
-            className="h-11 justify-start"
+            className="h-12 justify-start rounded-xl"
             onClick={() =>
               setTheme(resolvedTheme === "dark" ? "light" : "dark")
             }
@@ -146,7 +158,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
           </Button>
           <Button
             variant="ghost"
-            className="h-11 justify-start"
+            className="h-12 justify-start rounded-xl"
             onClick={() => {
               setMoreOpen(false)
               void logout()
@@ -184,6 +196,7 @@ function LoadingSkeleton() {
 
 export function ProtectedLayout() {
   const { isLoading, user } = useAuth()
+  const { pathname } = useLocation()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -208,7 +221,12 @@ export function ProtectedLayout() {
           <Logo variant="full" className="h-8" />
         </header>
         <main className="workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-4">
-          <Outlet />
+          <div
+            key={pathname}
+            className="route-content flex min-w-0 flex-1 flex-col"
+          >
+            <Outlet />
+          </div>
         </main>
         <MobileNavigation isAdmin={user.is_superuser ?? false} />
       </SidebarInset>

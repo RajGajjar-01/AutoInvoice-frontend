@@ -119,3 +119,19 @@ docker compose down -v
 To update the tests, navigate to the tests directory and modify the existing test files or add new ones as needed.
 
 For more information on writing and running Playwright tests, refer to the official [Playwright documentation](https://playwright.dev/docs/intro).
+
+### Mobile settings refinement (2026-11-07)
+
+The settings screen uses grouped account, integration, preference, and account-action
+rows inspired by `Projects/demo-app`. Profile, password, appearance, and Google
+integration controls open in accessible bottom sheets. Theme choices persist across
+reloads; logout requires confirmation. Sheets and navigation use short easing curves
+and respect reduced-motion preferences.
+
+These changes were adapted from the JavaScript branch to this branch's TypeScript
+and React Router architecture. Existing invoice navigation and Google OAuth callback
+handling are preserved. Dependency updates use the pnpm lockfile; the existing
+TanStack Table v8 and TypeScript 5 compatibility ranges remain for this branch.
+
+Run `pnpm exec playwright test --config playwright.mobile.config.ts` for responsive
+layout checks, including settings sheets, or `pnpm run typecheck` and `pnpm run build`.
