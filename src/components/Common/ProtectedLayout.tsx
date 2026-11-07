@@ -17,8 +17,15 @@ import {
   Users,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Link, Outlet, useLocation, useNavigate } from "react-router"
+import {
+  Link,
+  Outlet,
+  ScrollRestoration,
+  useLocation,
+  useNavigate,
+} from "react-router"
 import { Logo } from "@/components/Common/Logo"
+import { OfflineBanner } from "@/components/Common/OfflineBanner"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
@@ -309,6 +316,8 @@ export function ProtectedLayout() {
           </div>
         </main>
         <MobileNavigation isAdmin={user.is_superuser ?? false} />
+        <OfflineBanner />
+        <ScrollRestoration />
       </SidebarInset>
     </SidebarProvider>
   )
