@@ -204,7 +204,7 @@ const AddItem = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button />}>
+      <DialogTrigger render={<Button size="lg" className="h-11 px-5 md:h-9" />}>
         <Plus />
         Add Item
       </DialogTrigger>
