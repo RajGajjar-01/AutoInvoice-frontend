@@ -506,3 +506,18 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Route changes from list rows (Link viewTransition): short cross-fade, and the
+   row title morphs into the detail header through a shared view-transition-name. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}

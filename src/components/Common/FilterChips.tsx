@@ -26,7 +26,7 @@ export function FilterChips<T extends string>({
 }: FilterChipsProps<T>) {
   return (
     <div
-      role="radiogroup"
+      role="group"
       aria-label={label}
       className={cn(
         "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0",
@@ -39,8 +39,7 @@ export function FilterChips<T extends string>({
           <button
             key={v}
             type="button"
-            role="radio"
-            aria-checked={active}
+            aria-pressed={active}
             onClick={() => onChange(v)}
             className={cn(
               "inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors motion-safe:active:scale-95 sm:min-h-8",
