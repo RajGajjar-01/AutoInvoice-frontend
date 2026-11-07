@@ -178,7 +178,9 @@ function InvoiceHistoryPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Invoice History</h1>
+          <h1 className="max-md:sr-only text-2xl font-bold tracking-tight">
+            Invoice History
+          </h1>
           <p className="text-muted-foreground text-sm mt-1">
             Search, filter, and manage all your invoices
           </p>

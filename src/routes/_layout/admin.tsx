@@ -56,7 +56,7 @@ function Admin() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">
+          <h1 className="max-md:sr-only font-display text-2xl font-bold tracking-tight">
             Users
           </h1>
           <p className="text-muted-foreground">

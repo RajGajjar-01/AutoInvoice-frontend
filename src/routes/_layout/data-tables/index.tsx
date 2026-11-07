@@ -195,7 +195,7 @@ function DataTablesPage() {
       {/* ── Page Header ──────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">
+          <h1 className="max-md:sr-only font-display text-2xl font-bold tracking-tight">
             Your Data Tables
           </h1>
           <p className="text-sm text-muted-foreground mt-1">

@@ -80,7 +80,7 @@ function AccountPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             Workspace settings
           </p>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">
+          <h1 className="max-md:sr-only font-display text-3xl font-semibold tracking-tight">
             Business details
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground">

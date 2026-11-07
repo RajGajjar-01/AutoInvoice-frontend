@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   Bell,
   Briefcase,
   FilePlus2,
@@ -71,9 +72,19 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
                 key={to}
                 to={to}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-[color,background-color,transform] duration-200 motion-safe:active:scale-95 active:bg-accent ${active ? "text-primary" : "text-muted-foreground"}`}
+                className={`group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors duration-150 ${active ? "text-primary" : "text-muted-foreground"}`}
               >
-                <Icon className="size-5" aria-hidden="true" />
+                {to === "/create-invoice" ? (
+                  <span className="-mt-5 grid size-12 place-items-center rounded-full bg-pop text-white shadow-lg ring-4 ring-background transition-transform duration-150 motion-safe:group-active:scale-90">
+                    <Icon className="size-[22px]" aria-hidden="true" />
+                  </span>
+                ) : (
+                  <span
+                    className={`grid h-7 w-12 place-items-center rounded-full transition-[background-color,transform] duration-200 motion-safe:group-active:scale-90 ${active ? "bg-accent" : ""}`}
+                  >
+                    <Icon className="size-5" aria-hidden="true" />
+                  </span>
+                )}
                 <span>{label}</span>
               </Link>
             )
@@ -81,10 +92,12 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
           <SheetTrigger asChild>
             <button
               type="button"
-              className="flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground active:bg-accent"
+              className="group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground"
               aria-label="Open all navigation"
             >
-              <Menu className="size-5" aria-hidden="true" />
+              <span className="grid h-7 w-12 place-items-center rounded-full transition-transform duration-200 motion-safe:group-active:scale-90">
+                <Menu className="size-5" aria-hidden="true" />
+              </span>
               <span>More</span>
             </button>
           </SheetTrigger>
@@ -92,6 +105,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
       </nav>
       <SheetContent
         side="bottom"
+        showCloseButton={false}
         className="max-h-[85dvh] transform-gpu overscroll-contain rounded-t-3xl pb-[max(1rem,env(safe-area-inset-bottom))] transition-[transform,opacity] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform data-[state=closed]:duration-150 data-[state=open]:duration-200 md:hidden"
       >
         <div
@@ -173,6 +187,74 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
   )
 }
 
+// Phone page titles. Detail pages (deeper paths) draw their own header.
+const PAGE_TITLES: Record<string, string> = {
+  invoices: "Invoices",
+  "create-invoice": "New invoice",
+  "create-quotation": "New quotation",
+  "create-proforma": "New proforma",
+  "create-challan": "New challan",
+  customers: "Customers",
+  items: "Items",
+  "data-tables": "Data Tables",
+  "invoice-templates": "Templates",
+  "template-builder": "Template Builder",
+  "invoice-history": "Invoice History",
+  insights: "Insights",
+  notifications: "Notifications",
+  profile: "Profile",
+  settings: "Settings",
+  admin: "Admin",
+}
+
+const iconBtn =
+  "grid size-10 shrink-0 place-items-center rounded-full border bg-card outline-none transition-[transform,background-color] hover:bg-muted focus-visible:ring-4 focus-visible:ring-ring/30 motion-safe:active:scale-95"
+
+// Demo-style phone header: logo on Home, round back button + title elsewhere.
+function MobileHeader() {
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const segments = pathname.split("/").filter(Boolean)
+  const base =
+    "sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 bg-background/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden"
+
+  if (pathname === "/dashboard") {
+    return (
+      <header className={base}>
+        <Logo variant="full" className="h-8" />
+        <Link
+          to="/settings"
+          aria-label="Settings"
+          className={`${iconBtn} ml-auto`}
+        >
+          <Settings className="size-[18px]" aria-hidden="true" />
+        </Link>
+      </header>
+    )
+  }
+
+  const title = segments.length === 1 ? PAGE_TITLES[segments[0]] : undefined
+  if (!title) return null
+  return (
+    <header className={base}>
+      <button
+        type="button"
+        aria-label="Back"
+        className={iconBtn}
+        onClick={() =>
+          // history.state.idx is 0 on a cold start (installed app), where -1 would leave the app.
+          window.history.state?.idx > 0
+            ? navigate(-1)
+            : navigate("/dashboard", { replace: true })
+        }
+      >
+        <ArrowLeft className="size-[18px]" aria-hidden="true" />
+      </button>
+      <span className="text-xl font-bold tracking-tight">{title}</span>
+    </header>
+  )
+}
+
 function LoadingSkeleton() {
   return (
     <div className="flex h-screen">
@@ -217,10 +299,8 @@ export function ProtectedLayout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex min-w-0 max-w-full flex-col overflow-hidden">
-        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b bg-background/95 px-4 backdrop-blur-md md:hidden">
-          <Logo variant="full" className="h-8" />
-        </header>
-        <main className="workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-4">
+        <MobileHeader />
+        <main className="workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-2 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-4">
           <div
             key={pathname}
             className="route-content flex min-w-0 flex-1 flex-col"

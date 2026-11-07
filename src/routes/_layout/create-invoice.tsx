@@ -165,7 +165,7 @@ function CreateInvoicePage() {
           </Button>
         </Link>
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">
+          <h1 className="max-md:sr-only font-display text-2xl font-bold tracking-tight">
             {documentConfig.title}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">

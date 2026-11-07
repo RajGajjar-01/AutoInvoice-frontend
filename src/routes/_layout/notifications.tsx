@@ -40,7 +40,7 @@ function NotificationsPage() {
       <div className="flex items-start justify-between animate-in">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="font-display text-2xl font-bold tracking-tight">
+            <h1 className="max-md:sr-only font-display text-2xl font-bold tracking-tight">
               Notifications
             </h1>
             {unreadCount > 0 && (
