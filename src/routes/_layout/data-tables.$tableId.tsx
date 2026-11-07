@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner"
 import { useShallow } from "zustand/react/shallow"
 import { TablesService } from "@/client"
+import { SearchInput } from "@/components/Common/SearchInput"
 import { ExportMenu } from "@/components/DataTables/ExportMenu"
 import { MobileEntryView } from "@/components/DataTables/MobileEntryView"
 import { ReminderModal } from "@/components/DataTables/ReminderModal"
@@ -25,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
 import {
   Sheet,
   SheetContent,
@@ -634,80 +634,69 @@ function TableViewPage() {
     <div className="flex min-w-0 flex-col h-full min-h-screen">
       <div className="flex min-w-0 flex-1 flex-col md:p-4">
         {/* ── Sub-header ───────────────────────────────────────────────── */}
-        <div className="mb-5 flex min-w-0 flex-wrap items-center gap-3">
+        <div className="mb-4 flex min-w-0 items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground gap-1.5 -ml-2 hover:bg-muted"
+            size="icon"
+            aria-label="Back to Data Tables"
+            title="Data Tables"
+            className="size-11 shrink-0 sm:size-9"
             onClick={() => navigate("/data-tables")}
           >
-            <ArrowLeft className="h-4 w-4" />
-            Data Tables
+            <ArrowLeft />
           </Button>
-          <Separator orientation="vertical" className="h-5 bg-border" />
-          <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
-            {currentTable.name}
-          </h1>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
-            <Badge
-              variant="outline"
-              className="text-xs text-muted-foreground border-border bg-background"
-            >
-              {filteredRows.length} / {allRows.length} row
-              {allRows.length !== 1 ? "s" : ""}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="text-xs text-muted-foreground border-border bg-background"
-            >
-              {cols.length} column{cols.length !== 1 ? "s" : ""}
-            </Badge>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-xl font-bold tracking-tight">
+              {currentTable.name}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {filteredRows.length === allRows.length
+                ? `${allRows.length} row${allRows.length !== 1 ? "s" : ""}`
+                : `${filteredRows.length} of ${allRows.length} rows`}{" "}
+              · {cols.length} column{cols.length !== 1 ? "s" : ""}
+            </p>
           </div>
         </div>
 
-        {/* ── Toolbar ───────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-4 table-toolbar">
-          <div className="flex min-w-0 w-full items-center gap-2 sm:w-auto">
-            <Input
-              placeholder="Search rows…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-9 w-full border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/10 sm:w-64"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 border-border text-foreground hover:bg-muted hover:border-primary hover:text-primary"
-              onClick={openFilterPanel}
-            >
-              <Filter className="h-4 w-4" />
-              Filter
-              {Object.keys(filters).length > 0 && (
-                <Badge className="h-4 w-4 flex items-center justify-center p-0 text-xs bg-primary">
-                  {Object.keys(filters).length}
-                </Badge>
-              )}
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <ExportMenu
-              table={
-                currentTable as unknown as {
-                  name: string
-                  columns: { name: string; type: string }[]
-                }
+        {/* ── Toolbar: one row, every control the same height ───────────── */}
+        <div className="table-toolbar mb-4 flex min-w-0 items-center gap-2">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search rows…"
+            className="sm:max-w-64 sm:flex-none sm:basis-64"
+          />
+          <Button
+            variant="outline"
+            aria-label="Filter"
+            className="relative size-11 shrink-0 p-0 sm:h-9 sm:w-auto sm:px-3"
+            onClick={openFilterPanel}
+          >
+            <Filter />
+            <span className="max-sm:sr-only">Filter</span>
+            {Object.keys(filters).length > 0 && (
+              <Badge className="absolute -top-1.5 -right-1.5 size-5 justify-center p-0 text-[11px] sm:static sm:size-4">
+                {Object.keys(filters).length}
+              </Badge>
+            )}
+          </Button>
+          <ExportMenu
+            table={
+              currentTable as unknown as {
+                name: string
+                columns: { name: string; type: string }[]
               }
-              rows={filteredRows}
-            />
-            <Button
-              size="sm"
-              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-              onClick={handleAddRow}
-            >
-              <Plus className="h-4 w-4" />
-              Add Row
-            </Button>
-          </div>
+            }
+            rows={filteredRows}
+          />
+          {/* Phones add rows with the New entry form below. */}
+          <Button
+            className="h-9 shrink-0 max-sm:hidden sm:ml-auto"
+            onClick={handleAddRow}
+          >
+            <Plus />
+            Add Row
+          </Button>
         </div>
 
         {/* ── Formula Bar ─────────────────────────────────────────────── */}

@@ -32,7 +32,7 @@ export function SearchInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="pl-9 pr-10 [&::-webkit-search-cancel-button]:hidden"
+        className="pl-9 pr-10 md:h-9 [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (
         <button

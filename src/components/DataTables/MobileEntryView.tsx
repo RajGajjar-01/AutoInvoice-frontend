@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react"
+import { Bell, ChevronDown, ChevronUp, Plus, Trash2, X } from "lucide-react"
 import { useState } from "react"
 import { TableCell } from "@/components/DataTables/TableCell"
 import { Button } from "@/components/ui/button"
@@ -60,39 +60,32 @@ export function MobileEntryView({
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-20">
+    <div className="flex flex-col gap-5 pb-20">
       {/* ── Entry Form ── */}
-      <Card className="border border-primary/20 shadow-sm overflow-hidden bg-background">
-        <CardHeader
-          className="bg-muted/30 px-3 py-1.5 flex flex-row items-center justify-between cursor-pointer active:bg-muted/50 transition-colors"
-          onClick={() => setAdding(!adding)}
-        >
-          <CardTitle className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-primary/80">
-            <Plus className="h-3.5 w-3.5" />
-            Quick Entry
-          </CardTitle>
-          <div className="p-1 rounded-full bg-background/50 border border-border/20">
-            {adding ? (
-              <ChevronUp className="h-3 w-3 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-3 w-3 text-muted-foreground" />
-            )}
-          </div>
-        </CardHeader>
-        {adding && (
-          <CardContent className="p-0 flex flex-col divide-y divide-border/30 border-t border-border/30">
+      {adding ? (
+        <Card className="gap-0 overflow-hidden py-0">
+          <CardHeader className="flex flex-row items-center justify-between border-b px-4 py-3">
+            <CardTitle className="text-base">New entry</CardTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Close new entry"
+              className="-mr-2 size-11"
+              onClick={() => setAdding(false)}
+            >
+              <X />
+            </Button>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 p-4">
             {cols.map((col) => (
-              <div
-                key={col.name}
-                className="grid grid-cols-[85px_1fr] items-center px-3 py-1 gap-2 min-h-[36px]"
-              >
-                <span className="text-[9px] uppercase font-black text-muted-foreground/80 tracking-tight leading-tight truncate">
+              <div key={col.name} className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium">
                   {col.name}
                   {col.mandatory && (
-                    <span className="text-destructive ml-0.5">*</span>
+                    <span className="ml-0.5 text-destructive">*</span>
                   )}
                 </span>
-                <div className="min-h-[30px] flex items-center bg-muted/5 rounded border border-border/20 overflow-hidden">
+                <div className="flex min-h-11 items-center overflow-hidden rounded-lg border bg-background">
                   <TableCell
                     type={col.type}
                     value={newItem[col.name]}
@@ -106,37 +99,38 @@ export function MobileEntryView({
               </div>
             ))}
           </CardContent>
-        )}
-        {adding && (
-          <CardFooter className="p-2 bg-muted/10 border-t border-border/40 flex gap-2">
+          <CardFooter className="flex gap-2 border-t p-4">
             <Button
-              className="flex-1 h-8 text-xs font-bold"
-              onClick={handleAdd}
-            >
-              Add Entry
-            </Button>
-            <Button
-              variant="ghost"
-              className="h-8 px-3 text-xs"
+              variant="outline"
+              className="h-11 flex-1"
               onClick={() => setAdding(false)}
             >
               Cancel
             </Button>
+            <Button className="h-11 flex-1" onClick={handleAdd}>
+              <Plus /> Add entry
+            </Button>
           </CardFooter>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <Button className="h-11 w-full" onClick={() => setAdding(true)}>
+          <Plus /> New entry
+        </Button>
+      )}
 
       {/* ── Data List ── */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full bg-primary" />
-            Entered Entries ({rows.length})
-          </h3>
+          <h2 className="text-sm font-semibold text-muted-foreground">
+            Entries ({rows.length})
+          </h2>
         </div>
         {rows.length === 0 ? (
-          <div className="h-24 flex items-center justify-center border-2 border-dashed border-muted/50 rounded-xl text-muted-foreground text-[10px] uppercase font-bold tracking-widest bg-muted/5">
-            No entries yet
+          <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed px-6 py-8 text-center">
+            <p className="text-sm font-medium">No entries yet</p>
+            <p className="text-sm text-muted-foreground">
+              Tap New entry to add the first row.
+            </p>
           </div>
         ) : (
           [...rows].reverse().map((row, revIdx) => {
