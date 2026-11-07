@@ -1,13 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
-import { InvoicesService } from "@/client/sdk.gen"
-import type { InvoiceStatus } from "@/client/types.gen"
-import {
-  invoicesListQueryOptions,
-  invoicesQueryKeys,
-} from "@/features/invoices/queries"
-import useCustomToast from "@/hooks/useCustomToast"
-import { queryClient } from "@/queryClient"
+import { useInvoiceActions } from "@/features/invoices/mutations"
+import { invoicesListQueryOptions } from "@/features/invoices/queries"
 
 export interface Invoice {
   id: string
@@ -27,43 +21,16 @@ export interface Invoice {
 }
 
 export function useInvoices() {
-  const { data: invoicesRes, isLoading } = useQuery(invoicesListQueryOptions())
+  const {
+    data: invoicesRes,
+    isLoading,
+    refetch,
+  } = useQuery(invoicesListQueryOptions())
   const invoices = (invoicesRes?.data ?? []).filter(
     Boolean,
   ) as unknown as Invoice[]
-  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const actions = useInvoiceActions()
   const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null)
-
-  const updateInvoiceMutation = useMutation({
-    mutationFn: async ({
-      id,
-      patch,
-    }: {
-      id: string
-      patch: { status: InvoiceStatus }
-    }) => InvoicesService.updateInvoice({ id, requestBody: patch }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
-    },
-  })
-
-  const deleteInvoiceMutation = useMutation({
-    mutationFn: async (id: string) => InvoicesService.deleteInvoice({ id }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
-      showSuccessToast("Invoice deleted")
-    },
-  })
-
-  const sendWhatsappMutation = useMutation({
-    mutationFn: (body: { id: string; to_phone: string }) =>
-      InvoicesService.sendInvoiceWhatsapp({
-        id: body.id,
-        requestBody: { to_phone: body.to_phone },
-      }),
-    onSuccess: () => showSuccessToast("Invoice sent via WhatsApp"),
-    onError: () => showErrorToast("Failed to send via WhatsApp"),
-  })
 
   const totalCount = invoices.length
   const paidCount = invoices.filter((i) => i.status === "paid").length
@@ -86,38 +53,16 @@ export function useInvoices() {
     .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
     .slice(0, 5)
 
-  const handleToggleStatus = (inv: Invoice) => {
-    const next =
-      inv.status === "paid"
-        ? "unpaid"
-        : inv.status === "unpaid"
-          ? "overdue"
-          : "paid"
-    updateInvoiceMutation.mutate({
-      id: inv.id,
-      patch: { status: next as InvoiceStatus },
-    })
-    showSuccessToast(`Status changed to ${next}`)
-  }
-
   const handleDelete = () => {
     if (!deleteTarget) return
-    deleteInvoiceMutation.mutate(deleteTarget.id)
+    actions.deleteNow(deleteTarget.id)
     setDeleteTarget(null)
-  }
-
-  const handleWhatsApp = (inv: Invoice) => {
-    const phone = inv.customer?.whatsapp || inv.customer?.phone
-    if (!phone) {
-      showErrorToast("No WhatsApp number available")
-      return
-    }
-    sendWhatsappMutation.mutate({ id: inv.id, to_phone: phone })
   }
 
   return {
     invoices,
     isLoading,
+    refetch,
     recent,
     totalCount,
     paidCount,
@@ -129,8 +74,10 @@ export function useInvoices() {
     paidPct,
     deleteTarget,
     setDeleteTarget,
-    handleToggleStatus,
+    handleToggleStatus: actions.toggleStatus,
     handleDelete,
-    handleWhatsApp,
+    handleWhatsApp: actions.sendWhatsApp,
+    setStatus: actions.setStatus,
+    deleteWithUndo: actions.deleteWithUndo,
   }
 }

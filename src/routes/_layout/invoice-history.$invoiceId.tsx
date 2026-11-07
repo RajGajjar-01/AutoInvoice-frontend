@@ -49,14 +49,11 @@ import { companySettingsQueryOptions } from "@/features/company-settings/queries
 import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
 import { SendEmailDialog } from "@/features/invoices/invoice-form/components/SendEmailDialog"
 import { documentConfigs } from "@/features/invoices/invoice-form/constants"
-import {
-  invoiceDetailQueryOptions,
-  invoicesQueryKeys,
-} from "@/features/invoices/queries"
+import { useInvoiceActions } from "@/features/invoices/mutations"
+import { invoiceDetailQueryOptions } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { buildInvoiceHtml, downloadInvoicePdf } from "@/lib/pdfHelper"
-import { queryClient } from "@/queryClient"
 import { handleError } from "@/utils"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -191,36 +188,7 @@ function InvoiceDetailPage() {
     invoiceDetailQueryOptions(invoiceId),
   )
 
-  const updateInvoiceMutation = useMutation({
-    mutationFn: async ({
-      id,
-      patch,
-    }: {
-      id: string
-      patch: Record<string, unknown>
-    }) => {
-      return InvoicesService.updateInvoice({
-        id,
-        requestBody: patch as Parameters<
-          typeof InvoicesService.updateInvoice
-        >[0]["requestBody"],
-      })
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
-    },
-  })
-
-  const deleteInvoiceMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return InvoicesService.deleteInvoice({ id })
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
-      showSuccessToast("Invoice deleted")
-      navigate("/invoice-history")
-    },
-  })
+  const actions = useInvoiceActions()
 
   const sendEmailMutation = useMutation({
     mutationFn: (body: {
@@ -237,16 +205,6 @@ function InvoiceDetailPage() {
       setEmailDialogOpen(false)
     },
     onError: handleError.bind(showErrorToast),
-  })
-
-  const sendWhatsappMutation = useMutation({
-    mutationFn: (body: { to_phone: string }) =>
-      InvoicesService.sendInvoiceWhatsapp({
-        id: invoice?.id ?? "",
-        requestBody: body,
-      }),
-    onSuccess: () => showSuccessToast("Invoice sent via WhatsApp"),
-    onError: () => showErrorToast("Failed to send via WhatsApp"),
   })
 
   if (!isLoading && !invoice) return <NotFound />
@@ -300,14 +258,7 @@ function InvoiceDetailPage() {
       })
   }
 
-  const handleWhatsApp = () => {
-    const phone = invoice.customer?.whatsapp || invoice.customer?.phone
-    if (!phone) {
-      showErrorToast("No WhatsApp number available for this customer")
-      return
-    }
-    sendWhatsappMutation.mutate({ to_phone: phone })
-  }
+  const handleWhatsApp = () => actions.sendWhatsApp(invoice)
 
   const handleEmail = () => {
     const email = invoice.customer?.email
@@ -318,20 +269,12 @@ function InvoiceDetailPage() {
     setEmailDialogOpen(true)
   }
 
-  const handleToggleStatus = () => {
-    const next: "paid" | "unpaid" | "overdue" =
-      invoice.status === "paid"
-        ? "unpaid"
-        : invoice.status === "unpaid"
-          ? "overdue"
-          : "paid"
-    updateInvoiceMutation.mutate({ id: invoice.id, patch: { status: next } })
-    showSuccessToast(`Status changed to ${next}`)
-  }
+  const handleToggleStatus = () => actions.toggleStatus(invoice)
 
-  const handleDelete = () => {
-    deleteInvoiceMutation.mutate(invoice.id)
-  }
+  const handleDelete = () =>
+    actions.deleteNow(invoice.id, {
+      onSuccess: () => navigate("/invoice-history"),
+    })
 
   return (
     <div className="flex flex-col gap-6">
