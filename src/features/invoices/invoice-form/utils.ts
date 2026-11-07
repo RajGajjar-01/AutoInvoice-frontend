@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form"
-import type { InvoiceCreate } from "@/client/types.gen"
+import type { InvoiceBankDetails, InvoiceCreate } from "@/client/types.gen"
 import type { DocumentConfig, InvoiceFormData } from "./constants"
 import type {
   BankDetails,
@@ -56,8 +56,11 @@ export function computeInvoiceTotals(
       ? Math.min(discountValue, taxableAfterItemDisc)
       : taxableAfterItemDisc * (discountValue / 100)
   const netBeforeTax = taxableAfterItemDisc - invDisc
-  const effectiveTaxRate = sub > 0 ? tax / sub : 0
-  const adjustedTax = netBeforeTax * effectiveTaxRate
+  // Line tax is already on the amount after line discounts. The invoice
+  // discount reduces it in proportion to the taxable amount it removes.
+  // Keep in step with app/services/invoice_totals.py in the backend.
+  const adjustedTax =
+    taxableAfterItemDisc > 0 ? tax * (netBeforeTax / taxableAfterItemDisc) : 0
   const beforeAdjustments =
     netBeforeTax +
     adjustedTax +
@@ -116,10 +119,10 @@ export function buildInvoicePayload(
   totalTax: number,
   grandTotal: number,
   invoiceDiscount: number,
-): InvoiceCreate & {
-  vehicle_info?: string | null
-  delivery_notes?: string | null
-} {
+  bankDetails: InvoiceBankDetails | null = null,
+): InvoiceCreate {
+  // Totals are sent for older backends; the backend computes its own from
+  // the items, discount and charges below.
   return {
     invoice_number: invoiceNumber,
     document_type: config.type,
@@ -152,7 +155,23 @@ export function buildInvoicePayload(
         tax: config.hidePricing ? 0 : Number(i.tax) || 0,
         unit: i.unit || null,
         hsn_code: i.hsnCode || null,
+        discount: config.hidePricing ? 0 : Number(i.discount) || 0,
+        discount_type: i.discountType === "flat" ? "flat" : "percent",
       })),
+    po_number: formData.poNumber?.trim() || null,
+    discount_type: formData.discountType === "flat" ? "flat" : "percent",
+    discount_value: config.hidePricing
+      ? 0
+      : Number(formData.discountValue) || 0,
+    shipping_charge: config.hidePricing
+      ? 0
+      : Number(formData.shippingCharge) || 0,
+    extra_charge_label: formData.extraChargeLabel?.trim() || null,
+    extra_charge_amount: config.hidePricing
+      ? 0
+      : Number(formData.extraChargeAmount) || 0,
+    round_off: config.hidePricing ? false : Boolean(formData.roundOff),
+    bank_details: bankDetails,
   }
 }
 

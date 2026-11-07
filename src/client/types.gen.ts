@@ -296,6 +296,16 @@ export type InvoiceCreate = {
     status?: InvoiceStatus;
     place_of_supply?: (string | null);
     reverse_charge?: boolean;
+    vehicle_info?: (string | null);
+    delivery_notes?: (string | null);
+    po_number?: (string | null);
+    discount_type?: ('percent' | 'flat' | null);
+    discount_value?: number;
+    shipping_charge?: number;
+    extra_charge_label?: (string | null);
+    extra_charge_amount?: number;
+    round_off?: boolean;
+    bank_details?: (InvoiceBankDetails | null);
     customer_id: string;
     items?: Array<InvoiceItemData>;
 };
@@ -308,6 +318,21 @@ export type InvoiceItemData = {
     tax?: number;
     unit?: (string | null);
     hsn_code?: (string | null);
+    discount?: number;
+    discount_type?: ('percent' | 'flat' | null);
+};
+
+/**
+ * Bank details printed on one invoice instead of the company defaults.
+ * Write-only: the API stores them encrypted and never returns them.
+ */
+export type InvoiceBankDetails = {
+    bank_name?: (string | null);
+    account_name?: (string | null);
+    account_number?: (string | null);
+    ifsc?: (string | null);
+    branch?: (string | null);
+    upi?: (string | null);
 };
 
 export type InvoicePublic = {
@@ -326,6 +351,15 @@ export type InvoicePublic = {
     status?: InvoiceStatus;
     place_of_supply?: (string | null);
     reverse_charge?: boolean;
+    vehicle_info?: (string | null);
+    delivery_notes?: (string | null);
+    po_number?: (string | null);
+    discount_type?: (string | null);
+    discount_value?: number;
+    shipping_charge?: number;
+    extra_charge_label?: (string | null);
+    extra_charge_amount?: number;
+    round_off?: boolean;
     id: string;
     owner_id: string;
     customer_id: string;
@@ -422,6 +456,16 @@ export type InvoiceUpdate = {
     status?: (InvoiceStatus | null);
     place_of_supply?: (string | null);
     reverse_charge?: (boolean | null);
+    vehicle_info?: (string | null);
+    delivery_notes?: (string | null);
+    po_number?: (string | null);
+    discount_type?: ('percent' | 'flat' | null);
+    discount_value?: (number | null);
+    shipping_charge?: (number | null);
+    extra_charge_label?: (string | null);
+    extra_charge_amount?: (number | null);
+    round_off?: (boolean | null);
+    bank_details?: (InvoiceBankDetails | null);
     customer_id?: (string | null);
     items?: (Array<InvoiceItemData> | null);
 };
@@ -442,6 +486,15 @@ export type InvoiceWithCustomer = {
     status?: InvoiceStatus;
     place_of_supply?: (string | null);
     reverse_charge?: boolean;
+    vehicle_info?: (string | null);
+    delivery_notes?: (string | null);
+    po_number?: (string | null);
+    discount_type?: (string | null);
+    discount_value?: number;
+    shipping_charge?: number;
+    extra_charge_label?: (string | null);
+    extra_charge_amount?: number;
+    round_off?: boolean;
     id: string;
     owner_id: string;
     customer_id: string;
