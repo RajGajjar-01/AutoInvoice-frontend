@@ -80,6 +80,10 @@ function Login() {
                       placeholder="user@example.com"
                       type="email"
                       autoComplete="email"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      enterKeyHint="next"
                       {...field}
                     />
                   </FormControl>
@@ -107,6 +111,7 @@ function Login() {
                       data-testid="password-input"
                       placeholder="Enter your password"
                       autoComplete="current-password"
+                      enterKeyHint="go"
                       {...field}
                     />
                   </FormControl>
