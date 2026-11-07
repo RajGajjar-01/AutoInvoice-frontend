@@ -16,6 +16,7 @@ import {
   Phone,
   Receipt,
   Send,
+  Share2,
   StickyNote,
   Trash2,
   User,
@@ -51,9 +52,15 @@ import { SendEmailDialog } from "@/features/invoices/invoice-form/components/Sen
 import { documentConfigs } from "@/features/invoices/invoice-form/constants"
 import { useInvoiceActions } from "@/features/invoices/mutations"
 import { invoiceDetailQueryOptions } from "@/features/invoices/queries"
+import { usePhoneLayout } from "@/hooks/use-mobile"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { buildInvoiceHtml, downloadInvoicePdf } from "@/lib/pdfHelper"
+import {
+  buildInvoiceHtml,
+  downloadInvoicePdf,
+  htmlToPdfFile,
+} from "@/lib/pdfHelper"
+import { canShareFiles, shareFile } from "@/lib/share"
 import { handleError } from "@/utils"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -189,6 +196,8 @@ function InvoiceDetailPage() {
   )
 
   const actions = useInvoiceActions()
+  // Phones get the native share sheet; a download is hard to find there.
+  const sharePdf = usePhoneLayout() && canShareFiles()
 
   const sendEmailMutation = useMutation({
     mutationFn: (body: {
@@ -215,7 +224,7 @@ function InvoiceDetailPage() {
   const validItems = (invoice.items || []).filter((it) => it.name)
 
   const handleDownloadPDF = () => {
-    showSuccessToast("Generating PDF...")
+    showSuccessToast(sharePdf ? "Preparing PDF…" : "Generating PDF...")
 
     const invoiceData = {
       invoiceNumber: invoice.invoiceNumber,
@@ -245,17 +254,16 @@ function InvoiceDetailPage() {
       })),
     }
 
-    downloadInvoicePdf(
-      invoiceData,
-      companyDetails || {},
-      selectedTemplate || "clean-teal",
-    )
-      .then(() => {
-        showSuccessToast("PDF downloaded successfully!")
-      })
-      .catch(() => {
-        showErrorToast("Failed to generate PDF")
-      })
+    const template = selectedTemplate || "clean-teal"
+    const done = sharePdf
+      ? htmlToPdfFile(
+          buildInvoiceHtml(invoiceData, companyDetails || {}, template),
+          `${invoice.invoiceNumber}.pdf`,
+        ).then((file) => shareFile(file, `Invoice ${invoice.invoiceNumber}`))
+      : downloadInvoicePdf(invoiceData, companyDetails || {}, template).then(
+          () => showSuccessToast("PDF downloaded successfully!"),
+        )
+    done.catch(() => showErrorToast("Failed to generate PDF"))
   }
 
   const handleWhatsApp = () => actions.sendWhatsApp(invoice)
@@ -323,8 +331,12 @@ function InvoiceDetailPage() {
             Preview
           </Button>
           <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-            <Download className="mr-2 h-4 w-4" />
-            Download PDF
+            {sharePdf ? (
+              <Share2 className="mr-2 h-4 w-4" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            {sharePdf ? "Share PDF" : "Download PDF"}
           </Button>
           <Button
             variant="outline"
@@ -670,8 +682,12 @@ function InvoiceDetailPage() {
               Close
             </Button>
             <Button onClick={handleDownloadPDF}>
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF
+              {sharePdf ? (
+                <Share2 className="mr-2 h-4 w-4" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {sharePdf ? "Share PDF" : "Download PDF"}
             </Button>
           </div>
         </DialogContent>

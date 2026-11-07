@@ -1,9 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import html2pdf from "html2pdf.js"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useSearchParams } from "react-router"
-import { toast } from "sonner"
 import {
   CustomersService,
   InvoicesService,
@@ -20,6 +18,8 @@ import { invoicesQueryKeys } from "@/features/invoices/queries"
 import { itemsListQueryOptions, itemsQueryKeys } from "@/features/items/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import { formResolver } from "@/lib/form"
+import { htmlToPdfFile } from "@/lib/pdfHelper"
+import { canShareFiles, shareFile } from "@/lib/share"
 import { queryClient } from "@/queryClient"
 import { handleError } from "@/utils"
 import {
@@ -493,47 +493,23 @@ export function useInvoiceForm() {
       documentConfig,
     )
 
-    if (typeof navigator !== "undefined" && navigator.share) {
-      showSuccessToast("Generating PDF for sharing...")
+    if (canShareFiles()) {
+      showSuccessToast("Preparing PDF…")
       try {
-        const opt = {
-          margin: 0,
-          filename,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, logging: false },
-          jsPDF: {
-            unit: "mm",
-            format: "a4" as const,
-            orientation: "portrait" as const,
-          },
-        }
-        const pdfBlob = await html2pdf()
-          // biome-ignore lint/suspicious/noExplicitAny: html2pdf.js ships ambient types inside its module declaration that aren't exported; options type cannot be imported
-          .set(opt as any)
-          .from(html)
-          .output("blob")
-        const file = new File([pdfBlob], filename, { type: "application/pdf" })
-        try {
-          await navigator.share({
-            files: [file],
-            title: `Invoice ${invoiceNumber}`,
-            text: `Invoice ${invoiceNumber} from ${companyDetails.name || "UnifiedDesk"}`,
-          })
-          return
-        } catch {
-          await navigator.share({ title: `Invoice ${invoiceNumber}`, text })
-          return
-        }
+        await shareFile(
+          await htmlToPdfFile(html, filename),
+          `Invoice ${invoiceNumber}`,
+          text,
+        )
       } catch {
-        toast.warning("Sharing is not supported here, please download instead")
+        showErrorToast("Could not create the PDF")
       }
+      return
     }
 
-    if (typeof navigator !== "undefined" && !navigator.share) {
-      showSuccessToast(
-        "Summary shared. On Desktop, please download and attach PDF manually.",
-      )
-    }
+    showSuccessToast(
+      "Summary shared. On Desktop, please download and attach PDF manually.",
+    )
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
   }, [
     items,

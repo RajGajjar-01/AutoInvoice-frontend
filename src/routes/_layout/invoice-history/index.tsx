@@ -58,6 +58,8 @@ function InvoiceHistoryPage() {
     handleToggleStatus,
     handleDelete,
     handleWhatsApp,
+    setStatus,
+    deleteWithUndo,
   } = useInvoices()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
@@ -206,6 +208,10 @@ function InvoiceHistoryPage() {
                   onStatusChange={handleToggleStatus}
                   onWhatsApp={handleWhatsApp}
                   onDelete={setDeleteTarget}
+                  onSetPaid={(inv, paid) =>
+                    setStatus(inv, paid ? "paid" : "unpaid")
+                  }
+                  onSwipeDelete={deleteWithUndo}
                 />
               ))}
             </div>

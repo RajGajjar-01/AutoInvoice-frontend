@@ -62,6 +62,8 @@ function InvoicesPage() {
     handleToggleStatus,
     handleDelete,
     handleWhatsApp,
+    setStatus,
+    deleteWithUndo,
   } = useInvoices()
 
   const [activeTab, setActiveTab] = useState<TabId>("all")
@@ -276,6 +278,10 @@ function InvoicesPage() {
                 onStatusChange={handleToggleStatus}
                 onWhatsApp={handleWhatsApp}
                 onDelete={setDeleteTarget}
+                onSetPaid={(inv, paid) =>
+                  setStatus(inv, paid ? "paid" : "unpaid")
+                }
+                onSwipeDelete={deleteWithUndo}
               />
             ))}
           </div>

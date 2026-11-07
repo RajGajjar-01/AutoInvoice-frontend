@@ -868,25 +868,35 @@ export function buildInvoiceHtml(
   )
 }
 
+const pdfOptions = (filename: string) => ({
+  margin: 0,
+  filename,
+  image: { type: "jpeg" as const, quality: 0.98 },
+  html2canvas: { scale: 2, useCORS: true, logging: false },
+  jsPDF: {
+    unit: "mm",
+    format: "a4" as const,
+    orientation: "portrait" as const,
+  },
+})
+
 export function downloadInvoicePdf(
   invoice: PdfInvoiceData,
   companyDetails: CompanyDetails,
   selectedTemplate: string,
 ): Promise<void> {
   const html = buildInvoiceHtml(invoice, companyDetails, selectedTemplate)
-  const filename = `${invoice.invoiceNumber}.pdf`
+  return html2pdf()
+    .set(pdfOptions(`${invoice.invoiceNumber}.pdf`))
+    .from(html)
+    .save()
+}
 
-  const opt = {
-    margin: 0,
-    filename,
-    image: { type: "jpeg" as const, quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: {
-      unit: "mm",
-      format: "a4" as const,
-      orientation: "portrait" as const,
-    },
-  }
-
-  return html2pdf().set(opt).from(html).save()
+/** Renders invoice HTML to a PDF File, ready for the share sheet. */
+export async function htmlToPdfFile(html: string, filename: string) {
+  const blob: Blob = await html2pdf()
+    .set(pdfOptions(filename))
+    .from(html)
+    .output("blob")
+  return new File([blob], filename, { type: "application/pdf" })
 }
