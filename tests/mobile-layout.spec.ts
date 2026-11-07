@@ -15,7 +15,16 @@ for (const [path, action] of [
     page,
   }) => {
     await page.goto(path)
-    await page.getByRole("button", { name: action, exact: true }).click()
+    // Phones keep the create-page actions in the bottom bar's menu.
+    const phoneMenu = page.getByRole("button", { name: "More actions" })
+    if (path === "/create-invoice")
+      await page.locator("#document-form").waitFor()
+    if (path === "/create-invoice" && (await phoneMenu.isVisible())) {
+      await phoneMenu.click()
+      await page.getByRole("menuitem", { name: "Preview" }).click()
+    } else {
+      await page.getByRole("button", { name: action, exact: true }).click()
+    }
     const dialog = page.getByRole("dialog", {
       name: "Invoice Preview",
       exact: true,
