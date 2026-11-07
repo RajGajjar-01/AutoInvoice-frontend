@@ -105,21 +105,23 @@ export function MobileInvoiceCard({
         }
         actions={
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-11"
-                aria-label={`Actions for invoice ${invoice.invoiceNumber}`}
-              >
-                <MoreHorizontal className="size-5" />
-              </Button>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-11"
+                  aria-label={`Actions for invoice ${invoice.invoiceNumber}`}
+                />
+              }
+            >
+              <MoreHorizontal className="size-5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to={`/invoice-history/${invoice.id}`}>
-                  <FileText /> View details
-                </Link>
+              <DropdownMenuItem
+                render={<Link to={`/invoice-history/${invoice.id}`} />}
+              >
+                <FileText /> View details
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onSetPaid(invoice, !paid)}>
                 <PaidIcon /> {paidLabel}

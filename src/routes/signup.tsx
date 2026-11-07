@@ -4,7 +4,7 @@ import { Link as RouterLink } from "react-router"
 import { z } from "zod"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import { GoogleAuthButton } from "@/components/Common/GoogleAuthButton"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -19,6 +19,7 @@ import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isExistingSignupEmailError } from "@/hooks/useAuth"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useGoogleAuthMessage } from "@/hooks/useGoogleAuthMessage"
+import { cn } from "@/lib/utils"
 
 const formSchema = z
   .object({
@@ -156,14 +157,24 @@ function SignUp() {
                         help.
                       </p>
                       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
-                        <Button variant="link" asChild className="h-auto p-0">
-                          <RouterLink to="/login">Sign in instead</RouterLink>
-                        </Button>
-                        <Button variant="link" asChild className="h-auto p-0">
-                          <RouterLink to="/recover-password">
-                            Reset password
-                          </RouterLink>
-                        </Button>
+                        <RouterLink
+                          to="/login"
+                          className={cn(
+                            buttonVariants({ variant: "link" }),
+                            "h-auto p-0",
+                          )}
+                        >
+                          Sign in instead
+                        </RouterLink>
+                        <RouterLink
+                          to="/recover-password"
+                          className={cn(
+                            buttonVariants({ variant: "link" }),
+                            "h-auto p-0",
+                          )}
+                        >
+                          Reset password
+                        </RouterLink>
                       </div>
                     </div>
                   )}

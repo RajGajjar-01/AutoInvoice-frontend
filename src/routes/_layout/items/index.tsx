@@ -182,7 +182,10 @@ function ItemsPage() {
             className="sm:max-w-sm"
           />
           {categories.length > 1 && (
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select
+              value={categoryFilter}
+              onValueChange={(v) => setCategoryFilter(v ?? "all")}
+            >
               <SelectTrigger
                 className="w-auto max-w-36 shrink-0"
                 aria-label="Category"

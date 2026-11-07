@@ -15,7 +15,7 @@ import { ListSkeleton } from "@/components/Common/ListSkeleton"
 import { PageHeader } from "@/components/Common/PageHeader"
 import { SearchInput } from "@/components/Common/SearchInput"
 import { StatCard } from "@/components/Common/StatCard"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   DropdownMenu,
@@ -45,6 +45,7 @@ import { StatusBadge } from "@/features/invoices/components/StatusBadge"
 import { useInvoices } from "@/features/invoices/hooks/useInvoices"
 import { fmt } from "@/features/invoices/utils"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { cn } from "@/lib/utils"
 
 function InvoiceHistoryPage() {
   useDocumentTitle("Invoice History")
@@ -112,11 +113,12 @@ function InvoiceHistoryPage() {
         title="Invoice History"
         description="Search, filter, and manage all your invoices"
         actions={
-          <Button asChild className="max-md:hidden">
-            <Link to="/create-invoice">
-              <FilePlus /> New Invoice
-            </Link>
-          </Button>
+          <Link
+            to="/create-invoice"
+            className={cn(buttonVariants({ size: "lg" }), "max-md:h-11")}
+          >
+            <FilePlus /> New Invoice
+          </Link>
         }
       />
 
@@ -165,7 +167,10 @@ function InvoiceHistoryPage() {
               placeholder="Search by invoice #, customer, amount…"
               className="sm:max-w-sm"
             />
-            <Select value={sortOrder} onValueChange={setSortOrder}>
+            <Select
+              value={sortOrder}
+              onValueChange={(v) => setSortOrder(v ?? "newest")}
+            >
               <SelectTrigger
                 className="w-32 shrink-0 sm:w-36"
                 aria-label="Sort"
@@ -291,22 +296,25 @@ function InvoiceHistoryPage() {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Actions</span>
-                            </Button>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              />
+                            }
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Actions</span>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link to={`/invoice-history/${inv.id}`}>
-                                <FileText className="mr-2 h-4 w-4" /> View
-                                Details
-                              </Link>
+                            <DropdownMenuItem
+                              render={
+                                <Link to={`/invoice-history/${inv.id}`} />
+                              }
+                            >
+                              <FileText className="mr-2 h-4 w-4" /> View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleWhatsApp(inv)}

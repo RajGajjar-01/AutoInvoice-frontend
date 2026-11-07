@@ -11,6 +11,7 @@ import {
   Share2,
   Truck,
 } from "lucide-react"
+import { createPortal } from "react-dom"
 import { Link, useNavigate } from "react-router"
 import { ModernExcelTable } from "@/components/modern-excel-table"
 import { Button } from "@/components/ui/button"
@@ -139,7 +140,8 @@ function PhoneActionBar({
 }: PhoneActionBarProps) {
   const keyboard = useKeyboardInset()
   const share = canShareFiles()
-  return (
+  // Portal: the page wrapper animates transform, which would pin a fixed bar to it.
+  return createPortal(
     <div
       className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm md:hidden"
       style={{ bottom: keyboard }}
@@ -152,16 +154,18 @@ function PhoneActionBar({
           </p>
         </div>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="size-11"
-              aria-label="More actions"
-            >
-              <MoreHorizontal className="size-5" />
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-11"
+                aria-label="More actions"
+              />
+            }
+          >
+            <MoreHorizontal className="size-5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top" className="w-52">
             <DropdownMenuItem onClick={onPreview}>
@@ -184,7 +188,8 @@ function PhoneActionBar({
           <Save /> {saveLabel}
         </Button>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

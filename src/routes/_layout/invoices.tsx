@@ -20,7 +20,7 @@ import { FilterChips } from "@/components/Common/FilterChips"
 import { ListSkeleton } from "@/components/Common/ListSkeleton"
 import { PageHeader } from "@/components/Common/PageHeader"
 import { SearchInput } from "@/components/Common/SearchInput"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   DropdownMenu,
@@ -43,6 +43,7 @@ import { StatusBadge } from "@/features/invoices/components/StatusBadge"
 import { useInvoices } from "@/features/invoices/hooks/useInvoices"
 import { fmt, fmtShort } from "@/features/invoices/utils"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { cn } from "@/lib/utils"
 
 type TabId = "all" | "unpaid" | "overdue" | "paid"
 
@@ -117,16 +118,21 @@ function InvoicesPage() {
         description="Manage, track, and send all your invoices"
         actions={
           <>
-            <Button variant="outline" asChild>
-              <Link to="/invoice-templates">
-                <LayoutTemplate /> Templates
-              </Link>
-            </Button>
-            <Button asChild className="max-md:hidden">
-              <Link to="/create-invoice">
-                <FilePlus /> New Invoice
-              </Link>
-            </Button>
+            <Link
+              to="/invoice-templates"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "max-md:hidden",
+              )}
+            >
+              <LayoutTemplate /> Templates
+            </Link>
+            <Link
+              to="/create-invoice"
+              className={cn(buttonVariants({ size: "lg" }), "max-md:h-11")}
+            >
+              <FilePlus /> New Invoice
+            </Link>
           </>
         }
       />
@@ -343,21 +349,23 @@ function InvoicesPage() {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100"
+                            />
+                          }
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to={`/invoice-history/${inv.id}`}>
-                              <FileText className="mr-2 h-4 w-4" /> View Details
-                            </Link>
+                          <DropdownMenuItem
+                            render={<Link to={`/invoice-history/${inv.id}`} />}
+                          >
+                            <FileText className="mr-2 h-4 w-4" /> View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleWhatsApp(inv)}>
                             <Send className="mr-2 h-4 w-4" /> Send via WhatsApp

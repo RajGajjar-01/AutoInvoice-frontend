@@ -230,11 +230,9 @@ const AddCustomer = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus />
-          Add Customer
-        </Button>
+      <DialogTrigger render={<Button />}>
+        <Plus />
+        Add Customer
       </DialogTrigger>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
         <DialogHeader className="shrink-0 px-6 pt-6 text-left">
@@ -597,18 +595,18 @@ const AddCustomer = () => {
                   Back
                 </Button>
               ) : (
-                <DialogClose asChild>
-                  <Button variant="ghost" disabled={isSubmitting}>
-                    Cancel
-                  </Button>
+                <DialogClose
+                  render={<Button variant="ghost" disabled={isSubmitting} />}
+                >
+                  Cancel
                 </DialogClose>
               )}
               <div className="flex-1" />
               {step > 0 && (
-                <DialogClose asChild>
-                  <Button variant="ghost" disabled={isSubmitting}>
-                    Cancel
-                  </Button>
+                <DialogClose
+                  render={<Button variant="ghost" disabled={isSubmitting} />}
+                >
+                  Cancel
                 </DialogClose>
               )}
               {!isLast ? (

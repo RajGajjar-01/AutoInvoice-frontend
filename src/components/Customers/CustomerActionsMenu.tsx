@@ -32,18 +32,25 @@ export const CustomerActionsMenu = ({ customer }: CustomerActionsMenuProps) => {
   const [open, setOpen] = useState(false)
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-11 sm:size-8">
-          <EllipsisVertical className="h-4 w-4" />
-          <span className="sr-only">Actions for {customer.name}</span>
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" size="icon" className="size-11 sm:size-8" />
+        }
+      >
+        <EllipsisVertical className="h-4 w-4" />
+        <span className="sr-only">Actions for {customer.name}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link to={`/customers/${customer.id}`} onClick={() => setOpen(false)}>
-            <ExternalLink className="mr-2 h-4 w-4" />
-            View Profile
-          </Link>
+        <DropdownMenuItem
+          render={
+            <Link
+              to={`/customers/${customer.id}`}
+              onClick={() => setOpen(false)}
+            />
+          }
+        >
+          <ExternalLink className="mr-2 h-4 w-4" />
+          View Profile
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <EditCustomer customer={customer} onSuccess={() => setOpen(false)} />

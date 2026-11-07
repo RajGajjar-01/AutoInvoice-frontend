@@ -12,18 +12,18 @@ export function StatusBadge({ status, onClick }: StatusBadgeProps) {
   if (onClick) {
     return (
       <Badge
-        asChild
         variant={statusVariant[status] ?? "outline"}
         className="min-h-11 gap-1 px-3 capitalize sm:min-h-0 sm:px-2"
+        render={
+          <button
+            type="button"
+            onClick={onClick}
+            aria-label={`Change status from ${status}`}
+          />
+        }
       >
-        <button
-          type="button"
-          onClick={onClick}
-          aria-label={`Change status from ${status}`}
-        >
-          <Icon className="h-3 w-3" />
-          {status}
-        </button>
+        <Icon className="h-3 w-3" />
+        {status}
       </Badge>
     )
   }

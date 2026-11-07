@@ -156,12 +156,12 @@ export function AppSidebar() {
                     tooltip={item.title}
                     className="rounded-xl transition-colors data-[active=true]:bg-primary/15"
                     isActive={currentPath === item.path}
-                    asChild
+                    render={
+                      <RouterLink to={item.path} onClick={handleNavClick} />
+                    }
                   >
-                    <RouterLink to={item.path} onClick={handleNavClick}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </RouterLink>
+                    <item.icon />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -173,12 +173,10 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     tooltip="Invoices"
                     isActive={isInvoiceActive}
-                    asChild
+                    render={<RouterLink to="/invoices" />}
                   >
-                    <RouterLink to="/invoices">
-                      <FileText />
-                      <span>Invoices</span>
-                    </RouterLink>
+                    <FileText />
+                    <span>Invoices</span>
                   </SidebarMenuButton>
                 ) : (
                   <>
@@ -205,15 +203,15 @@ export function AppSidebar() {
                                 currentPath === sub.path ||
                                 currentPath.startsWith(`${sub.path}/`)
                               }
-                              asChild
+                              render={
+                                <RouterLink
+                                  to={sub.path}
+                                  onClick={handleNavClick}
+                                />
+                              }
                             >
-                              <RouterLink
-                                to={sub.path}
-                                onClick={handleNavClick}
-                              >
-                                <sub.icon className="h-3.5 w-3.5" />
-                                <span>{sub.title}</span>
-                              </RouterLink>
+                              <sub.icon className="h-3.5 w-3.5" />
+                              <span>{sub.title}</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
@@ -230,12 +228,12 @@ export function AppSidebar() {
                     tooltip={item.title}
                     className="rounded-xl transition-colors data-[active=true]:bg-primary/15"
                     isActive={currentPath === item.path}
-                    asChild
+                    render={
+                      <RouterLink to={item.path} onClick={handleNavClick} />
+                    }
                   >
-                    <RouterLink to={item.path} onClick={handleNavClick}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </RouterLink>
+                    <item.icon />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

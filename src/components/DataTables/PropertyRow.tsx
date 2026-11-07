@@ -93,7 +93,10 @@ export function PropertyRow({
         />
 
         {/* Type select */}
-        <Select value={value.type} onValueChange={(type) => update({ type })}>
+        <Select
+          value={value.type}
+          onValueChange={(type) => type && update({ type })}
+        >
           <SelectTrigger className="w-44 h-8 text-sm">
             <SelectValue placeholder="Type" />
           </SelectTrigger>

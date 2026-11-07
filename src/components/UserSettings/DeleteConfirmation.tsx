@@ -38,10 +38,8 @@ const DeleteConfirmation = () => {
   }
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="destructive" className="mt-3">
-          Delete Account
-        </Button>
+      <DialogTrigger render={<Button variant="destructive" className="mt-3" />}>
+        Delete Account
       </DialogTrigger>
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -56,10 +54,12 @@ const DeleteConfirmation = () => {
           </DialogHeader>
 
           <DialogFooter className="mt-4">
-            <DialogClose asChild>
-              <Button variant="outline" disabled={mutation.isPending}>
-                Cancel
-              </Button>
+            <DialogClose
+              render={
+                <Button variant="outline" disabled={mutation.isPending} />
+              }
+            >
+              Cancel
             </DialogClose>
             <LoadingButton
               variant="destructive"

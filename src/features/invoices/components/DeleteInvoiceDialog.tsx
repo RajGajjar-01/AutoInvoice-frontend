@@ -36,8 +36,8 @@ export function DeleteInvoiceDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4">
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+          <DialogClose render={<Button variant="outline" />}>
+            Cancel
           </DialogClose>
           <LoadingButton
             variant="destructive"

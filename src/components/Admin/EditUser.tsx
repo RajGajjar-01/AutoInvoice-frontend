@@ -222,10 +222,12 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
             </div>
 
             <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline" disabled={mutation.isPending}>
-                  Cancel
-                </Button>
+              <DialogClose
+                render={
+                  <Button variant="outline" disabled={mutation.isPending} />
+                }
+              >
+                Cancel
               </DialogClose>
               <LoadingButton type="submit" loading={mutation.isPending}>
                 Save

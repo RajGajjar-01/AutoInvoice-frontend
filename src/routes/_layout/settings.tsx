@@ -20,12 +20,12 @@ import GoogleIntegration from "@/components/UserSettings/GoogleIntegration"
 import UserInformation from "@/components/UserSettings/UserInformation"
 import { Button } from "@/components/ui/button"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
@@ -223,75 +223,71 @@ function UserSettings() {
       <p className="pb-2 text-center text-xs text-muted-foreground">
         AutoInvoice · Your business, organized
       </p>
-      <Sheet
+      <Drawer
+        showSwipeHandle
         open={panel !== null}
         onOpenChange={(open) => {
           if (!open) setPanel(null)
         }}
       >
-        <SheetContent
-          side="bottom"
-          className="mx-auto w-full max-w-2xl gap-0 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:rounded-t-3xl"
-        >
-          <div
-            aria-hidden="true"
-            className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/25"
-          />
-          <SheetHeader className="px-0 pb-4 pt-5 pr-10">
-            <SheetTitle>
+        <DrawerContent className="mx-auto w-full max-w-2xl rounded-t-3xl pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          <DrawerHeader className="px-5 pb-4 pt-2 text-left">
+            <DrawerTitle>
               {active?.title || (panel === "theme" ? "Appearance" : "Log out?")}
-            </SheetTitle>
-            <SheetDescription>
+            </DrawerTitle>
+            <DrawerDescription>
               {active?.description ||
                 (panel === "theme"
                   ? "Choose a theme or follow your device settings."
                   : "You can sign back in whenever you’re ready.")}
-            </SheetDescription>
-          </SheetHeader>
-          {Panel && <Panel />}
-          {panel === "theme" && (
-            <fieldset className="space-y-2">
-              <legend className="sr-only">Appearance</legend>
-              {themes.map(({ value, label, icon: Icon }) => (
-                <label
-                  key={value}
-                  className={`flex min-h-16 cursor-pointer items-center gap-3 rounded-xl border px-4 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-ring ${theme === value ? "border-primary bg-primary/10" : "hover:bg-muted"}`}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
+            {Panel && <Panel />}
+            {panel === "theme" && (
+              <fieldset className="space-y-2">
+                <legend className="sr-only">Appearance</legend>
+                {themes.map(({ value, label, icon: Icon }) => (
+                  <label
+                    key={value}
+                    className={`flex min-h-16 cursor-pointer items-center gap-3 rounded-xl border px-4 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-ring ${theme === value ? "border-primary bg-primary/10" : "hover:bg-muted"}`}
+                  >
+                    <Icon size={20} aria-hidden="true" />
+                    <span className="flex-1 text-sm font-medium">
+                      {label}
+                      {value === "system" && (
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          Currently {resolvedTheme}
+                        </span>
+                      )}
+                    </span>
+                    <input
+                      type="radio"
+                      name="appearance"
+                      value={value}
+                      checked={theme === value}
+                      onChange={() => setTheme(value)}
+                      className="size-5 accent-primary"
+                    />
+                  </label>
+                ))}
+              </fieldset>
+            )}
+            {panel === "logout" && (
+              <div className="flex flex-col gap-2">
+                <Button onClick={() => setPanel(null)}>Stay signed in</Button>
+                <Button
+                  variant="ghost"
+                  className="text-destructive"
+                  onClick={logout}
                 >
-                  <Icon size={20} aria-hidden="true" />
-                  <span className="flex-1 text-sm font-medium">
-                    {label}
-                    {value === "system" && (
-                      <span className="block text-xs font-normal text-muted-foreground">
-                        Currently {resolvedTheme}
-                      </span>
-                    )}
-                  </span>
-                  <input
-                    type="radio"
-                    name="appearance"
-                    value={value}
-                    checked={theme === value}
-                    onChange={() => setTheme(value)}
-                    className="size-5 accent-primary"
-                  />
-                </label>
-              ))}
-            </fieldset>
-          )}
-          {panel === "logout" && (
-            <div className="flex flex-col gap-2">
-              <Button onClick={() => setPanel(null)}>Stay signed in</Button>
-              <Button
-                variant="ghost"
-                className="text-destructive"
-                onClick={logout}
-              >
-                Log out
-              </Button>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+                  Log out
+                </Button>
+              </div>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }

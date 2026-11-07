@@ -204,11 +204,9 @@ const AddItem = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus />
-          Add Item
-        </Button>
+      <DialogTrigger render={<Button />}>
+        <Plus />
+        Add Item
       </DialogTrigger>
 
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
@@ -545,18 +543,14 @@ const AddItem = () => {
                   Back
                 </Button>
               ) : (
-                <DialogClose asChild>
-                  <Button variant="ghost" type="button">
-                    Cancel
-                  </Button>
+                <DialogClose render={<Button variant="ghost" type="button" />}>
+                  Cancel
                 </DialogClose>
               )}
               <div className="flex-1" />
               {step > 0 && (
-                <DialogClose asChild>
-                  <Button variant="ghost" type="button">
-                    Cancel
-                  </Button>
+                <DialogClose render={<Button variant="ghost" type="button" />}>
+                  Cancel
                 </DialogClose>
               )}
               {!isLast ? (

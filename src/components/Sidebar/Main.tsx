@@ -40,17 +40,17 @@ export function Main({ items }: MainProps) {
                 <SidebarMenuButton
                   tooltip={item.title}
                   isActive={isActive}
-                  asChild
+                  render={
+                    <RouterLink
+                      to={item.path}
+                      onClick={handleMenuClick}
+                      onPointerEnter={() => prefetchPage(item.path)}
+                      onFocus={() => prefetchPage(item.path)}
+                    />
+                  }
                 >
-                  <RouterLink
-                    to={item.path}
-                    onClick={handleMenuClick}
-                    onPointerEnter={() => prefetchPage(item.path)}
-                    onFocus={() => prefetchPage(item.path)}
-                  >
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </RouterLink>
+                  <item.icon />
+                  <span>{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )

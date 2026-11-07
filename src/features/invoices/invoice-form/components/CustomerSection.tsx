@@ -50,7 +50,7 @@ export function CustomerSection({
         <Label>Select Customer</Label>
         <Select
           value={selectedCustomerId}
-          onValueChange={onCustomerSelect}
+          onValueChange={(v) => onCustomerSelect(v ?? "")}
           onOpenChange={(open) => {
             if (open) {
               // Runs after Radix's own mount-time focus of the selected

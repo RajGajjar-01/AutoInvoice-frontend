@@ -1,5 +1,6 @@
 import { OpenAPI } from "@/client/core/OpenAPI"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 function GoogleIcon() {
   return (
@@ -28,11 +29,12 @@ export function GoogleAuthButton() {
   const href = `${OpenAPI.BASE}/api/v1/auth/google/login`
 
   return (
-    <Button variant="outline" className="w-full" type="button" asChild>
-      <a href={href}>
-        <GoogleIcon />
-        Continue with Google
-      </a>
-    </Button>
+    <a
+      href={href}
+      className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+    >
+      <GoogleIcon />
+      Continue with Google
+    </a>
   )
 }

@@ -4,7 +4,7 @@ import { Check, CheckCircle2 } from "lucide-react"
 import { useLayoutEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
@@ -227,13 +227,17 @@ export function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className="mt-6 w-full"
-                  variant={tier.highlighted ? "default" : "outline"}
-                  asChild
+                <Link
+                  to={tier.ctaLink}
+                  className={cn(
+                    buttonVariants({
+                      variant: tier.highlighted ? "default" : "outline",
+                    }),
+                    "mt-6 w-full",
+                  )}
                 >
-                  <Link to={tier.ctaLink}>{tier.cta}</Link>
-                </Button>
+                  {tier.cta}
+                </Link>
               </CardContent>
             </Card>
           ))}

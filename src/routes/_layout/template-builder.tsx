@@ -687,7 +687,7 @@ function BlockStylePanel({ block, onChange }: BlockStylePanelProps) {
         <Label className="text-xs">Font Size</Label>
         <Select
           value={s.fontSize || "sm"}
-          onValueChange={(v) => onChange("fontSize", v)}
+          onValueChange={(v) => v && onChange("fontSize", v)}
         >
           <SelectTrigger className="h-7 text-xs">
             <SelectValue />
@@ -792,7 +792,7 @@ function BlockStylePanel({ block, onChange }: BlockStylePanelProps) {
         <Label className="text-xs">Padding</Label>
         <Select
           value={s.padding || "md"}
-          onValueChange={(v) => onChange("padding", v)}
+          onValueChange={(v) => v && onChange("padding", v)}
         >
           <SelectTrigger className="h-7 text-xs">
             <SelectValue />
@@ -825,7 +825,7 @@ function GlobalStylePanel({ globalStyle, onChange }: GlobalStylePanelProps) {
         </Label>
         <Select
           value={globalStyle.fontFamily || FONT_FAMILIES[0].value}
-          onValueChange={(v) => onChange("fontFamily", v)}
+          onValueChange={(v) => v && onChange("fontFamily", v)}
         >
           <SelectTrigger className="h-7 text-xs">
             <SelectValue />
@@ -936,7 +936,7 @@ function GlobalStylePanel({ globalStyle, onChange }: GlobalStylePanelProps) {
         <Label className="text-xs">Header / Title Style</Label>
         <Select
           value={globalStyle.headerStyle || "filled"}
-          onValueChange={(v) => onChange("headerStyle", v)}
+          onValueChange={(v) => v && onChange("headerStyle", v)}
         >
           <SelectTrigger className="h-7 text-xs">
             <SelectValue />

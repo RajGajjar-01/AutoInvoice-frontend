@@ -97,15 +97,17 @@ export function NotificationCard({
             />
           )}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-11 text-muted-foreground sm:size-9"
-                aria-label={`Actions for ${notif.title}`}
-              >
-                <MoreHorizontal className="size-5 sm:size-4" />
-              </Button>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-11 text-muted-foreground sm:size-9"
+                  aria-label={`Actions for ${notif.title}`}
+                />
+              }
+            >
+              <MoreHorizontal className="size-5 sm:size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {unread && (

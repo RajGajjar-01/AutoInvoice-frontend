@@ -25,11 +25,10 @@ export function FilterChips<T extends string>({
   className,
 }: FilterChipsProps<T>) {
   return (
-    <div
-      role="group"
+    <fieldset
       aria-label={label}
       className={cn(
-        "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0",
+        "-mx-4 flex min-w-0 gap-2 border-0 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0",
         className,
       )}
     >
@@ -63,6 +62,6 @@ export function FilterChips<T extends string>({
           </button>
         )
       })}
-    </div>
+    </fieldset>
   )
 }

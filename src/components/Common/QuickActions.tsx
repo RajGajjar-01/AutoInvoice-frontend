@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import { Link } from "react-router"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export interface QuickAction {
@@ -43,32 +43,38 @@ export function QuickActions({
               <span className="max-sm:text-xs">{label}</span>
             </>
           )
-          return (
-            <Button
+          const className = cn(
+            buttonVariants({
+              variant: primary ? "default" : "outline",
+              size: "lg",
+            }),
+            "max-sm:h-auto max-sm:flex-col max-sm:gap-1.5 max-sm:rounded-xl max-sm:px-1 max-sm:py-3 max-sm:[&_svg]:size-5",
+            destructive &&
+              "text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10",
+          )
+          return to ? (
+            <Link key={label} to={to} className={className}>
+              {inner}
+            </Link>
+          ) : href ? (
+            <a
               key={label}
-              asChild={!!(to || href)}
-              variant={primary ? "default" : "outline"}
-              onClick={onClick}
-              className={cn(
-                "max-sm:h-auto max-sm:flex-col max-sm:gap-1.5 max-sm:rounded-xl max-sm:px-1 max-sm:py-3 max-sm:[&_svg]:size-5",
-                destructive &&
-                  "text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10",
-              )}
+              href={href}
+              target={href.startsWith("http") ? "_blank" : undefined}
+              rel="noreferrer"
+              className={className}
             >
-              {to ? (
-                <Link to={to}>{inner}</Link>
-              ) : href ? (
-                <a
-                  href={href}
-                  target={href.startsWith("http") ? "_blank" : undefined}
-                  rel="noreferrer"
-                >
-                  {inner}
-                </a>
-              ) : (
-                inner
-              )}
-            </Button>
+              {inner}
+            </a>
+          ) : (
+            <button
+              key={label}
+              type="button"
+              onClick={onClick}
+              className={className}
+            >
+              {inner}
+            </button>
           )
         },
       )}

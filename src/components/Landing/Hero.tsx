@@ -2,7 +2,8 @@ import gsap from "gsap"
 import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
 import { Link } from "react-router"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export function Hero() {
   const heroRef = useRef<HTMLDivElement>(null)
@@ -74,20 +75,25 @@ export function Hero() {
           </p>
 
           <div className="hero-buttons mt-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-            <Button size="lg" className="h-12 w-full px-8 sm:w-auto" asChild>
-              <Link to="/signup">
-                Start Free Trial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-12 w-full px-8 sm:w-auto"
-              asChild
+            <Link
+              to="/signup"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "h-12 w-full px-8 sm:w-auto",
+              )}
             >
-              <Link to="/login">Sign In</Link>
-            </Button>
+              Start Free Trial
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+            <Link
+              to="/login"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "h-12 w-full px-8 sm:w-auto",
+              )}
+            >
+              Sign In
+            </Link>
           </div>
         </div>
         <img

@@ -2,7 +2,6 @@ import {
   ArrowLeft,
   Bell,
   Briefcase,
-  FilePlus2,
   FileText,
   Home,
   LayoutTemplate,
@@ -30,29 +29,30 @@ import { OfflineBanner } from "@/components/Common/OfflineBanner"
 import { PullToRefresh } from "@/components/Common/PullToRefresh"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import { useTheme } from "@/components/theme-provider"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { useNotificationStore } from "@/features/data-tables/notification-store"
 import useAuth from "@/hooks/useAuth"
+import { cn } from "@/lib/utils"
 import { prefetchPage } from "@/routes/pages"
 
 const mobileLinks = [
   { label: "Home", to: "/dashboard", icon: Home },
   { label: "Invoices", to: "/invoices", icon: FileText },
-  { label: "New", to: "/create-invoice", icon: FilePlus2 },
   { label: "Customers", to: "/customers", icon: Users },
+  { label: "Items", to: "/items", icon: Briefcase },
 ]
 
 const moreLinks = [
-  { label: "Items", to: "/items", icon: Briefcase },
   { label: "Data Tables", to: "/data-tables", icon: Table2 },
   { label: "Templates", to: "/invoice-templates", icon: LayoutTemplate },
   { label: "Template Builder", to: "/template-builder", icon: FileText },
@@ -67,11 +67,9 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
   const [moreOpen, setMoreOpen] = useState(false)
 
   return (
-    <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+    <Drawer open={moreOpen} onOpenChange={setMoreOpen} showSwipeHandle>
       <nav
         aria-label="Mobile navigation"
-        // Document forms have their own action bar on phones.
-        hidden={pathname.startsWith("/create-")}
         className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <div className="grid h-16 grid-cols-5 items-stretch">
@@ -87,120 +85,112 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
                 aria-current={active ? "page" : undefined}
                 className={`group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors duration-150 ${active ? "text-primary" : "text-muted-foreground"}`}
               >
-                {to === "/create-invoice" ? (
-                  <span className="-mt-5 grid size-12 place-items-center rounded-full bg-pop text-white shadow-lg ring-4 ring-background transition-transform duration-150 motion-safe:group-active:scale-90">
-                    <Icon className="size-[22px]" aria-hidden="true" />
-                  </span>
-                ) : (
-                  <span
-                    className={`grid h-7 w-12 place-items-center rounded-full transition-[background-color,transform] duration-200 motion-safe:group-active:scale-90 ${active ? "bg-accent" : ""}`}
-                  >
-                    <Icon className="size-5" aria-hidden="true" />
-                  </span>
-                )}
+                <span
+                  className={`grid h-7 w-12 place-items-center rounded-full transition-[background-color,transform] duration-200 motion-safe:group-active:scale-90 ${active ? "bg-accent" : ""}`}
+                >
+                  <Icon className="size-5" aria-hidden="true" />
+                </span>
                 <span>{label}</span>
               </Link>
             )
           })}
-          <SheetTrigger asChild>
-            <button
-              type="button"
-              className="group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground"
-              aria-label="Open all navigation"
-            >
-              <span className="grid h-7 w-12 place-items-center rounded-full transition-transform duration-200 motion-safe:group-active:scale-90">
-                <Menu className="size-5" aria-hidden="true" />
-              </span>
-              <span>More</span>
-            </button>
-          </SheetTrigger>
+          <DrawerTrigger
+            render={
+              <button
+                type="button"
+                className="group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground"
+                aria-label="Open all navigation"
+              />
+            }
+          >
+            <span className="grid h-7 w-12 place-items-center rounded-full transition-transform duration-200 motion-safe:group-active:scale-90">
+              <Menu className="size-5" aria-hidden="true" />
+            </span>
+            <span>More</span>
+          </DrawerTrigger>
         </div>
       </nav>
-      <SheetContent
-        side="bottom"
-        showCloseButton={false}
-        className="max-h-[85dvh] transform-gpu overscroll-contain rounded-t-3xl pb-[max(1rem,env(safe-area-inset-bottom))] transition-[transform,opacity] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform data-[state=closed]:duration-150 data-[state=open]:duration-200 md:hidden"
-      >
-        <div
-          aria-hidden="true"
-          className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/25"
-        />
-        <SheetHeader>
-          <SheetTitle>More</SheetTitle>
-          <SheetDescription>Other pages and account options</SheetDescription>
-        </SheetHeader>
-        <nav aria-label="More pages" className="grid gap-1 px-4">
-          {[
-            ...moreLinks,
-            ...(isAdmin ? [{ label: "Admin", to: "/admin", icon: Users }] : []),
-          ].map(({ label, to, icon: Icon }) => (
-            <Button
-              key={to}
-              variant="ghost"
-              asChild
-              className="h-12 justify-start rounded-xl"
-            >
+      <DrawerContent className="rounded-t-3xl pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden">
+        <DrawerHeader>
+          <DrawerTitle>More</DrawerTitle>
+          <DrawerDescription>Other pages and account options</DrawerDescription>
+        </DrawerHeader>
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-2">
+          <nav aria-label="More pages" className="grid gap-1 px-4">
+            {[
+              ...moreLinks,
+              ...(isAdmin
+                ? [{ label: "Admin", to: "/admin", icon: Users }]
+                : []),
+            ].map(({ label, to, icon: Icon }) => (
               <Link
                 to={to}
                 onPointerDown={() => prefetchPage(to)}
                 onClick={() => setMoreOpen(false)}
+                key={to}
+                className={cn(
+                  buttonVariants({ variant: "ghost" }),
+                  "h-12 justify-start rounded-xl",
+                )}
               >
                 <Icon aria-hidden="true" />
                 {label}
               </Link>
-            </Button>
-          ))}
-        </nav>
-        <Separator />
-        <div className="grid gap-1 px-4">
-          <Button
-            variant="ghost"
-            asChild
-            className="h-12 justify-start rounded-xl"
-          >
-            <Link to="/profile" onClick={() => setMoreOpen(false)}>
+            ))}
+          </nav>
+          <Separator />
+          <div className="grid gap-1 px-4">
+            <Link
+              to="/profile"
+              onClick={() => setMoreOpen(false)}
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "h-12 justify-start rounded-xl",
+              )}
+            >
               <UserCircle aria-hidden="true" />
               Profile
             </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            asChild
-            className="h-12 justify-start rounded-xl"
-          >
-            <Link to="/settings" onClick={() => setMoreOpen(false)}>
+            <Link
+              to="/settings"
+              onClick={() => setMoreOpen(false)}
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "h-12 justify-start rounded-xl",
+              )}
+            >
               <Settings aria-hidden="true" />
               Settings
             </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            className="h-12 justify-start rounded-xl"
-            onClick={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
-            }
-          >
-            {resolvedTheme === "dark" ? (
-              <Sun aria-hidden="true" />
-            ) : (
-              <Moon aria-hidden="true" />
-            )}
-            Appearance
-          </Button>
-          <Button
-            variant="ghost"
-            className="h-12 justify-start rounded-xl"
-            onClick={() => {
-              setMoreOpen(false)
-              void logout()
-            }}
-          >
-            <LogOut aria-hidden="true" />
-            Log out
-          </Button>
+            <Button
+              variant="ghost"
+              className="h-12 justify-start rounded-xl"
+              onClick={() =>
+                setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              }
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun aria-hidden="true" />
+              ) : (
+                <Moon aria-hidden="true" />
+              )}
+              Appearance
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-12 justify-start rounded-xl"
+              onClick={() => {
+                setMoreOpen(false)
+                void logout()
+              }}
+            >
+              <LogOut aria-hidden="true" />
+              Log out
+            </Button>
+          </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   )
 }
 
@@ -231,6 +221,9 @@ const iconBtn =
 function MobileHeader() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const unread = useNotificationStore(
+    (state) => state.notifications.filter((n) => !n.read).length,
+  )
   const segments = pathname.split("/").filter(Boolean)
   const base =
     "sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 bg-background/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden"
@@ -240,10 +233,18 @@ function MobileHeader() {
       <header className={base}>
         <Logo variant="full" className="h-8" />
         <Link
-          to="/settings"
-          aria-label="Settings"
-          className={`${iconBtn} ml-auto`}
+          to="/notifications"
+          aria-label={
+            unread ? `Notifications, ${unread} unread` : "Notifications"
+          }
+          className={`${iconBtn} relative ml-auto`}
         >
+          <Bell className="size-[18px]" aria-hidden="true" />
+          {unread > 0 && (
+            <span className="absolute top-2 right-2.5 size-2 rounded-full bg-pop ring-2 ring-card" />
+          )}
+        </Link>
+        <Link to="/settings" aria-label="Settings" className={iconBtn}>
           <Settings className="size-[18px]" aria-hidden="true" />
         </Link>
       </header>
@@ -327,13 +328,7 @@ export function ProtectedLayout() {
   useEffect(() => {
     if (!user) return
     const warm = () => {
-      for (const to of [
-        "/dashboard",
-        "/invoices",
-        "/customers",
-        "/create-invoice",
-      ])
-        prefetchPage(to)
+      for (const { to } of mobileLinks) prefetchPage(to)
     }
     // Safari has no requestIdleCallback.
     if (!("requestIdleCallback" in window)) {
@@ -358,20 +353,37 @@ export function ProtectedLayout() {
     return null
   }
 
+  // Settings is a pushed screen on phones: full slide from the right, no tab bar.
+  const isSettings = pathname === "/settings"
+  // Document forms have their own bottom action bar on phones.
+  const hideTabBar = isSettings || pathname.startsWith("/create-")
+
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex min-w-0 max-w-full flex-col overflow-hidden">
         <MobileHeader />
-        <main className="workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-2 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-4">
+        <main
+          className={cn(
+            "workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-2 md:p-4",
+            isSettings
+              ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+              : "pb-[calc(5.5rem+env(safe-area-inset-bottom))]",
+          )}
+        >
           <div
             key={pathname}
-            className="route-content flex min-w-0 flex-1 flex-col"
+            className={cn(
+              "route-content flex min-w-0 flex-1 flex-col",
+              isSettings && "route-push",
+            )}
           >
             {switchingPage ? <PageSkeleton /> : <Outlet />}
           </div>
         </main>
-        <MobileNavigation isAdmin={user.is_superuser ?? false} />
+        {!hideTabBar && (
+          <MobileNavigation isAdmin={user.is_superuser ?? false} />
+        )}
         <OfflineBanner />
         {PULL_TO_REFRESH.has(pathname) && <PullToRefresh />}
         <ScrollRestoration />

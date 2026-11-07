@@ -9,7 +9,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -118,19 +119,17 @@ export function FAQ() {
               Everything you need to know about UnifiedDesk, GST, and billing.
               Cannot find your answer here?
             </p>
-            <Button variant="outline" className="mt-6" asChild>
-              <Link to="/signup">
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Talk to us
-              </Link>
-            </Button>
+            <Link
+              to="/signup"
+              className={cn(buttonVariants({ variant: "outline" }), "mt-6")}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Talk to us
+            </Link>
           </div>
 
           {/* Right: accordion (3/5) */}
-          <Accordion
-            type="multiple"
-            className="faq-accordion lg:col-span-3 space-y-2"
-          >
+          <Accordion multiple className="faq-accordion lg:col-span-3 space-y-2">
             {faqs.map((faq, i) => (
               <AccordionItem
                 key={i}

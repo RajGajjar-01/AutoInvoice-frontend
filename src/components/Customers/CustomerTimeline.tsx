@@ -1,7 +1,7 @@
 import { Clock, FilePlus, FileText } from "lucide-react"
 import { Link } from "react-router"
 import { ListRow, ListRows } from "@/components/Common/ListRow"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusBadge } from "@/features/invoices/components/StatusBadge"
 import { fmt } from "@/features/invoices/utils"
@@ -23,13 +23,12 @@ function EmptyTimeline({ customerId }: { customerId: string }) {
       <p className="text-xs text-muted-foreground max-w-xs mb-4">
         Invoices created for this party will appear here.
       </p>
-      <Button variant="outline" size="sm" asChild>
-        <Link
-          to={`/create-invoice?customerId=${customerId}&documentType=invoice`}
-        >
-          <FilePlus /> Create Invoice
-        </Link>
-      </Button>
+      <Link
+        to={`/create-invoice?customerId=${customerId}&documentType=invoice`}
+        className={buttonVariants({ variant: "outline", size: "sm" })}
+      >
+        <FilePlus /> Create Invoice
+      </Link>
     </div>
   )
 }
