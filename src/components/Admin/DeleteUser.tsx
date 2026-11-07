@@ -68,10 +68,12 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
           </DialogHeader>
 
           <DialogFooter className="mt-4">
-            <DialogClose asChild>
-              <Button variant="outline" disabled={mutation.isPending}>
-                Cancel
-              </Button>
+            <DialogClose
+              render={
+                <Button variant="outline" disabled={mutation.isPending} />
+              }
+            >
+              Cancel
             </DialogClose>
             <LoadingButton
               variant="destructive"

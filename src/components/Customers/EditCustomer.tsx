@@ -611,14 +611,14 @@ const EditCustomer = ({
                     Back
                   </Button>
                 ) : (
-                  <DialogClose asChild>
-                    <Button variant="ghost">Cancel</Button>
+                  <DialogClose render={<Button variant="ghost" />}>
+                    Cancel
                   </DialogClose>
                 )}
                 <div className="flex-1" />
                 {step > 0 && (
-                  <DialogClose asChild>
-                    <Button variant="ghost">Cancel</Button>
+                  <DialogClose render={<Button variant="ghost" />}>
+                    Cancel
                   </DialogClose>
                 )}
                 {!isLast ? (

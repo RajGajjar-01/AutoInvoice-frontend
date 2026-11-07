@@ -39,12 +39,12 @@ export function Main({ items }: MainProps) {
                 <SidebarMenuButton
                   tooltip={item.title}
                   isActive={isActive}
-                  asChild
+                  render={
+                    <RouterLink to={item.path} onClick={handleMenuClick} />
+                  }
                 >
-                  <RouterLink to={item.path} onClick={handleMenuClick}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </RouterLink>
+                  <item.icon />
+                  <span>{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )

@@ -273,10 +273,10 @@ const AdjustStock = ({
               />
 
               <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">
-                    Cancel
-                  </Button>
+                <DialogClose
+                  render={<Button type="button" variant="outline" />}
+                >
+                  Cancel
                 </DialogClose>
                 <Button
                   type="submit"

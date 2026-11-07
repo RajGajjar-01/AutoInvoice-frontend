@@ -360,21 +360,23 @@ function InvoicesPage() {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100"
+                            />
+                          }
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to={`/invoice-history/${inv.id}`}>
-                              <FileText className="mr-2 h-4 w-4" /> View Details
-                            </Link>
+                          <DropdownMenuItem
+                            render={<Link to={`/invoice-history/${inv.id}`} />}
+                          >
+                            <FileText className="mr-2 h-4 w-4" /> View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleWhatsApp(inv)}>
                             <Send className="mr-2 h-4 w-4" /> Send via WhatsApp

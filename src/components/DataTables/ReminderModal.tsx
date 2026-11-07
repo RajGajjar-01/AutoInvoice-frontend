@@ -228,10 +228,8 @@ export function ReminderModal({
             />
 
             <DialogFooter className="mt-2">
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
-                  Cancel
-                </Button>
+              <DialogClose render={<Button type="button" variant="outline" />}>
+                Cancel
               </DialogClose>
               <LoadingButton type="submit" loading={isSubmitting}>
                 Set Reminder

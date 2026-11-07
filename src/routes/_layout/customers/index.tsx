@@ -216,7 +216,10 @@ function CustomersPage() {
                 className="pl-9"
               />
             </div>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <Select
+              value={typeFilter}
+              onValueChange={(v) => setTypeFilter(v ?? "")}
+            >
               <SelectTrigger className="w-full sm:w-36">
                 <SelectValue placeholder="All types" />
               </SelectTrigger>

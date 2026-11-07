@@ -32,11 +32,11 @@ export const CustomerActionsMenu = ({ customer }: CustomerActionsMenuProps) => {
   const [open, setOpen] = useState(false)
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <EllipsisVertical className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
-        </Button>
+      <DropdownMenuTrigger
+        render={<Button variant="ghost" size="icon" className="h-8 w-8" />}
+      >
+        <EllipsisVertical className="h-4 w-4" />
+        <span className="sr-only">Open menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <Link to={`/customers/${customer.id}`} onClick={() => setOpen(false)}>

@@ -566,18 +566,18 @@ const EditItem = ({ item, onSuccess, variant = "dropdown" }: EditItemProps) => {
                     Back
                   </Button>
                 ) : (
-                  <DialogClose asChild>
-                    <Button variant="ghost" type="button">
-                      Cancel
-                    </Button>
+                  <DialogClose
+                    render={<Button variant="ghost" type="button" />}
+                  >
+                    Cancel
                   </DialogClose>
                 )}
                 <div className="flex-1" />
                 {step > 0 && (
-                  <DialogClose asChild>
-                    <Button variant="ghost" type="button">
-                      Cancel
-                    </Button>
+                  <DialogClose
+                    render={<Button variant="ghost" type="button" />}
+                  >
+                    Cancel
                   </DialogClose>
                 )}
                 {!isLast ? (

@@ -190,6 +190,7 @@ function ColumnCard({
             <Select
               value={col.type}
               onValueChange={(type) => {
+                if (!type) return
                 const { _isBlank, _isDuplicate, ...clean } = col
                 onChange(index, { ...clean, type })
               }}

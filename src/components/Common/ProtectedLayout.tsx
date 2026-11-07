@@ -21,18 +21,19 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router"
 import { Logo } from "@/components/Common/Logo"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import { useTheme } from "@/components/theme-provider"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
+import { cn } from "@/lib/utils"
 
 const mobileLinks = [
   { label: "Home", to: "/dashboard", icon: Home },
@@ -57,7 +58,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
   const [moreOpen, setMoreOpen] = useState(false)
 
   return (
-    <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+    <Drawer open={moreOpen} onOpenChange={setMoreOpen} showSwipeHandle>
       <nav
         aria-label="Mobile navigation"
         className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] md:hidden"
@@ -89,101 +90,102 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
               </Link>
             )
           })}
-          <SheetTrigger asChild>
-            <button
-              type="button"
-              className="group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground"
-              aria-label="Open all navigation"
-            >
-              <span className="grid h-7 w-12 place-items-center rounded-full transition-transform duration-200 motion-safe:group-active:scale-90">
-                <Menu className="size-5" aria-hidden="true" />
-              </span>
-              <span>More</span>
-            </button>
-          </SheetTrigger>
+          <DrawerTrigger
+            render={
+              <button
+                type="button"
+                className="group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground"
+                aria-label="Open all navigation"
+              />
+            }
+          >
+            <span className="grid h-7 w-12 place-items-center rounded-full transition-transform duration-200 motion-safe:group-active:scale-90">
+              <Menu className="size-5" aria-hidden="true" />
+            </span>
+            <span>More</span>
+          </DrawerTrigger>
         </div>
       </nav>
-      <SheetContent
-        side="bottom"
-        showCloseButton={false}
-        className="max-h-[85dvh] transform-gpu overscroll-contain rounded-t-3xl pb-[max(1rem,env(safe-area-inset-bottom))] transition-[transform,opacity] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform data-[state=closed]:duration-150 data-[state=open]:duration-200 md:hidden"
-      >
-        <div
-          aria-hidden="true"
-          className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/25"
-        />
-        <SheetHeader>
-          <SheetTitle>More</SheetTitle>
-          <SheetDescription>Other pages and account options</SheetDescription>
-        </SheetHeader>
-        <nav aria-label="More pages" className="grid gap-1 px-4">
-          {[
-            ...moreLinks,
-            ...(isAdmin ? [{ label: "Admin", to: "/admin", icon: Users }] : []),
-          ].map(({ label, to, icon: Icon }) => (
-            <Button
-              key={to}
-              variant="ghost"
-              asChild
-              className="h-12 justify-start rounded-xl"
-            >
-              <Link to={to} onClick={() => setMoreOpen(false)}>
+      <DrawerContent className="rounded-t-3xl pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden">
+        <DrawerHeader>
+          <DrawerTitle>More</DrawerTitle>
+          <DrawerDescription>Other pages and account options</DrawerDescription>
+        </DrawerHeader>
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-2">
+          <nav aria-label="More pages" className="grid gap-1 px-4">
+            {[
+              ...moreLinks,
+              ...(isAdmin
+                ? [{ label: "Admin", to: "/admin", icon: Users }]
+                : []),
+            ].map(({ label, to, icon: Icon }) => (
+              <Link
+                to={to}
+                onClick={() => setMoreOpen(false)}
+                key={to}
+                className={cn(
+                  buttonVariants({ variant: "ghost" }),
+                  "h-12 justify-start rounded-xl",
+                )}
+              >
                 <Icon aria-hidden="true" />
                 {label}
               </Link>
-            </Button>
-          ))}
-        </nav>
-        <Separator />
-        <div className="grid gap-1 px-4">
-          <Button
-            variant="ghost"
-            asChild
-            className="h-12 justify-start rounded-xl"
-          >
-            <Link to="/profile" onClick={() => setMoreOpen(false)}>
+            ))}
+          </nav>
+          <Separator />
+          <div className="grid gap-1 px-4">
+            <Link
+              to="/profile"
+              onClick={() => setMoreOpen(false)}
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "h-12 justify-start rounded-xl",
+              )}
+            >
               <UserCircle aria-hidden="true" />
               Profile
             </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            asChild
-            className="h-12 justify-start rounded-xl"
-          >
-            <Link to="/settings" onClick={() => setMoreOpen(false)}>
+            <Link
+              to="/settings"
+              onClick={() => setMoreOpen(false)}
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "h-12 justify-start rounded-xl",
+              )}
+            >
               <Settings aria-hidden="true" />
               Settings
             </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            className="h-12 justify-start rounded-xl"
-            onClick={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
-            }
-          >
-            {resolvedTheme === "dark" ? (
-              <Sun aria-hidden="true" />
-            ) : (
-              <Moon aria-hidden="true" />
-            )}
-            Appearance
-          </Button>
-          <Button
-            variant="ghost"
-            className="h-12 justify-start rounded-xl"
-            onClick={() => {
-              setMoreOpen(false)
-              void logout()
-            }}
-          >
-            <LogOut aria-hidden="true" />
-            Log out
-          </Button>
+            <Button
+              variant="ghost"
+              className="h-12 justify-start rounded-xl"
+              onClick={() =>
+                setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              }
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun aria-hidden="true" />
+              ) : (
+                <Moon aria-hidden="true" />
+              )}
+              Appearance
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-12 justify-start rounded-xl"
+              onClick={() => {
+                setMoreOpen(false)
+                void logout()
+              }}
+            >
+              <LogOut aria-hidden="true" />
+              Log out
+            </Button>
+          </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   )
 }
 

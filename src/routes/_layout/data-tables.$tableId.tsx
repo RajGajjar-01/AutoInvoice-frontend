@@ -1223,7 +1223,7 @@ function TableViewPage() {
                     </p>
                     <Select
                       value={(pendingFilters[col.name] as string) ?? "Any"}
-                      onValueChange={(v) => setBoolFilter(col.name, v)}
+                      onValueChange={(v) => v && setBoolFilter(col.name, v)}
                     >
                       <SelectTrigger className="h-8 text-xs">
                         <SelectValue />

@@ -202,8 +202,8 @@ export function ExcelImportDialog({
                   }
                 />
                 <Label htmlFor="excel-upload" className="cursor-pointer">
-                  <Button variant="outline" size="sm" asChild>
-                    <span>Browse Files</span>
+                  <Button variant="outline" size="sm" render={<span />}>
+                    Browse Files
                   </Button>
                 </Label>
                 <p className="text-xs text-muted-foreground">

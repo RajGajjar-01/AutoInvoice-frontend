@@ -395,11 +395,7 @@ export function ModernExcelTable({
                           }}
                         >
                           <SelectTrigger className="h-9 w-8 p-0 border-0 bg-transparent hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 transition-colors shrink-0 rounded-none flex items-center justify-center [&_svg]:size-3.5 [&_svg]:text-muted-foreground/50 group-hover/itembox:[&_svg]:text-primary group-hover/itembox:[&_svg]:opacity-100 [&_svg]:transition-colors" />
-                          <SelectContent
-                            align="end"
-                            className="w-[220px]"
-                            position="popper"
-                          >
+                          <SelectContent align="end" className="w-[220px]">
                             {inventoryItems.length === 0 ? (
                               <div className="p-3 text-xs text-muted-foreground text-center italic">
                                 No items in inventory

@@ -13,9 +13,10 @@ import { HowItWorks } from "@/components/Landing/HowItWorks"
 import { Pricing } from "@/components/Landing/Pricing"
 import { ScrollTextReveal } from "@/components/Landing/ScrollTextReveal"
 import { TechnologyShowcase } from "@/components/Landing/TechnologyShowcase"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import useAuth from "@/hooks/useAuth"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { cn } from "@/lib/utils"
 
 function LandingPage() {
   useDocumentTitle(
@@ -47,18 +48,27 @@ function LandingPage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <Appearance />
             {isLoading || user ? (
-              <Button size="sm" asChild>
-                <Link to="/dashboard">Go to Dashboard</Link>
-              </Button>
+              <Link to="/dashboard" className={buttonVariants({ size: "sm" })}>
+                Go to Dashboard
+              </Link>
             ) : (
               <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/login">Log In</Link>
-                </Button>
+                <Link
+                  to="/login"
+                  className={buttonVariants({ variant: "ghost", size: "sm" })}
+                >
+                  Log In
+                </Link>
                 {/* Primary Sign Up lives in the sticky bottom bar on mobile */}
-                <Button size="sm" className="hidden sm:inline-flex" asChild>
-                  <Link to="/signup">Sign Up</Link>
-                </Button>
+                <Link
+                  to="/signup"
+                  className={cn(
+                    buttonVariants({ size: "sm" }),
+                    "hidden sm:inline-flex",
+                  )}
+                >
+                  Sign Up
+                </Link>
               </>
             )}
           </div>
@@ -87,9 +97,15 @@ function LandingPage() {
             showStickyCta ? "translate-y-0" : "translate-y-full"
           }`}
         >
-          <Button size="lg" className="h-12 w-full text-base" asChild>
-            <Link to="/signup">Start Free Trial</Link>
-          </Button>
+          <Link
+            to="/signup"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "h-12 w-full text-base",
+            )}
+          >
+            Start Free Trial
+          </Link>
         </div>
       )}
     </div>

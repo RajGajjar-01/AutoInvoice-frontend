@@ -201,7 +201,10 @@ function ItemsPage() {
         </div>
 
         {categories.length > 1 && (
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select
+            value={categoryFilter}
+            onValueChange={(v) => setCategoryFilter(v ?? "")}
+          >
             <SelectTrigger className="w-full sm:w-36">
               <Filter className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue placeholder="Category" />
@@ -219,7 +222,10 @@ function ItemsPage() {
           </Select>
         )}
 
-        <Select value={stockFilter} onValueChange={setStockFilter}>
+        <Select
+          value={stockFilter}
+          onValueChange={(v) => setStockFilter(v ?? "")}
+        >
           <SelectTrigger className="w-full sm:w-36">
             <SelectValue placeholder="Stock status" />
           </SelectTrigger>

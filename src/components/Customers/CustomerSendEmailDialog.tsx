@@ -136,7 +136,10 @@ export function CustomerSendEmailDialog({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="cust-email-invoice">Attach invoice</Label>
-            <Select value={invoiceId} onValueChange={handleInvoiceChange}>
+            <Select
+              value={invoiceId}
+              onValueChange={(v) => handleInvoiceChange(v ?? "")}
+            >
               <SelectTrigger id="cust-email-invoice">
                 <SelectValue />
               </SelectTrigger>

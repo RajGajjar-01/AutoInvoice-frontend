@@ -27,18 +27,20 @@ interface ItemActionsMenuProps {
 export function ItemActionsMenu({ item }: ItemActionsMenuProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <MoreHorizontal className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
-        </Button>
+      <DropdownMenuTrigger
+        render={<Button variant="ghost" size="icon" className="h-8 w-8" />}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+        <span className="sr-only">Open menu</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuItem asChild>
-          <Link to={`/items/${item.id}`} className="flex items-center">
-            <Eye className="mr-2 h-4 w-4" />
-            View Details
-          </Link>
+        <DropdownMenuItem
+          render={
+            <Link to={`/items/${item.id}`} className="flex items-center" />
+          }
+        >
+          <Eye className="mr-2 h-4 w-4" />
+          View Details
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <AdjustStock item={item} variant="dropdown" />

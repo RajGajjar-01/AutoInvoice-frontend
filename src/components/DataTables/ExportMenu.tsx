@@ -75,11 +75,11 @@ interface ExportMenuProps {
 export function ExportMenu({ table, rows }: ExportMenuProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Download className="h-4 w-4" />
-          Export
-        </Button>
+      <DropdownMenuTrigger
+        render={<Button variant="outline" size="sm" className="gap-2" />}
+      >
+        <Download className="h-4 w-4" />
+        Export
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         {/* CSV */}

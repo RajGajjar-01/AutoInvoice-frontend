@@ -239,7 +239,10 @@ function InvoiceHistoryPage() {
               className="pl-9"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v ?? "")}
+          >
             <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -250,7 +253,10 @@ function InvoiceHistoryPage() {
               <SelectItem value="overdue">Overdue</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={sortOrder} onValueChange={setSortOrder}>
+          <Select
+            value={sortOrder}
+            onValueChange={(v) => setSortOrder(v ?? "")}
+          >
             <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
@@ -356,22 +362,25 @@ function InvoiceHistoryPage() {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Actions</span>
-                            </Button>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              />
+                            }
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Actions</span>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link to={`/invoice-history/${inv.id}`}>
-                                <FileText className="mr-2 h-4 w-4" /> View
-                                Details
-                              </Link>
+                            <DropdownMenuItem
+                              render={
+                                <Link to={`/invoice-history/${inv.id}`} />
+                              }
+                            >
+                              <FileText className="mr-2 h-4 w-4" /> View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleWhatsApp(inv)}

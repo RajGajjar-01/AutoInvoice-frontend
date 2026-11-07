@@ -39,21 +39,23 @@ export function MobileInvoiceCard({
           </p>
         </div>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="-mr-2 -mt-2 size-11"
-              aria-label={`Actions for invoice ${invoice.invoiceNumber}`}
-            >
-              <MoreHorizontal className="size-5" />
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="-mr-2 -mt-2 size-11"
+                aria-label={`Actions for invoice ${invoice.invoiceNumber}`}
+              />
+            }
+          >
+            <MoreHorizontal className="size-5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/invoice-history/${invoice.id}`}>
-                <FileText className="mr-2 h-4 w-4" /> View Details
-              </Link>
+            <DropdownMenuItem
+              render={<Link to={`/invoice-history/${invoice.id}`} />}
+            >
+              <FileText className="mr-2 h-4 w-4" /> View Details
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onWhatsApp(invoice)}>
               <Send className="mr-2 h-4 w-4" /> Send via WhatsApp

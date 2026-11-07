@@ -2,7 +2,7 @@ import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
+import { Popover, PopoverContent } from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -151,6 +151,7 @@ function TableCellComponent({
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value ?? "")
   const inputRef = useRef<HTMLInputElement>(null)
+  const anchorRef = useRef<HTMLButtonElement>(null)
   const editIntentRef = useRef<"keyboard" | "pointer">("pointer")
   const isDateType =
     type === "Date" || type === "Due Date" || type === "Expiry Date"
@@ -369,42 +370,42 @@ function TableCellComponent({
     const past = isPastDate(String(value))
     return (
       <Popover open={editing} onOpenChange={setEditing}>
-        <PopoverAnchor asChild>
-          <button
-            type="button"
-            className="flex min-h-8 w-full items-center gap-1.5 overflow-hidden rounded px-3 py-1 text-left text-sm cursor-text outline-none transition-colors hover:bg-foreground/[0.02] focus:bg-transparent focus-visible:ring-0"
-            onClick={() => {
-              onFocus?.()
-              beginEditing()
-            }}
-            onFocus={onFocus}
-            onKeyDown={(e) => {
-              handleKeyDown(e)
-            }}
-          >
-            {value ? (
-              <>
-                <CalendarDays
-                  className={`h-3.5 w-3.5 shrink-0 ${past ? "text-destructive" : "text-muted-foreground"}`}
-                />
-                <span
-                  className={cn(
-                    "block truncate",
-                    past && "text-destructive font-medium",
-                  )}
-                >
-                  {String(value)}
-                </span>
-              </>
-            ) : (
-              <span className="text-muted-foreground/40 select-none">-</span>
-            )}
-          </button>
-        </PopoverAnchor>
+        <button
+          ref={anchorRef}
+          type="button"
+          className="flex min-h-8 w-full items-center gap-1.5 overflow-hidden rounded px-3 py-1 text-left text-sm cursor-text outline-none transition-colors hover:bg-foreground/[0.02] focus:bg-transparent focus-visible:ring-0"
+          onClick={() => {
+            onFocus?.()
+            beginEditing()
+          }}
+          onFocus={onFocus}
+          onKeyDown={(e) => {
+            handleKeyDown(e)
+          }}
+        >
+          {value ? (
+            <>
+              <CalendarDays
+                className={`h-3.5 w-3.5 shrink-0 ${past ? "text-destructive" : "text-muted-foreground"}`}
+              />
+              <span
+                className={cn(
+                  "block truncate",
+                  past && "text-destructive font-medium",
+                )}
+              >
+                {String(value)}
+              </span>
+            </>
+          ) : (
+            <span className="text-muted-foreground/40 select-none">-</span>
+          )}
+        </button>
         <PopoverContent
           align="start"
           className="w-[280px] p-3"
-          onOpenAutoFocus={(e) => e.preventDefault()}
+          anchor={anchorRef}
+          initialFocus={false}
         >
           <div className="flex items-center justify-between pb-2">
             <button

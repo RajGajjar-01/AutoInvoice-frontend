@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -61,38 +62,42 @@ export function User({ user }: UserProps) {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              data-testid="user-menu"
-            >
-              <UserInfo fullName={user?.full_name} email={user?.email} />
-              <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
-            </SidebarMenuButton>
+          <DropdownMenuTrigger
+            render={
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                data-testid="user-menu"
+              />
+            }
+          >
+            <UserInfo fullName={user?.full_name} email={user?.email} />
+            <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-(--anchor-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <UserInfo fullName={user?.full_name} email={user?.email} />
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <UserInfo fullName={user?.full_name} email={user?.email} />
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <RouterLink to="/profile" onClick={handleMenuClick}>
-              <DropdownMenuItem>
-                <UserCircle />
-                Profile
-              </DropdownMenuItem>
-            </RouterLink>
-            <RouterLink to="/settings" onClick={handleMenuClick}>
-              <DropdownMenuItem>
-                <Settings />
-                User Settings
-              </DropdownMenuItem>
-            </RouterLink>
+            <DropdownMenuItem
+              render={<RouterLink to="/profile" onClick={handleMenuClick} />}
+            >
+              <UserCircle />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              render={<RouterLink to="/settings" onClick={handleMenuClick} />}
+            >
+              <Settings />
+              User Settings
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Log Out
