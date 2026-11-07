@@ -67,6 +67,8 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
     <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
       <nav
         aria-label="Mobile navigation"
+        // Document forms have their own action bar on phones.
+        hidden={pathname.startsWith("/create-")}
         className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <div className="grid h-16 grid-cols-5 items-stretch">
