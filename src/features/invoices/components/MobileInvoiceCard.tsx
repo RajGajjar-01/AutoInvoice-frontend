@@ -8,12 +8,14 @@ import {
   Trash2,
 } from "lucide-react"
 import { Link } from "react-router"
+import { ListRow } from "@/components/Common/ListRow"
 import { SwipeableRow } from "@/components/Common/SwipeableRow"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { Invoice } from "@/features/invoices/hooks/useInvoices"
@@ -23,14 +25,15 @@ import { StatusBadge } from "./StatusBadge"
 
 interface MobileInvoiceCardProps {
   invoice: Invoice
-  onStatusChange: (invoice: Invoice) => void
+  onSetPaid: (invoice: Invoice, paid: boolean) => void
   onWhatsApp: (invoice: Invoice) => void
+  /** Delete from the menu: opens the confirm dialog. */
   onDelete: (invoice: Invoice) => void
-  /** Paid/unpaid from a swipe. Falls back to the status cycle. */
-  onSetPaid?: (invoice: Invoice, paid: boolean) => void
-  /** Delete from a swipe, with undo instead of a dialog. */
-  onSwipeDelete?: (invoice: Invoice) => void
+  /** Delete from a swipe: removes at once with undo. */
+  onSwipeDelete: (invoice: Invoice) => void
 }
+
+export const invoiceTransitionName = (id: string) => `invoice-${id}`
 
 const shareInvoice = (inv: Invoice) =>
   shareText(
@@ -48,22 +51,23 @@ const shareInvoice = (inv: Invoice) =>
 
 export function MobileInvoiceCard({
   invoice,
-  onStatusChange,
+  onSetPaid,
   onWhatsApp,
   onDelete,
-  onSetPaid,
   onSwipeDelete,
 }: MobileInvoiceCardProps) {
   const paid = invoice.status === "paid"
+  const PaidIcon = paid ? CircleDashed : CheckCircle2
+  const paidLabel = paid ? "Mark as unpaid" : "Mark as paid"
+
   return (
     <SwipeableRow
       startActions={[
         {
           label: paid ? "Unpaid" : "Paid",
-          icon: paid ? CircleDashed : CheckCircle2,
+          icon: PaidIcon,
           className: paid ? "bg-amber-500" : "bg-emerald-600",
-          onAction: () =>
-            onSetPaid ? onSetPaid(invoice, !paid) : onStatusChange(invoice),
+          onAction: () => onSetPaid(invoice, !paid),
         },
         {
           label: "Share",
@@ -77,29 +81,35 @@ export function MobileInvoiceCard({
           label: "Delete",
           icon: Trash2,
           className: "bg-destructive",
-          onAction: () => (onSwipeDelete ?? onDelete)(invoice),
+          onAction: () => onSwipeDelete(invoice),
         },
       ]}
     >
-      <article className="space-y-3 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <Link
-              to={`/invoice-history/${invoice.id}`}
-              className="block break-words font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              {invoice.invoiceNumber}
-            </Link>
-            <p className="mt-1 break-words text-sm font-medium">
-              {invoice.customer?.name || "No customer"}
-            </p>
-          </div>
+      <ListRow
+        to={`/invoice-history/${invoice.id}`}
+        transitionName={invoiceTransitionName(invoice.id)}
+        title={invoice.customer?.name || invoice.invoiceNumber}
+        subtitle={[
+          invoice.invoiceNumber,
+          invoice.dueDate ? `Due ${invoice.dueDate}` : invoice.invoiceDate,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+        trailing={
+          <>
+            <span className="font-semibold tabular-nums">
+              {fmt(invoice.grandTotal, invoice.currency)}
+            </span>
+            <StatusBadge status={invoice.status} />
+          </>
+        }
+        actions={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="-mr-2 -mt-2 size-11"
+                className="size-11"
                 aria-label={`Actions for invoice ${invoice.invoiceNumber}`}
               >
                 <MoreHorizontal className="size-5" />
@@ -108,44 +118,29 @@ export function MobileInvoiceCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
                 <Link to={`/invoice-history/${invoice.id}`}>
-                  <FileText className="mr-2 h-4 w-4" /> View Details
+                  <FileText /> View details
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onWhatsApp(invoice)}>
-                <Send className="mr-2 h-4 w-4" /> Send via WhatsApp
+              <DropdownMenuItem onClick={() => onSetPaid(invoice, !paid)}>
+                <PaidIcon /> {paidLabel}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => shareInvoice(invoice)}>
-                <Share2 className="mr-2 h-4 w-4" /> Share
+                <Share2 /> Share
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onWhatsApp(invoice)}>
+                <Send /> Send via WhatsApp
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                variant="destructive"
                 onClick={() => onDelete(invoice)}
               >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                <Trash2 /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Link
-            to={`/invoice-history/${invoice.id}`}
-            className="text-base font-semibold"
-          >
-            {fmt(invoice.grandTotal, invoice.currency)}
-          </Link>
-          <StatusBadge
-            status={invoice.status}
-            onClick={() => onStatusChange(invoice)}
-          />
-        </div>
-        {(invoice.invoiceDate || invoice.dueDate) && (
-          <p className="text-xs text-muted-foreground">
-            {invoice.invoiceDate && `Issued ${invoice.invoiceDate}`}
-            {invoice.invoiceDate && invoice.dueDate && " · "}
-            {invoice.dueDate && `Due ${invoice.dueDate}`}
-          </p>
-        )}
-      </article>
+        }
+      />
     </SwipeableRow>
   )
 }

@@ -9,7 +9,6 @@ import {
   IndianRupee,
   LayoutTemplate,
   MoreHorizontal,
-  Search,
   Send,
   SortAsc,
   SortDesc,
@@ -17,7 +16,10 @@ import {
 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Link } from "react-router"
-import { Badge } from "@/components/ui/badge"
+import { FilterChips } from "@/components/Common/FilterChips"
+import { ListSkeleton } from "@/components/Common/ListSkeleton"
+import { PageHeader } from "@/components/Common/PageHeader"
+import { SearchInput } from "@/components/Common/SearchInput"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -26,7 +28,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -37,7 +38,6 @@ import {
 } from "@/components/ui/table"
 import { DeleteInvoiceDialog } from "@/features/invoices/components/DeleteInvoiceDialog"
 import { InvoicesEmptyState } from "@/features/invoices/components/InvoicesEmptyState"
-import { InvoicesSkeleton } from "@/features/invoices/components/InvoicesSkeleton"
 import { MobileInvoiceCard } from "@/features/invoices/components/MobileInvoiceCard"
 import { StatusBadge } from "@/features/invoices/components/StatusBadge"
 import { useInvoices } from "@/features/invoices/hooks/useInvoices"
@@ -99,7 +99,7 @@ function InvoicesPage() {
     return list
   }, [invoices, activeTab, search, sortOrder])
 
-  if (isLoading) return <InvoicesSkeleton />
+  if (isLoading) return <ListSkeleton />
 
   const tabs: { id: TabId; label: string; count: number }[] = [
     { id: "all", label: "All", count: totalCount },
@@ -112,30 +112,24 @@ function InvoicesPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
-        <div>
-          <h1 className="max-md:sr-only font-display text-2xl font-bold tracking-tight">
-            Invoices
-          </h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            Manage, track, and send all your invoices
-          </p>
-        </div>
-        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
-          <Link to="/invoice-templates" className="min-w-0">
-            <Button variant="outline" size="sm" className="h-11 w-full sm:h-8">
-              <LayoutTemplate className="mr-1.5 h-4 w-4" />
-              Templates
+      <PageHeader
+        title="Invoices"
+        description="Manage, track, and send all your invoices"
+        actions={
+          <>
+            <Button variant="outline" asChild>
+              <Link to="/invoice-templates">
+                <LayoutTemplate /> Templates
+              </Link>
             </Button>
-          </Link>
-          <Link to="/create-invoice" className="min-w-0">
-            <Button size="sm" className="h-11 w-full sm:h-8">
-              <FilePlus className="mr-1.5 h-4 w-4" /> New Invoice
+            <Button asChild className="max-md:hidden">
+              <Link to="/create-invoice">
+                <FilePlus /> New Invoice
+              </Link>
             </Button>
-          </Link>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Summary pills */}
       <div className="hidden grid-cols-1 gap-3 sm:grid sm:grid-cols-3 animate-in animate-in-delay-1">
@@ -190,15 +184,11 @@ function InvoicesPage() {
 
       {/* Search + sort */}
       <div className="flex items-center gap-2 animate-in animate-in-delay-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Search invoice #, customer, email or amount…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search invoice #, customer, email or amount…"
+        />
         <Button
           variant="outline"
           size="icon"
@@ -219,29 +209,17 @@ function InvoicesPage() {
         </Button>
       </div>
 
-      {/* Status tabs */}
-      <div className="flex gap-1 overflow-x-auto border-b border-border -mt-2 whitespace-nowrap [&>*]:shrink-0">
-        {tabs.map((tab) => (
-          <button
-            type="button"
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex min-h-11 items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              activeTab === tab.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tab.label}
-            <Badge
-              variant={activeTab === tab.id ? "default" : "secondary"}
-              className="text-[10px] h-4 px-1.5 min-w-[18px] justify-center"
-            >
-              {tab.count}
-            </Badge>
-          </button>
-        ))}
-      </div>
+      <FilterChips
+        label="Invoice status"
+        options={tabs.map((t) => ({
+          value: t.id,
+          label: t.label,
+          count: t.count,
+        }))}
+        value={activeTab}
+        onChange={setActiveTab}
+        className="-mt-2"
+      />
 
       {/* Table */}
       {invoices.length === 0 ? (
@@ -275,7 +253,6 @@ function InvoicesPage() {
               <MobileInvoiceCard
                 key={inv.id}
                 invoice={inv}
-                onStatusChange={handleToggleStatus}
                 onWhatsApp={handleWhatsApp}
                 onDelete={setDeleteTarget}
                 onSetPaid={(inv, paid) =>
@@ -401,7 +378,7 @@ function InvoicesPage() {
           </div>
 
           {/* Footer */}
-          <div className="flex flex-col gap-2 border-t bg-muted/20 px-4 py-2.5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <div className="hidden border-t bg-muted/20 px-4 py-2.5 text-xs text-muted-foreground md:flex md:items-center md:justify-between">
             <span className="flex flex-wrap items-center gap-3">
               Showing {filtered.length} of {totalCount} invoices
               <span className="flex items-center gap-1.5">

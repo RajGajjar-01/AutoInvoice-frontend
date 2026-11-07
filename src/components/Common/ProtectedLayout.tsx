@@ -27,6 +27,7 @@ import {
 } from "react-router"
 import { Logo } from "@/components/Common/Logo"
 import { OfflineBanner } from "@/components/Common/OfflineBanner"
+import { PullToRefresh } from "@/components/Common/PullToRefresh"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
@@ -292,6 +293,15 @@ function LoadingSkeleton() {
   )
 }
 
+const PULL_TO_REFRESH = new Set([
+  "/dashboard",
+  "/invoices",
+  "/invoice-history",
+  "/customers",
+  "/items",
+  "/notifications",
+])
+
 // Shown at once while the next page's code or loader is on its way.
 function PageSkeleton() {
   return (
@@ -363,6 +373,7 @@ export function ProtectedLayout() {
         </main>
         <MobileNavigation isAdmin={user.is_superuser ?? false} />
         <OfflineBanner />
+        {PULL_TO_REFRESH.has(pathname) && <PullToRefresh />}
         <ScrollRestoration />
       </SidebarInset>
     </SidebarProvider>

@@ -5,12 +5,15 @@ import {
   FileText,
   IndianRupee,
   MoreHorizontal,
-  Search,
   Send,
   Trash2,
 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Link } from "react-router"
+import { FilterChips } from "@/components/Common/FilterChips"
+import { ListSkeleton } from "@/components/Common/ListSkeleton"
+import { PageHeader } from "@/components/Common/PageHeader"
+import { SearchInput } from "@/components/Common/SearchInput"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -19,7 +22,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -37,7 +39,6 @@ import {
 } from "@/components/ui/table"
 import { HistoryEmptyState } from "@/features/invoice-history/components/HistoryEmptyState"
 import { DeleteInvoiceDialog } from "@/features/invoices/components/DeleteInvoiceDialog"
-import { InvoicesSkeleton } from "@/features/invoices/components/InvoicesSkeleton"
 import { MobileInvoiceCard } from "@/features/invoices/components/MobileInvoiceCard"
 import { StatCard } from "@/features/invoices/components/StatCard"
 import { StatusBadge } from "@/features/invoices/components/StatusBadge"
@@ -101,27 +102,23 @@ function InvoiceHistoryPage() {
     return list
   }, [invoices, search, statusFilter, sortOrder])
 
-  if (isLoading) return <InvoicesSkeleton />
+  if (isLoading) return <ListSkeleton />
 
   const hasSearch = search.trim() !== "" || statusFilter !== "all"
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
-        <div>
-          <h1 className="max-md:sr-only text-2xl font-bold tracking-tight">
-            Invoice History
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Search, filter, and manage all your invoices
-          </p>
-        </div>
-        <Link to="/create-invoice" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">
-            <FilePlus className="mr-2 h-4 w-4" /> New Invoice
+      <PageHeader
+        title="Invoice History"
+        description="Search, filter, and manage all your invoices"
+        actions={
+          <Button asChild className="max-md:hidden">
+            <Link to="/create-invoice">
+              <FilePlus /> New Invoice
+            </Link>
           </Button>
-        </Link>
-      </div>
+        }
+      />
 
       <div className="hidden grid-cols-2 gap-4 md:grid lg:grid-cols-4 animate-in animate-in-delay-1">
         <StatCard
@@ -160,36 +157,40 @@ function InvoiceHistoryPage() {
       </div>
 
       {invoices.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:flex-wrap animate-in animate-in-delay-2">
-          <div className="relative col-span-2 min-w-0 sm:max-w-sm sm:flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by invoice #, customer, amount…"
+        <div className="flex flex-col gap-3 animate-in animate-in-delay-2">
+          <div className="flex items-center gap-2">
+            <SearchInput
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              onChange={setSearch}
+              placeholder="Search by invoice #, customer, amount…"
+              className="sm:max-w-sm"
             />
+            <Select value={sortOrder} onValueChange={setSortOrder}>
+              <SelectTrigger
+                className="w-32 shrink-0 sm:w-36"
+                aria-label="Sort"
+              >
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="oldest">Oldest first</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-36">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="unpaid">Unpaid</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={sortOrder} onValueChange={setSortOrder}>
-            <SelectTrigger className="w-full sm:w-36">
-              <SelectValue placeholder="Sort" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
-            </SelectContent>
-          </Select>
+          <FilterChips
+            label="Invoice status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "all", label: "All", count: invoices.length },
+              ...(["unpaid", "overdue", "paid"] as const).map((st) => ({
+                value: st,
+                label: st[0].toUpperCase() + st.slice(1),
+                count: invoices.filter((i) => i.status === st).length,
+              })),
+            ]}
+          />
         </div>
       )}
 
@@ -205,7 +206,6 @@ function InvoiceHistoryPage() {
                 <MobileInvoiceCard
                   key={inv.id}
                   invoice={inv}
-                  onStatusChange={handleToggleStatus}
                   onWhatsApp={handleWhatsApp}
                   onDelete={setDeleteTarget}
                   onSetPaid={(inv, paid) =>
@@ -329,7 +329,7 @@ function InvoiceHistoryPage() {
               </Table>
             </div>
 
-            <div className="px-6 py-3 border-t bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
+            <div className="hidden px-6 py-3 border-t bg-muted/20 md:flex items-center justify-between text-xs text-muted-foreground">
               <span>
                 Showing {filtered.length} of {invoices.length} invoices
               </span>
