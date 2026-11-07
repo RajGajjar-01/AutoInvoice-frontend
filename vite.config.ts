@@ -108,8 +108,8 @@ export default defineConfig({
         globIgnores: ["**/pdf-*.js", "**/charts-*.js"],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) =>
-              url.origin === self.location.origin &&
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin &&
               /^\/assets\/(pdf|charts)-.*\.js$/.test(url.pathname),
             handler: "CacheFirst",
             options: { cacheName: "heavy-chunks" },
