@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { ArrowRight } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { Link as RouterLink } from "react-router"
 import { z } from "zod"
-import { AuthLayout } from "@/components/Common/AuthLayout"
+import { AuthEntryLayout } from "@/components/Common/AuthEntryLayout"
 import { GoogleAuthButton } from "@/components/Common/GoogleAuthButton"
 import {
   Form,
@@ -52,22 +53,34 @@ function Login() {
   }
 
   return (
-    <AuthLayout>
+    <AuthEntryLayout>
       <Form {...form}>
         <form
+          noValidate
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-6"
+          className="auth-form"
         >
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="font-display text-2xl font-bold tracking-tight">
+          <div className="auth-heading">
+            <h1 className="auth-title">
+              <span className="auth-eyebrow">YOUR WORKSPACE AWAITS</span>
               Welcome back
             </h1>
             <p className="text-sm text-muted-foreground">
-              Sign in to create and manage your GST invoices
+              A fresh start to your business day.
             </p>
           </div>
 
-          <div className="grid gap-4">
+          <div className="auth-social">
+            <GoogleAuthButton />
+            <div className="relative text-center text-xs">
+              <span className="relative z-10 bg-card px-3 text-muted-foreground">
+                or continue with email
+              </span>
+              <div className="absolute inset-0 top-1/2 border-t" />
+            </div>
+          </div>
+
+          <div className="auth-fields">
             <FormField
               control={form.control}
               name="email"
@@ -77,7 +90,10 @@ function Login() {
                   <FormControl>
                     <Input
                       data-testid="email-input"
-                      placeholder="user@example.com"
+                      placeholder="you@business.com"
+                      inputMode="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
                       type="email"
                       autoComplete="email"
                       {...field}
@@ -97,7 +113,7 @@ function Login() {
                     <FormLabel>Password</FormLabel>
                     <RouterLink
                       to="/recover-password"
-                      className="ml-auto text-xs underline-offset-4 hover:underline text-muted-foreground hover:text-foreground transition-colors"
+                      className="auth-forgot ml-auto"
                     >
                       Forgot your password?
                     </RouterLink>
@@ -117,20 +133,11 @@ function Login() {
 
             <LoadingButton
               type="submit"
-              className="w-full"
+              className="auth-submit w-full"
               loading={loginMutation.isPending}
             >
-              Sign In
+              Sign In <ArrowRight size={18} aria-hidden="true" />
             </LoadingButton>
-
-            <div className="relative text-center text-xs">
-              <span className="relative z-10 bg-background px-2 text-muted-foreground">
-                or
-              </span>
-              <div className="absolute inset-0 top-1/2 border-t" />
-            </div>
-
-            <GoogleAuthButton />
           </div>
 
           <div className="text-center text-sm text-muted-foreground">
@@ -144,7 +151,7 @@ function Login() {
           </div>
         </form>
       </Form>
-    </AuthLayout>
+    </AuthEntryLayout>
   )
 }
 

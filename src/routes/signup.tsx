@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { ArrowRight } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { Link as RouterLink } from "react-router"
 import { z } from "zod"
-import { AuthLayout } from "@/components/Common/AuthLayout"
+import { AuthEntryLayout } from "@/components/Common/AuthEntryLayout"
 import { GoogleAuthButton } from "@/components/Common/GoogleAuthButton"
 import { Button } from "@/components/ui/button"
 import {
@@ -79,22 +80,34 @@ function SignUp() {
   }
 
   return (
-    <AuthLayout>
+    <AuthEntryLayout signup>
       <Form {...form}>
         <form
+          noValidate
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-6"
+          className="auth-form"
         >
-          <div className="flex flex-col gap-2">
-            <h1 className="font-display text-2xl font-bold tracking-tight">
-              Start free GST invoicing
+          <div className="auth-heading">
+            <h1 className="auth-title">
+              <span className="auth-eyebrow">A LITTLE MORE ORGANIZED</span>
+              Make room for growth
             </h1>
             <p className="text-sm text-muted-foreground">
-              Free for Indian businesses. No credit card required.
+              Your business, together in one place. Start free.
             </p>
           </div>
 
-          <div className="grid gap-4">
+          <div className="auth-social">
+            <GoogleAuthButton />
+            <div className="relative text-center text-xs">
+              <span className="relative z-10 bg-card px-3 text-muted-foreground">
+                or continue with email
+              </span>
+              <div className="absolute inset-0 top-1/2 border-t" />
+            </div>
+          </div>
+
+          <div className="auth-fields">
             <FormField
               control={form.control}
               name="full_name"
@@ -104,7 +117,7 @@ function SignUp() {
                   <FormControl>
                     <Input
                       data-testid="full-name-input"
-                      placeholder="John Doe"
+                      placeholder="Your full name"
                       type="text"
                       autoComplete="name"
                       {...field}
@@ -124,7 +137,10 @@ function SignUp() {
                   <FormControl>
                     <Input
                       data-testid="email-input"
-                      placeholder="user@example.com"
+                      placeholder="you@business.com"
+                      inputMode="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
                       type="email"
                       autoComplete="email"
                       {...field}
@@ -174,7 +190,7 @@ function SignUp() {
                   <FormControl>
                     <PasswordInput
                       data-testid="password-input"
-                      placeholder="Create a password"
+                      placeholder="At least 8 characters"
                       autoComplete="new-password"
                       {...field}
                     />
@@ -205,20 +221,11 @@ function SignUp() {
 
             <LoadingButton
               type="submit"
-              className="w-full"
+              className="auth-submit w-full"
               loading={signUpMutation.isPending}
             >
-              Create Account
+              Create Account <ArrowRight size={18} aria-hidden="true" />
             </LoadingButton>
-
-            <div className="relative text-center text-xs">
-              <span className="relative z-10 bg-background px-2 text-muted-foreground">
-                or
-              </span>
-              <div className="absolute inset-0 top-1/2 border-t" />
-            </div>
-
-            <GoogleAuthButton />
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
@@ -245,7 +252,7 @@ function SignUp() {
           )}
         </form>
       </Form>
-    </AuthLayout>
+    </AuthEntryLayout>
   )
 }
 
