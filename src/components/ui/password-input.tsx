@@ -22,7 +22,9 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           variant="ghost"
           size="sm"
           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+          onPointerDown={(e) => e.preventDefault()}
           onClick={() => setShowPassword((prev) => !prev)}
+          aria-pressed={showPassword}
           tabIndex={-1}
         >
           {showPassword ? (

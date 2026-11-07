@@ -96,6 +96,8 @@ function Login() {
                       spellCheck={false}
                       type="email"
                       autoComplete="email"
+                      autoCorrect="off"
+                      enterKeyHint="next"
                       {...field}
                     />
                   </FormControl>
@@ -123,6 +125,7 @@ function Login() {
                       data-testid="password-input"
                       placeholder="Enter your password"
                       autoComplete="current-password"
+                      enterKeyHint="go"
                       {...field}
                     />
                   </FormControl>

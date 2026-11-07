@@ -120,6 +120,8 @@ function SignUp() {
                       placeholder="Your full name"
                       type="text"
                       autoComplete="name"
+                      autoCapitalize="words"
+                      enterKeyHint="next"
                       {...field}
                     />
                   </FormControl>
@@ -143,6 +145,8 @@ function SignUp() {
                       spellCheck={false}
                       type="email"
                       autoComplete="email"
+                      autoCorrect="off"
+                      enterKeyHint="next"
                       {...field}
                       onChange={(event) => {
                         field.onChange(event)
@@ -192,6 +196,7 @@ function SignUp() {
                       data-testid="password-input"
                       placeholder="At least 8 characters"
                       autoComplete="new-password"
+                      enterKeyHint="next"
                       {...field}
                     />
                   </FormControl>
@@ -211,6 +216,7 @@ function SignUp() {
                       data-testid="confirm-password-input"
                       placeholder="Re-enter your password"
                       autoComplete="new-password"
+                      enterKeyHint="go"
                       {...field}
                     />
                   </FormControl>
