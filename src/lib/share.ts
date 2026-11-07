@@ -10,13 +10,18 @@ export function canShareFiles() {
   return navigator.canShare({ files: [probe] })
 }
 
-function download(file: File) {
+/** Saves a file through a temporary link. Works on desktop browsers. */
+export function downloadFile(file: File) {
   const url = URL.createObjectURL(file)
   const a = document.createElement("a")
   a.href = url
   a.download = file.name
+  a.rel = "noopener"
+  document.body.appendChild(a)
   a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  a.remove()
+  // Some browsers read the blob after click() returns.
+  setTimeout(() => URL.revokeObjectURL(url), 30_000)
 }
 
 /**
@@ -26,7 +31,7 @@ function download(file: File) {
  */
 export async function shareFile(file: File, title: string, text?: string) {
   const data = { files: [file], title, text }
-  if (!navigator.canShare?.(data)) return download(file)
+  if (!navigator.canShare?.(data)) return downloadFile(file)
   try {
     await navigator.share(data)
   } catch (e) {
@@ -41,7 +46,7 @@ export async function shareFile(file: File, title: string, text?: string) {
       })
       return
     }
-    download(file)
+    downloadFile(file)
   }
 }
 

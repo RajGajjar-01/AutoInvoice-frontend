@@ -172,7 +172,7 @@ function PhoneActionBar({
               <Eye /> Preview
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onDownload}>
-              <Download /> Print / Save PDF
+              <Download /> Download PDF
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onShare}>
