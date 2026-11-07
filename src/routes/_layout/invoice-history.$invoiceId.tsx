@@ -21,7 +21,7 @@ import {
   Trash2,
   User,
 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { InvoicesService } from "@/client/sdk.gen"
 import { QuickActions } from "@/components/Common/QuickActions"
@@ -47,23 +47,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { companySettingsQueryOptions } from "@/features/company-settings/queries"
-import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
 import { invoiceTransitionName } from "@/features/invoices/components/MobileInvoiceCard"
 import { StatusBadge } from "@/features/invoices/components/StatusBadge"
 import { SendEmailDialog } from "@/features/invoices/invoice-form/components/SendEmailDialog"
 import { documentConfigs } from "@/features/invoices/invoice-form/constants"
 import { useInvoiceActions } from "@/features/invoices/mutations"
-import { invoiceDetailQueryOptions } from "@/features/invoices/queries"
+import {
+  invoiceDetailQueryOptions,
+  invoicesQueryKeys,
+} from "@/features/invoices/queries"
 import { usePhoneLayout } from "@/hooks/use-mobile"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import {
-  buildInvoiceHtml,
-  downloadInvoicePdf,
-  htmlToPdfFile,
-} from "@/lib/pdfHelper"
-import { canShareFiles, shareFile } from "@/lib/share"
+  fetchInvoicePdf,
+  fetchInvoicePreviewHtml,
+  invoicePdfFilename,
+} from "@/lib/invoicePdf"
+import { canShareFiles, downloadFile, shareFile } from "@/lib/share"
 import { handleError } from "@/utils"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -154,49 +155,20 @@ function InvoiceDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
-  const { data: companySettings } = useQuery(companySettingsQueryOptions())
-  const companyDetails: Record<string, unknown> = useMemo(
-    () => ({
-      name: companySettings?.name ?? "",
-      email: companySettings?.email ?? "",
-      phone: companySettings?.phone ?? "",
-      address: companySettings?.address ?? "",
-      city: companySettings?.city ?? "",
-      state: companySettings?.state ?? "",
-      pincode: companySettings?.pincode ?? "",
-      gstin: companySettings?.gstin ?? "",
-      logo: companySettings?.logo_url ?? null,
-      logo_url: companySettings?.logo_url ?? null,
-      bankName: companySettings?.bank_name ?? "",
-      bank_name: companySettings?.bank_name ?? "",
-      accountName: companySettings?.name ?? "",
-      accountNumber: companySettings?.bank_account ?? "",
-      bank_account: companySettings?.bank_account ?? "",
-      ifsc: companySettings?.bank_ifsc ?? "",
-      bank_ifsc: companySettings?.bank_ifsc ?? "",
-      branch: companySettings?.bank_branch ?? "",
-      bank_branch: companySettings?.bank_branch ?? "",
-      upi: companySettings?.upi_id ?? "",
-      upi_id: companySettings?.upi_id ?? "",
-      invoicePrefix: companySettings?.invoice_prefix ?? "INV",
-      invoice_prefix: companySettings?.invoice_prefix ?? "INV",
-      invoiceFooter: companySettings?.terms_and_conditions ?? "",
-      terms_and_conditions: companySettings?.terms_and_conditions ?? "",
-      currency: "INR",
-    }),
-    [companySettings],
-  )
-  const { data: activeTemplate } = useQuery(invoiceTemplateActiveQueryOptions())
-  const selectedTemplate =
-    activeTemplate?.kind === "built_in"
-      ? activeTemplate?.built_in_id
-      : activeTemplate?.kind === "custom"
-        ? activeTemplate?.built_in_id
-        : "clean-teal"
-
   const { data: invoice, isLoading } = useQuery(
     invoiceDetailQueryOptions(invoiceId),
   )
+  // The preview shows the exact HTML the backend makes the PDF from.
+  const preview = useQuery({
+    queryKey: [
+      ...invoicesQueryKeys.detail(invoiceId ?? ""),
+      "preview-html",
+      invoice?.updatedAt,
+    ],
+    queryFn: () => fetchInvoicePreviewHtml(invoiceId ?? ""),
+    enabled: previewOpen && !!invoiceId,
+    staleTime: 0,
+  })
 
   const actions = useInvoiceActions()
   // Phones get the native share sheet; a download is hard to find there.
@@ -228,45 +200,25 @@ function InvoiceDetailPage() {
 
   const handleDownloadPDF = () => {
     showSuccessToast(sharePdf ? "Preparing PDF…" : "Generating PDF...")
-
-    const invoiceData = {
-      invoiceNumber: invoice.invoiceNumber,
-      invoiceDate: invoice.invoiceDate,
-      dueDate: invoice.dueDate,
-      currency: invoice.currency,
-      subtotal: invoice.subtotal || 0,
-      totalTax: invoice.totalTax || 0,
-      grandTotal: invoice.grandTotal || 0,
-      discount: invoice.discount || 0,
-      notes: invoice.notes,
-      paymentTerms: invoice.paymentTerms,
-      customer: {
-        name: invoice.customer?.name || "",
-        email: invoice.customer?.email || "",
-        phone: invoice.customer?.phone || "",
-        address: invoice.customer?.address || "",
-        gst: invoice.customer?.gst || "",
-      },
-      items: (invoice.items || []).map((it) => ({
-        name: it.name,
-        description: it.description,
-        quantity: it.quantity || 0,
-        price: it.price || 0,
-        tax: it.tax || 0,
-        unit: it.unit || "",
-      })),
-    }
-
-    const template = selectedTemplate || "clean-teal"
-    const done = sharePdf
-      ? htmlToPdfFile(
-          buildInvoiceHtml(invoiceData, companyDetails || {}, template),
-          `${invoice.invoiceNumber}.pdf`,
-        ).then((file) => shareFile(file, `Invoice ${invoice.invoiceNumber}`))
-      : downloadInvoicePdf(invoiceData, companyDetails || {}, template).then(
-          () => showSuccessToast("PDF downloaded successfully!"),
-        )
-    done.catch(() => showErrorToast("Failed to generate PDF"))
+    const docTitle =
+      documentConfigs[invoice.document_type ?? "invoice"]?.pdfTitle ?? "Invoice"
+    fetchInvoicePdf(
+      invoice.id,
+      invoicePdfFilename(docTitle, invoice.invoiceNumber),
+    )
+      .then(async (file) => {
+        if (sharePdf) {
+          await shareFile(file, `Invoice ${invoice.invoiceNumber}`)
+        } else {
+          downloadFile(file)
+          showSuccessToast("PDF downloaded successfully!")
+        }
+      })
+      .catch((error: unknown) =>
+        showErrorToast(
+          error instanceof Error ? error.message : "Failed to generate PDF",
+        ),
+      )
   }
 
   const handleWhatsApp = () => actions.sendWhatsApp(invoice)
@@ -650,39 +602,10 @@ function InvoiceDetailPage() {
           <iframe
             title="invoice-preview"
             srcDoc={
-              previewOpen
-                ? buildInvoiceHtml(
-                    {
-                      invoiceNumber: invoice.invoiceNumber,
-                      invoiceDate: invoice.invoiceDate,
-                      dueDate: invoice.dueDate,
-                      currency: invoice.currency,
-                      subtotal: invoice.subtotal || 0,
-                      totalTax: invoice.totalTax || 0,
-                      grandTotal: invoice.grandTotal || 0,
-                      discount: invoice.discount || 0,
-                      notes: invoice.notes,
-                      paymentTerms: invoice.paymentTerms,
-                      customer: {
-                        name: invoice.customer?.name || "",
-                        email: invoice.customer?.email || "",
-                        phone: invoice.customer?.phone || "",
-                        address: invoice.customer?.address || "",
-                        gst: invoice.customer?.gst || "",
-                      },
-                      items: (invoice.items || []).map((it) => ({
-                        name: it.name,
-                        description: it.description,
-                        quantity: it.quantity || 0,
-                        price: it.price || 0,
-                        tax: it.tax || 0,
-                        unit: it.unit || "",
-                      })),
-                    },
-                    companyDetails || {},
-                    selectedTemplate || "clean-teal",
-                  )
-                : ""
+              preview.data ??
+              (preview.isError
+                ? "<p style='font-family:sans-serif;padding:16px'>Could not load the preview.</p>"
+                : "<p style='font-family:sans-serif;padding:16px'>Loading preview…</p>")
             }
             className="min-h-0 w-full flex-1 rounded-md border bg-background"
             sandbox="allow-same-origin"
