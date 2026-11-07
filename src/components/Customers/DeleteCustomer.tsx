@@ -58,11 +58,11 @@ const DeleteCustomer = ({
       <Button
         variant="outline"
         size="sm"
-        className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+        className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive max-sm:size-11 max-sm:p-0"
         onClick={() => setIsOpen(true)}
       >
-        <Trash2 className="mr-2 h-4 w-4" />
-        Delete
+        <Trash2 />
+        <span className="max-sm:sr-only">Delete</span>
       </Button>
     ) : (
       <DropdownMenuItem

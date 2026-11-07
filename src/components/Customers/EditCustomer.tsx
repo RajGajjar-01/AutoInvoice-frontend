@@ -223,9 +223,14 @@ const EditCustomer = ({
 
   const trigger =
     variant === "button" ? (
-      <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
-        <Pencil className="mr-2 h-4 w-4" />
-        Edit
+      <Button
+        variant="outline"
+        size="sm"
+        className="max-sm:size-11 max-sm:p-0"
+        onClick={() => setIsOpen(true)}
+      >
+        <Pencil />
+        <span className="max-sm:sr-only">Edit</span>
       </Button>
     ) : (
       <DropdownMenuItem

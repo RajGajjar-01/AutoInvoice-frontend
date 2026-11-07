@@ -231,8 +231,8 @@ const AddCustomer = () => {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button>
+          <Plus />
           Add Customer
         </Button>
       </DialogTrigger>

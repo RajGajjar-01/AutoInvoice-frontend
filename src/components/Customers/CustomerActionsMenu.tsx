@@ -33,18 +33,18 @@ export const CustomerActionsMenu = ({ customer }: CustomerActionsMenuProps) => {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="size-11 sm:size-8">
           <EllipsisVertical className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">Actions for {customer.name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <Link to={`/customers/${customer.id}`} onClick={() => setOpen(false)}>
-          <DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to={`/customers/${customer.id}`} onClick={() => setOpen(false)}>
             <ExternalLink className="mr-2 h-4 w-4" />
             View Profile
-          </DropdownMenuItem>
-        </Link>
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <EditCustomer customer={customer} onSuccess={() => setOpen(false)} />
         <DeleteCustomer customer={customer} onSuccess={() => setOpen(false)} />

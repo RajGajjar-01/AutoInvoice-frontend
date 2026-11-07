@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query"
 import {
   ArrowLeft,
   BadgeIndianRupee,
-  Building2,
   Calendar,
   CreditCard,
   FilePlus,
@@ -17,13 +16,13 @@ import {
   Truck,
   User,
   Wallet,
-  Zap,
 } from "lucide-react"
 import { useState } from "react"
 import { Link } from "react-router"
 import type { CustomerPublic } from "@/client/types.gen"
+import { InitialsAvatar } from "@/components/Common/ListRow"
+import { QuickActions } from "@/components/Common/QuickActions"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { invoicesListQueryOptions } from "@/features/invoices/queries"
@@ -88,6 +87,7 @@ interface StatCardProps {
   iconClass?: string
   valueClass?: string
   sub?: string
+  className?: string
 }
 
 function StatCard({
@@ -97,15 +97,20 @@ function StatCard({
   iconClass,
   valueClass,
   sub,
+  className,
 }: StatCardProps) {
   return (
-    <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card hover:shadow-sm transition-shadow">
-      <div className={`rounded-lg p-2 shrink-0 ${iconClass}`}>
+    <div
+      className={`flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-3 transition-shadow hover:shadow-sm sm:p-4 ${className ?? ""}`}
+    >
+      <div className={`rounded-lg p-2 shrink-0 max-sm:hidden ${iconClass}`}>
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={`text-lg font-bold leading-tight ${valueClass ?? ""}`}>
+        <p
+          className={`truncate text-base font-bold leading-tight tabular-nums sm:text-lg ${valueClass ?? ""}`}
+        >
           {value}
         </p>
         {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
@@ -161,36 +166,25 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
         Back to Customers
       </Link>
 
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-primary/10 p-3 shrink-0">
-            {type === "supplier" ? (
-              <Building2 className="h-6 w-6 text-primary" />
-            ) : (
-              <User className="h-6 w-6 text-primary" />
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-bold tracking-tight">
-                {customer.name}
-              </h1>
-              <Badge
-                variant={partyTypeVariant[type] ?? "outline"}
-                className="capitalize"
-              >
-                {partyTypeLabel[type] ?? type}
-              </Badge>
-            </div>
+      <div className="flex items-start gap-3">
+        <InitialsAvatar name={customer.name} className="size-14 text-lg" />
+        <div className="min-w-0 flex-1">
+          <h1 className="break-words text-xl font-bold tracking-tight sm:text-2xl">
+            {customer.name}
+          </h1>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <Badge
+              variant={partyTypeVariant[type] ?? "outline"}
+              className="capitalize"
+            >
+              {partyTypeLabel[type] ?? type}
+            </Badge>
             {customer.email && (
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {customer.email}
-              </p>
+              <span className="min-w-0 truncate">{customer.email}</span>
             )}
           </div>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <EditCustomer
             customer={customer}
             onSuccess={() => {}}
@@ -204,8 +198,34 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
         </div>
       </div>
 
+      <QuickActions
+        actions={[
+          {
+            label: "New invoice",
+            icon: FilePlus,
+            to: `/create-invoice?customerId=${customer.id}&documentType=invoice`,
+            primary: true,
+          },
+          !!whatsappNumber && {
+            label: "WhatsApp",
+            icon: MessageCircle,
+            href: `https://wa.me/${whatsappNumber}`,
+          },
+          !!customer.email && {
+            label: "Email",
+            icon: Mail,
+            onClick: () => setEmailDialogOpen(true),
+          },
+          !!customer.phone && {
+            label: "Call",
+            icon: Phone,
+            href: `tel:${customer.phone}`,
+          },
+        ]}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-[30fr_70fr] gap-6 items-start">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 max-lg:order-last">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -312,7 +332,7 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <StatCard
               icon={BadgeIndianRupee}
               label="Outstanding"
@@ -330,6 +350,7 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
               }
             />
             <StatCard
+              className="max-sm:order-last max-sm:col-span-2"
               icon={FileText}
               label="Total Invoices"
               value={partyInvoices.length}
@@ -345,67 +366,6 @@ export function CustomerDetail({ customer, onDeleted }: CustomerDetailProps) {
               iconClass="bg-muted text-muted-foreground"
             />
           </div>
-
-          <Card>
-            <CardContent className="py-1.5 px-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground shrink-0">
-                  <Zap className="h-3.5 w-3.5 text-primary" />
-                  Quick Actions
-                </div>
-                <div className="h-4 w-px bg-border shrink-0" />
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Link
-                    to={`/create-invoice?customerId=${customer.id}&documentType=invoice`}
-                  >
-                    <Button size="sm" className="h-7 gap-1.5 text-xs">
-                      <FilePlus className="h-3 w-3" />
-                      New Invoice
-                    </Button>
-                  </Link>
-                  {whatsappNumber && (
-                    <a
-                      href={`https://wa.me/${whatsappNumber}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 gap-1.5 text-xs"
-                      >
-                        <MessageCircle className="h-3 w-3" />
-                        WhatsApp
-                      </Button>
-                    </a>
-                  )}
-                  {customer.email && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 gap-1.5 text-xs"
-                      onClick={() => setEmailDialogOpen(true)}
-                    >
-                      <Mail className="h-3 w-3" />
-                      Email
-                    </Button>
-                  )}
-                  {customer.phone && (
-                    <a href={`tel:${customer.phone}`}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 gap-1.5 text-xs"
-                      >
-                        <Phone className="h-3 w-3" />
-                        Call
-                      </Button>
-                    </a>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           <CustomerTimeline customer={customer} invoices={invoices} />
         </div>
