@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
+import { toast } from "sonner"
 import { useShallow } from "zustand/react/shallow"
 import { useNotificationStore } from "@/features/data-tables/notification-store"
 import type { TabValue } from "@/features/notifications/constants"
@@ -19,6 +20,23 @@ export function useNotifications() {
         notifications: state.notifications,
       })),
     )
+
+  // Runs a destructive change and offers Undo, which puts the store back as it was.
+  const withUndo = useCallback((message: string, change: () => void) => {
+    const { notifications, dismissedReminderIds } =
+      useNotificationStore.getState()
+    change()
+    toast(message, {
+      action: {
+        label: "Undo",
+        onClick: () =>
+          useNotificationStore.setState({
+            notifications,
+            dismissedReminderIds,
+          }),
+      },
+    })
+  }, [])
 
   const totalCount = notifications.length
   const unreadCount = useMemo(
@@ -96,7 +114,8 @@ export function useNotifications() {
     typeCounts,
     markRead,
     markAllRead,
-    deleteNotification,
-    clearAll,
+    deleteNotification: (id: string) =>
+      withUndo("Notification removed", () => deleteNotification(id)),
+    clearAll: () => withUndo("All notifications cleared", clearAll),
   }
 }

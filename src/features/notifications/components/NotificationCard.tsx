@@ -1,7 +1,15 @@
-import { Check, X } from "lucide-react"
+import { Check, MoreHorizontal, Trash2 } from "lucide-react"
+import { SwipeableRow } from "@/components/Common/SwipeableRow"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { Notification } from "@/features/notifications/types"
 import { formatTimeAgo, getType } from "@/features/notifications/utils"
+import { cn } from "@/lib/utils"
 
 interface NotificationCardProps {
   notif: Notification
@@ -9,98 +17,112 @@ interface NotificationCardProps {
   onDelete: (id: string) => void
 }
 
+/** One notification row. Swipe right: mark read. Swipe left: remove. */
 export function NotificationCard({
   notif,
   onMarkRead,
   onDelete,
 }: NotificationCardProps) {
-  const isUnread = !notif.read
+  const unread = !notif.read
   const cfg = getType(notif.type)
   const Icon = cfg.Icon!
+  const meta = [notif.tableName, notif.rowLabel, formatTimeAgo(notif.createdAt)]
+    .filter(Boolean)
+    .join(" · ")
 
   return (
-    <div
-      className={`animate-in relative flex gap-3.5 rounded-xl border px-4 py-3.5 transition-all ${
-        isUnread
-          ? "border-primary/25 bg-gradient-to-r from-primary/[0.03] to-transparent dark:from-primary/[0.07] shadow-sm"
-          : "border-border/60 bg-card hover:bg-muted/20"
-      }`}
+    <SwipeableRow
+      startActions={
+        unread
+          ? [
+              {
+                label: "Read",
+                icon: Check,
+                className: "bg-primary",
+                onAction: () => onMarkRead(notif.id),
+              },
+            ]
+          : []
+      }
+      endActions={[
+        {
+          label: "Remove",
+          icon: Trash2,
+          className: "bg-destructive",
+          onAction: () => onDelete(notif.id),
+        },
+      ]}
     >
-      {isUnread && (
-        <span className="absolute -left-px top-3 bottom-3 w-0.5 rounded-full bg-primary" />
-      )}
-
       <div
-        className={`shrink-0 mt-0.5 h-8 w-8 rounded-lg flex items-center justify-center ${cfg.bg}`}
+        className={cn(
+          "flex items-start gap-3 px-4 py-3.5",
+          unread && "bg-primary/[0.04] dark:bg-primary/[0.08]",
+        )}
       >
-        <Icon className={`h-3.5 w-3.5 ${cfg.color}`} />
-      </div>
+        <span
+          className={cn(
+            "mt-0.5 grid size-9 shrink-0 place-items-center rounded-full",
+            cfg.bg,
+          )}
+          aria-hidden="true"
+        >
+          <Icon className={cn("size-4", cfg.color)} />
+        </span>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start gap-2 justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p
-                className={`text-sm leading-snug ${
-                  isUnread
-                    ? "font-semibold text-foreground"
-                    : "font-medium text-muted-foreground"
-                }`}
-              >
-                {notif.title}
-              </p>
-              {isUnread && (
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-              )}
-            </div>
-
-            {notif.description && (
-              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mt-0.5">
-                {notif.description}
-              </p>
+        <div className="min-w-0 flex-1">
+          <p
+            className={cn(
+              "text-sm leading-snug",
+              unread ? "font-semibold" : "font-medium text-muted-foreground",
             )}
+          >
+            {unread && <span className="sr-only">Unread: </span>}
+            {notif.title}
+          </p>
+          {notif.description && (
+            <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
+              {notif.description}
+            </p>
+          )}
+          <p className="mt-1.5 truncate text-xs text-muted-foreground/80">
+            {meta}
+          </p>
+        </div>
 
-            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-              {notif.tableName && (
-                <span className="text-[10px] font-medium text-muted-foreground/70 bg-muted/80 px-2 py-0.5 rounded-md border border-border/50">
-                  {notif.tableName}
-                </span>
-              )}
-              {notif.rowLabel && (
-                <span className="text-[10px] text-muted-foreground/60 bg-muted/50 px-2 py-0.5 rounded-md border border-border/40">
-                  {notif.rowLabel}
-                </span>
-              )}
-              <span className="text-[10px] text-muted-foreground/50 ml-auto">
-                {formatTimeAgo(notif.createdAt)}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-0.5 shrink-0 ml-2">
-            {isUnread && (
+        <div className="-mr-2 -mt-1.5 flex shrink-0 items-center">
+          {unread && (
+            <span
+              className="mr-1 size-2 rounded-full bg-primary"
+              aria-hidden="true"
+            />
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground/50 hover:text-primary hover:bg-primary/10"
-                title="Mark as read"
-                onClick={() => onMarkRead(notif.id)}
+                className="size-11 text-muted-foreground sm:size-9"
+                aria-label={`Actions for ${notif.title}`}
               >
-                <Check className="h-3.5 w-3.5" />
+                <MoreHorizontal className="size-5 sm:size-4" />
               </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10"
-              title="Remove"
-              onClick={() => onDelete(notif.id)}
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {unread && (
+                <DropdownMenuItem onClick={() => onMarkRead(notif.id)}>
+                  <Check /> Mark as read
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => onDelete(notif.id)}
+              >
+                <Trash2 /> Remove
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-    </div>
+    </SwipeableRow>
   )
 }
