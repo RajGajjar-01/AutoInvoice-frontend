@@ -1,9 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowRight } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { Link as RouterLink } from "react-router"
 import { z } from "zod"
-import { AuthEntryLayout } from "@/components/Common/AuthEntryLayout"
+import { AuthLayout } from "@/components/Common/AuthLayout"
 import { GoogleAuthButton } from "@/components/Common/GoogleAuthButton"
 import { Button } from "@/components/ui/button"
 import {
@@ -80,34 +79,22 @@ function SignUp() {
   }
 
   return (
-    <AuthEntryLayout signup>
+    <AuthLayout>
       <Form {...form}>
         <form
-          noValidate
           onSubmit={form.handleSubmit(onSubmit)}
-          className="auth-form"
+          className="flex flex-col gap-6"
         >
-          <div className="auth-heading">
-            <h1 className="auth-title">
-              <span className="auth-eyebrow">A LITTLE MORE ORGANIZED</span>
-              Make room for growth
+          <div className="flex flex-col gap-2">
+            <h1 className="font-display text-2xl font-bold tracking-tight">
+              Start free GST invoicing
             </h1>
             <p className="text-sm text-muted-foreground">
-              Your business, together in one place. Start free.
+              Free for Indian businesses. No credit card required.
             </p>
           </div>
 
-          <div className="auth-social">
-            <GoogleAuthButton />
-            <div className="relative text-center text-xs">
-              <span className="relative z-10 bg-card px-3 text-muted-foreground">
-                or continue with email
-              </span>
-              <div className="absolute inset-0 top-1/2 border-t" />
-            </div>
-          </div>
-
-          <div className="auth-fields">
+          <div className="grid gap-4">
             <FormField
               control={form.control}
               name="full_name"
@@ -117,7 +104,7 @@ function SignUp() {
                   <FormControl>
                     <Input
                       data-testid="full-name-input"
-                      placeholder="Your full name"
+                      placeholder="John Doe"
                       type="text"
                       autoComplete="name"
                       autoCapitalize="words"
@@ -139,13 +126,12 @@ function SignUp() {
                   <FormControl>
                     <Input
                       data-testid="email-input"
-                      placeholder="you@business.com"
-                      inputMode="email"
-                      autoCapitalize="none"
-                      spellCheck={false}
+                      placeholder="user@example.com"
                       type="email"
                       autoComplete="email"
+                      autoCapitalize="none"
                       autoCorrect="off"
+                      spellCheck={false}
                       enterKeyHint="next"
                       {...field}
                       onChange={(event) => {
@@ -194,7 +180,7 @@ function SignUp() {
                   <FormControl>
                     <PasswordInput
                       data-testid="password-input"
-                      placeholder="At least 8 characters"
+                      placeholder="Create a password"
                       autoComplete="new-password"
                       enterKeyHint="next"
                       {...field}
@@ -227,11 +213,20 @@ function SignUp() {
 
             <LoadingButton
               type="submit"
-              className="auth-submit w-full"
+              className="w-full"
               loading={signUpMutation.isPending}
             >
-              Create Account <ArrowRight size={18} aria-hidden="true" />
+              Create Account
             </LoadingButton>
+
+            <div className="relative text-center text-xs">
+              <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                or
+              </span>
+              <div className="absolute inset-0 top-1/2 border-t" />
+            </div>
+
+            <GoogleAuthButton />
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
@@ -258,7 +253,7 @@ function SignUp() {
           )}
         </form>
       </Form>
-    </AuthEntryLayout>
+    </AuthLayout>
   )
 }
 

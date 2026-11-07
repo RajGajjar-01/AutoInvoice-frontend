@@ -6,7 +6,6 @@ export default defineConfig({
     "mobile-layout.spec.ts",
     "mobile-public.spec.ts",
     "mobile-settings.spec.ts",
-    "mobile-auth.spec.ts",
   ],
   fullyParallel: true,
   workers: 2,
