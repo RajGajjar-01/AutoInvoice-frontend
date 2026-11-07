@@ -24,6 +24,7 @@ import {
 import { useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { InvoicesService } from "@/client/sdk.gen"
+import { QuickActions } from "@/components/Common/QuickActions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,6 +49,8 @@ import {
 } from "@/components/ui/table"
 import { companySettingsQueryOptions } from "@/features/company-settings/queries"
 import { invoiceTemplateActiveQueryOptions } from "@/features/invoice-templates/queries"
+import { invoiceTransitionName } from "@/features/invoices/components/MobileInvoiceCard"
+import { StatusBadge } from "@/features/invoices/components/StatusBadge"
 import { SendEmailDialog } from "@/features/invoices/invoice-form/components/SendEmailDialog"
 import { documentConfigs } from "@/features/invoices/invoice-form/constants"
 import { useInvoiceActions } from "@/features/invoices/mutations"
@@ -287,68 +290,75 @@ function InvoiceDetailPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* ── Header ── */}
-      <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.history.back()}
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Back"
+          className="size-11 shrink-0 sm:size-9"
+          onClick={() =>
+            window.history.state?.idx > 0
+              ? navigate(-1)
+              : navigate("/invoice-history", { replace: true })
+          }
+        >
+          <ArrowLeft />
+        </Button>
+        <div className="min-w-0 flex-1">
+          <h1
+            className="truncate font-mono text-xl font-bold tracking-tight sm:text-2xl"
+            style={{ viewTransitionName: invoiceTransitionName(invoice.id) }}
           >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="min-w-0">
-            <h1 className="break-words text-2xl font-bold tracking-tight font-mono">
-              {invoice.invoiceNumber}
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">Invoice detail</p>
+            {invoice.invoiceNumber}
+          </h1>
+          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+            <StatusBadge status={invoice.status ?? "unpaid"} />
+            <span className="truncate">{invoice.customer?.name}</span>
           </div>
         </div>
-
-        {/* Actions */}
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <Badge
-            variant={statusVariant[invoice.status ?? "unpaid"] ?? "outline"}
-            className="capitalize cursor-pointer gap-1 py-1 px-3 text-sm"
-            onClick={handleToggleStatus}
-          >
-            <StatusIcon className="h-3.5 w-3.5" />
-            {invoice.status}
-          </Badge>
-          <Button variant="outline" size="sm" onClick={handleEmail}>
-            <Mail className="mr-2 h-4 w-4" />
-            Email
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleWhatsApp}>
-            <Send className="mr-2 h-4 w-4" />
-            WhatsApp
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPreviewOpen(true)}
-          >
-            <Eye className="mr-2 h-4 w-4" />
-            Preview
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-            {sharePdf ? (
-              <Share2 className="mr-2 h-4 w-4" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            {sharePdf ? "Share PDF" : "Download PDF"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60"
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Preview"
+          title="Preview"
+          className="size-11 shrink-0 sm:size-9"
+          onClick={() => setPreviewOpen(true)}
+        >
+          <Eye />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Delete invoice"
+          title="Delete invoice"
+          className="size-11 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive sm:size-9"
+          onClick={() => setDeleteOpen(true)}
+        >
+          <Trash2 />
+        </Button>
       </div>
+
+      <QuickActions
+        actions={[
+          {
+            label: invoice.status === "paid" ? "Mark unpaid" : "Mark paid",
+            icon: invoice.status === "paid" ? CircleDashed : CheckCircle2,
+            onClick: () =>
+              actions.setStatus(
+                invoice,
+                invoice.status === "paid" ? "unpaid" : "paid",
+              ),
+            primary: invoice.status !== "paid",
+          },
+          {
+            label: sharePdf ? "Share" : "Download",
+            icon: sharePdf ? Share2 : Download,
+            onClick: handleDownloadPDF,
+          },
+          { label: "WhatsApp", icon: Send, onClick: handleWhatsApp },
+          { label: "Email", icon: Mail, onClick: handleEmail },
+        ]}
+      />
 
       {/* ── Body ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">

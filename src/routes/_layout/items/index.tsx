@@ -1,12 +1,16 @@
 import { useQuery } from "@tanstack/react-query"
-import type { LucideIcon } from "lucide-react"
 import { AlertTriangle, Filter, Package, Search, XCircle } from "lucide-react"
 import { useState } from "react"
 import { DataTable } from "@/components/Common/DataTable"
+import { FilterChips } from "@/components/Common/FilterChips"
+import { ListRow } from "@/components/Common/ListRow"
+import { ListSkeleton } from "@/components/Common/ListSkeleton"
+import { PageHeader } from "@/components/Common/PageHeader"
+import { SearchInput } from "@/components/Common/SearchInput"
+import { StatCard } from "@/components/Common/StatCard"
 import AddItem from "@/components/Items/AddItem"
-import { columns } from "@/components/Items/columns"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { columns, StockPill } from "@/components/Items/columns"
+import { ItemActionsMenu } from "@/components/Items/ItemActionsMenu"
 import {
   Select,
   SelectContent,
@@ -17,35 +21,32 @@ import {
 import { itemsListQueryOptions } from "@/features/items/queries"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
-interface StatsCardProps {
-  icon: LucideIcon
-  title: string
-  value: number
-  iconClass: string
-  valueClass?: string
-}
+const price = (n?: number) =>
+  `₹${Number(n ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
 
-function StatsCard({
-  icon: Icon,
-  title,
-  value,
-  iconClass,
-  valueClass,
-}: StatsCardProps) {
+function ItemRow({ item }: { item: Item }) {
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <div className={`rounded-lg p-2 ${iconClass}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-bold ${valueClass ?? ""}`}>{value}</div>
-      </CardContent>
-    </Card>
+    <ListRow
+      to={`/items/${item.id}`}
+      leading={
+        <span
+          aria-hidden="true"
+          className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground"
+        >
+          <Package className="size-5" />
+        </span>
+      }
+      title={item.name}
+      subtitle={[
+        `${price(item.salePrice)} / ${item.unit || "pcs"}`,
+        item.category,
+        item.sku,
+      ]
+        .filter(Boolean)
+        .join(" · ")}
+      trailing={<StockPill item={item} compact />}
+      actions={<ItemActionsMenu item={item} />}
+    />
   )
 }
 
@@ -80,16 +81,9 @@ interface Item {
   lowStockThreshold?: number
 }
 
-const STOCK_FILTERS = [
-  { value: "all", label: "All Stock" },
-  { value: "in_stock", label: "In Stock" },
-  { value: "low_stock", label: "Low Stock" },
-  { value: "out_of_stock", label: "Out of Stock" },
-]
-
 function ItemsPage() {
   useDocumentTitle("Items")
-  const { data: itemsRes } = useQuery(itemsListQueryOptions())
+  const { data: itemsRes, isLoading } = useQuery(itemsListQueryOptions())
   const items: Item[] = (itemsRes?.data ?? []) as unknown as Item[]
   const [search, setSearch] = useState("")
   const [stockFilter, setStockFilter] = useState<string>("all")
@@ -132,19 +126,15 @@ function ItemsPage() {
     )
   })
 
+  if (isLoading) return <ListSkeleton />
+
   if (items.length === 0) {
     return (
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="max-md:sr-only font-display text-2xl font-bold tracking-tight">
-              Items
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Manage your product catalogue and track stock
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Items"
+          description="Manage your product catalogue and track stock"
+        />
         <EmptyState />
       </div>
     )
@@ -152,26 +142,20 @@ function ItemsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
-        <div>
-          <h1 className="max-md:sr-only font-display text-2xl font-bold tracking-tight">
-            Items
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Manage your product catalogue and track stock
-          </p>
-        </div>
-        <AddItem />
-      </div>
+      <PageHeader
+        title="Items"
+        description="Manage your product catalogue and track stock"
+        actions={<AddItem />}
+      />
 
       <div className="hidden grid-cols-1 gap-4 sm:grid sm:grid-cols-3 animate-in animate-in-delay-1">
-        <StatsCard
+        <StatCard
           icon={Package}
           title="Total Items"
           value={totalCount}
           iconClass="bg-primary/10 text-primary"
         />
-        <StatsCard
+        <StatCard
           icon={AlertTriangle}
           title="Low Stock"
           value={lowStockCount}
@@ -180,7 +164,7 @@ function ItemsPage() {
             lowStockCount > 0 ? "text-amber-600 dark:text-amber-400" : ""
           }
         />
-        <StatsCard
+        <StatCard
           icon={XCircle}
           title="Out of Stock"
           value={outOfStockCount}
@@ -189,48 +173,47 @@ function ItemsPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:flex-wrap animate-in animate-in-delay-2">
-        <div className="relative col-span-2 min-w-0 sm:max-w-sm sm:flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, SKU, category…"
+      <div className="flex flex-col gap-3 animate-in animate-in-delay-2">
+        <div className="flex items-center gap-2">
+          <SearchInput
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            onChange={setSearch}
+            placeholder="Search by name, SKU, category…"
+            className="sm:max-w-sm"
           />
+          {categories.length > 1 && (
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger
+                className="w-auto max-w-36 shrink-0"
+                aria-label="Category"
+              >
+                <Filter className="text-muted-foreground" />
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {categories
+                  .filter((c): c is string => c !== "all")
+                  .map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
-
-        {categories.length > 1 && (
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full sm:w-36">
-              <Filter className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories
-                .filter((c): c is string => c !== "all")
-                .map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        <Select value={stockFilter} onValueChange={setStockFilter}>
-          <SelectTrigger className="w-full sm:w-36">
-            <SelectValue placeholder="Stock status" />
-          </SelectTrigger>
-          <SelectContent>
-            {STOCK_FILTERS.map((f) => (
-              <SelectItem key={f.value} value={f.value}>
-                {f.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <FilterChips
+          label="Stock status"
+          value={stockFilter}
+          onChange={setStockFilter}
+          options={[
+            { value: "all", label: "All", count: totalCount },
+            { value: "in_stock", label: "In stock" },
+            { value: "low_stock", label: "Low", count: lowStockCount },
+            { value: "out_of_stock", label: "Out", count: outOfStockCount },
+          ]}
+        />
       </div>
 
       {filtered.length === 0 ? (
@@ -245,7 +228,11 @@ function ItemsPage() {
         </div>
       ) : (
         <div className="animate-in animate-in-delay-2">
-          <DataTable columns={columns} data={filtered} />
+          <DataTable
+            columns={columns}
+            data={filtered}
+            mobileRow={(item) => <ItemRow item={item} />}
+          />
         </div>
       )}
     </div>

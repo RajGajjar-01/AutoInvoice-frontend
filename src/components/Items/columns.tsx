@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { ItemActionsMenu } from "./ItemActionsMenu"
 
-interface Item {
+export interface Item {
   id: string
   name: string
   sku?: string
@@ -19,14 +19,21 @@ interface Item {
   description?: string
 }
 
-function StockPill({ item }: { item: Item }) {
+/** compact: short labels for phone rows. */
+export function StockPill({
+  item,
+  compact,
+}: {
+  item: Item
+  compact?: boolean
+}) {
   const stock = item.stock ?? 0
   const threshold = item.lowStockThreshold ?? 5
 
   if (stock === 0) {
     return (
       <Badge variant="destructive" className="font-mono text-xs">
-        Out of Stock
+        {compact ? "Out" : "Out of Stock"}
       </Badge>
     )
   }
@@ -38,7 +45,7 @@ function StockPill({ item }: { item: Item }) {
           "font-mono text-xs border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
         )}
       >
-        {stock} (Low)
+        {compact ? `${stock} low` : `${stock} (Low)`}
       </Badge>
     )
   }
