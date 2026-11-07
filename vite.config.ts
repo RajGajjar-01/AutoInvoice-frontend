@@ -48,10 +48,6 @@ export default defineConfig({
             { name: "charts", test: /node_modules[\\/]recharts[\\/]/ },
             { name: "motion", test: /node_modules[\\/]gsap[\\/]/ },
             { name: "dnd", test: /node_modules[\\/]@dnd-kit[\\/]/ },
-            {
-              name: "pdf",
-              test: /node_modules[\\/](html2pdf\.js|jspdf|html2canvas|escodegen|color-name)[\\/]/,
-            },
           ],
         },
       },
