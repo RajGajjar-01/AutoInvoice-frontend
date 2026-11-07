@@ -250,7 +250,7 @@ const EditCustomer = ({
     <>
       {trigger}
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogContent className="phone-fullscreen flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
           <DialogHeader className="shrink-0 px-6 pt-6 text-left">
             <DialogTitle className="flex items-center gap-2">
               <div className="rounded-lg bg-primary/10 p-1.5">

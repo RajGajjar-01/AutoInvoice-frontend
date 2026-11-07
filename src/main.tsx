@@ -15,6 +15,9 @@ OpenAPI.BASE = import.meta.env.VITE_API_URL || ""
 OpenAPI.WITH_CREDENTIALS = true
 
 import "./lib/api"
+import { trackKeyboard } from "./hooks/useKeyboardInset"
+
+trackKeyboard()
 
 const updateSW = registerSW({
   onNeedRefresh() {
