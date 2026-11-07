@@ -1,3 +1,4 @@
+import { type RefObject, useEffect, useRef } from "react"
 import { Appearance } from "@/components/Common/Appearance"
 import { BrandWaves } from "@/components/Common/BrandWaves"
 import { Logo } from "@/components/Common/Logo"
@@ -7,24 +8,74 @@ interface AuthLayoutProps {
   children: React.ReactNode
 }
 
+/**
+ * Tracks the visible area (visualViewport) so the sheet rides up with the
+ * on-screen keyboard instead of the browser jumping the page around. Works the
+ * same on iOS Safari and Android Chrome, and needs no global viewport change.
+ */
+function useVisibleArea(ref: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const el = ref.current
+    const vv = window.visualViewport
+    if (!el || !vv) return
+    let frame = 0
+    const sync = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        el.style.height = `${vv.height}px`
+        el.style.transform = `translateY(${vv.offsetTop}px)`
+        // Pinch-zoom also shrinks the visual viewport; only a keyboard counts.
+        el.dataset.keyboard = String(
+          vv.scale <= 1.01 && window.innerHeight - vv.height > 120,
+        )
+      })
+    }
+    sync()
+    vv.addEventListener("resize", sync)
+    vv.addEventListener("scroll", sync)
+    return () => {
+      cancelAnimationFrame(frame)
+      vv.removeEventListener("resize", sync)
+      vv.removeEventListener("scroll", sync)
+    }
+  }, [ref])
+}
+
 /** Phones only: brand area on top, form in a bottom sheet within thumb reach. */
 function PhoneAuthLayout({ children }: AuthLayoutProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  useVisibleArea(ref)
   return (
-    <div className="relative flex min-h-dvh flex-col">
-      <div className="relative flex min-h-44 flex-1 flex-col justify-end overflow-hidden brand-panel px-6 pt-[max(4.5rem,calc(env(safe-area-inset-top)+3.5rem))] pb-12">
+    <div
+      ref={ref}
+      style={{ height: "100dvh" }}
+      onFocusCapture={(e) => {
+        const field = e.target
+        // Wait for the keyboard animation, then nudge the field into view.
+        setTimeout(() => {
+          field.scrollIntoView({
+            block: "nearest",
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+              .matches
+              ? "auto"
+              : "smooth",
+          })
+        }, 300)
+      }}
+      className="group fixed inset-x-0 top-0 flex flex-col overflow-y-auto overscroll-none transition-[height] duration-200 ease-out motion-reduce:transition-none"
+    >
+      <div className="relative flex min-h-44 flex-1 flex-col justify-end overflow-hidden brand-panel px-6 pt-[max(4.5rem,calc(env(safe-area-inset-top)+3.5rem))] pb-12 group-data-[keyboard=true]:min-h-20 group-data-[keyboard=true]:pb-4">
         <BrandWaves />
-        <div className="relative z-10 flex flex-col gap-3">
-          <Logo
-            variant="full"
-            className="h-8 w-fit brightness-0 invert"
-            asLink={false}
-          />
-          <p className="font-display text-xl font-bold leading-tight tracking-tight text-white">
-            Free GST invoices for Indian businesses
-          </p>
-        </div>
+        <p className="relative z-10 font-display text-xl font-bold leading-tight tracking-tight text-white group-data-[keyboard=true]:hidden">
+          Free GST invoices for Indian businesses
+        </p>
       </div>
-      <div className="absolute top-[max(1rem,env(safe-area-inset-top))] right-5 z-20">
+      <div className="absolute inset-x-0 top-[max(1rem,env(safe-area-inset-top))] z-20 flex items-center justify-between pr-5 pl-6">
+        <Logo
+          variant="full"
+          className="h-8 w-fit brightness-0 invert"
+          asLink={false}
+        />
         <Appearance />
       </div>
       <div className="relative z-10 -mt-7 flex min-w-0 shrink-0 flex-col rounded-t-[2rem] bg-card px-6 pt-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_-12px_rgb(0_0_0/0.25)]">
