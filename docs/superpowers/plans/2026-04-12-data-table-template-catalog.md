@@ -13,6 +13,7 @@
 ### Task 1: Add red tests
 
 **Files:**
+
 - Modify: `frontend/tests/data-tables.spec.ts`
 
 - [ ] Add a test that opens the templates tab and asserts all ten template names render.
@@ -22,6 +23,7 @@
 ### Task 2: Build catalog module
 
 **Files:**
+
 - Create: `frontend/src/features/data-tables/templates.ts`
 
 - [ ] Define template metadata types and helpers.
@@ -32,6 +34,7 @@
 ### Task 3: Rewire consumers
 
 **Files:**
+
 - Modify: `frontend/src/components/DataTables/CreateTablePage/index.tsx`
 - Modify: `frontend/src/components/DataTables/TemplateSelector.tsx`
 - Modify: `frontend/src/routes/_layout/data-tables.$tableId.tsx`
@@ -43,6 +46,7 @@
 ### Task 4: Verify
 
 **Files:**
+
 - Modify: `frontend/tests/data-tables.spec.ts`
 
 - [ ] Run `npx biome check` on touched files.

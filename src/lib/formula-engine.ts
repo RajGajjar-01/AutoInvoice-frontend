@@ -70,6 +70,44 @@ interface Row {
   [key: string]: unknown
 }
 
+const formulaFunctions = {
+  TODAY: () => toIsoDate(new Date()),
+  NOW: () => new Date().toISOString(),
+  DATE: (year: unknown, month: unknown, day: unknown) => {
+    const y = Math.trunc(toNumberOrZero(year))
+    const m = Math.trunc(toNumberOrZero(month))
+    const d = Math.trunc(toNumberOrZero(day))
+    const dt = new Date(y, m - 1, d)
+    if (Number.isNaN(dt.getTime())) return "#VALUE!"
+    return toIsoDate(dt)
+  },
+  YEAR: (value: unknown) => {
+    const dt = parseFlexibleDate(value)
+    return dt ? dt.getFullYear() : "#VALUE!"
+  },
+  MONTH: (value: unknown) => {
+    const dt = parseFlexibleDate(value)
+    return dt ? dt.getMonth() + 1 : "#VALUE!"
+  },
+  DAY: (value: unknown) => {
+    const dt = parseFlexibleDate(value)
+    return dt ? dt.getDate() : "#VALUE!"
+  },
+  COUNTA: (...args: unknown[]) => {
+    let count = 0
+    const stack = [...args]
+    while (stack.length) {
+      const v = stack.shift()
+      if (Array.isArray(v)) {
+        stack.unshift(...v.flat(Infinity))
+        continue
+      }
+      if (!isBlank(v)) count++
+    }
+    return count
+  },
+}
+
 const buildParser = (rows: Row[], cols: Column[]) => {
   const maxRow = rows?.length ?? 0
   const maxCol = cols?.length ?? 0
@@ -106,43 +144,7 @@ const buildParser = (rows: Row[], cols: Column[]) => {
       }
       return arr
     },
-    functions: {
-      TODAY: () => toIsoDate(new Date()),
-      NOW: () => new Date().toISOString(),
-      DATE: (year: unknown, month: unknown, day: unknown) => {
-        const y = Math.trunc(toNumberOrZero(year))
-        const m = Math.trunc(toNumberOrZero(month))
-        const d = Math.trunc(toNumberOrZero(day))
-        const dt = new Date(y, m - 1, d)
-        if (Number.isNaN(dt.getTime())) return "#VALUE!"
-        return toIsoDate(dt)
-      },
-      YEAR: (value: unknown) => {
-        const dt = parseFlexibleDate(value)
-        return dt ? dt.getFullYear() : "#VALUE!"
-      },
-      MONTH: (value: unknown) => {
-        const dt = parseFlexibleDate(value)
-        return dt ? dt.getMonth() + 1 : "#VALUE!"
-      },
-      DAY: (value: unknown) => {
-        const dt = parseFlexibleDate(value)
-        return dt ? dt.getDate() : "#VALUE!"
-      },
-      COUNTA: (...args: unknown[]) => {
-        let count = 0
-        const stack = [...args]
-        while (stack.length) {
-          const v = stack.shift()
-          if (Array.isArray(v)) {
-            stack.unshift(...v.flat(Infinity))
-            continue
-          }
-          if (!isBlank(v)) count++
-        }
-        return count
-      },
-    },
+    functions: { ...formulaFunctions },
   })
 }
 

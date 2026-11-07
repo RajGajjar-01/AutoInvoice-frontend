@@ -46,6 +46,7 @@ git checkout -b cleanup/hygiene
 ### Task 2: Delete dead files and trees
 
 **Files (delete):**
+
 - `src/components/landing-new-v2/` — entire directory (13 files)
 - `src/components/Landing/DashboardPreview.tsx`
 - `src/components/DataTables/TableCard.tsx`
@@ -100,6 +101,7 @@ git add -A && git commit -m "chore: delete dead components/hooks superseded by f
 ### Task 3: Remove dead artifacts and legacy config files
 
 **Files:**
+
 - Delete: `src/lib/seedDemoData.ts`
 - Modify: `src/routes/_layout/settings.tsx:31` (+ its usage ~L39)
 - Delete: `jsconfig.json`
@@ -127,6 +129,7 @@ git add -A && git commit -m "chore: remove seedDemoData stubs, jsconfig.json, te
 ### Task 4: Merge duplicate mobile hooks
 
 **Files:**
+
 - Keep: `src/hooks/use-mobile.ts`
 - Delete: `src/hooks/useMobile.ts`
 - Modify: `src/routes/_layout/data-tables.$tableId.tsx:51` (import swap)
@@ -152,6 +155,7 @@ git add -A && git commit -m "refactor: collapse duplicate useIsMobile hooks into
 ### Task 5: Script overhaul + formatting normalization
 
 **Files:**
+
 - Modify: `package.json` (scripts)
 - Modify: `playwright.config.ts:75` (npm → pnpm)
 - Modify: `biome.json` (schema version bump to match installed 2.x)
@@ -192,6 +196,7 @@ git add -A && git commit -m "chore: split lint/lint-fix/typecheck/format scripts
 ### Task 6: Console statement cleanup
 
 **Files:**
+
 - Modify: `src/hooks/useAuth.ts:130`
 - Modify: `src/features/invoices/invoice-form/hooks/useInvoiceForm.ts:452`
 - Modify: `src/lib/formula-engine.ts:171`
@@ -223,6 +228,7 @@ git add -A && git commit -m "refactor: replace console-only error handling with 
 ### Task 7: Eliminate `any` types, then re-enable the lint rule
 
 **Files (all `: any` / `as any` sites):**
+
 - `src/features/profile/hooks/useProfileForm.ts:104`
 - `src/features/invoices/invoice-form/utils.ts:154`
 - `src/features/invoices/invoice-form/hooks/useInvoiceForm.ts:134,142`
@@ -264,12 +270,14 @@ git add -A && git commit -m "refactor(types): eliminate all any-typed code paths
 ### Task 8: Consolidate CSRF interceptor + migrate invoice-templates service to SDK
 
 **Files:**
+
 - Modify: `src/main.tsx` (remove inline CSRF/getCookie block, lines 21–38)
 - Modify: `src/lib/api.ts` (export reusable CSRF installer; register on global axios)
 - Modify: `src/features/invoice-templates/service.ts` (rewrite onto `InvoiceTemplatesService`)
 - Possibly modify: `src/features/invoice-templates/components/ExcelImportDialog.tsx` (adjust imports if signatures changed)
 
 **Facts established during planning (verified):**
+
 - The generated hey-api client resolves `axiosClient = axios` (the GLOBAL axios default) in `src/client/core/request.ts:308`, so the global-axios interceptor in `main.tsx` is what actually protects ALL SDK mutations today. Do not break this wiring.
 - `lib/api.ts` duplicates identical CSRF logic for its own instance.
 
@@ -295,7 +303,7 @@ Keep the existing richer header-setting variant used by the `api` instance if ty
 
 ```ts
 attachCsrfInterceptor(axios) // global — covers generated SDK traffic
-attachCsrfInterceptor(api)   // shared instance — covers raw callers
+attachCsrfInterceptor(api) // shared instance — covers raw callers
 ```
 
 Call `attachCsrfInterceptor(axios)` from module top-level of `api.ts` (it is imported by `main.tsx` indirectly already — VERIFY: if `main.tsx` doesn't transitively import `lib/api` before render, add the import there explicitly and drop the old block). Then delete `main.tsx` lines 21–38 (getCookie + interceptor) and its `axios` import.
@@ -315,6 +323,7 @@ git add -A && git commit -m "refactor(api): single CSRF interceptor impl; migrat
 ### Task 9: Deduplicate error extraction in useAuth
 
 **Files:**
+
 - Modify: `src/hooks/useAuth.ts:65–72` and `116–123`
 
 - [ ] **Step 1:** Replace both hand-rolled error-detail unwrapping blocks with `extractErrorMessage(err)` from `@/utils` (they reimplement it). Keep toast messages equivalent; keep control flow identical.
