@@ -2,7 +2,7 @@ name: Deploy to Cloudflare Workers
 
 on:
   push:
-    branches: [deploy/cloudflare]
+    branches: [main-serverless]
   workflow_dispatch:
 
 concurrency:
