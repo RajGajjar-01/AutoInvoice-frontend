@@ -2,7 +2,6 @@ import {
   ArrowLeft,
   Bell,
   Briefcase,
-  FilePlus2,
   FileText,
   Home,
   LayoutTemplate,
@@ -32,18 +31,18 @@ import {
 } from "@/components/ui/drawer"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { useNotificationStore } from "@/features/data-tables/notification-store"
 import useAuth from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 
 const mobileLinks = [
   { label: "Home", to: "/dashboard", icon: Home },
   { label: "Invoices", to: "/invoices", icon: FileText },
-  { label: "New", to: "/create-invoice", icon: FilePlus2 },
   { label: "Customers", to: "/customers", icon: Users },
+  { label: "Items", to: "/items", icon: Briefcase },
 ]
 
 const moreLinks = [
-  { label: "Items", to: "/items", icon: Briefcase },
   { label: "Data Tables", to: "/data-tables", icon: Table2 },
   { label: "Templates", to: "/invoice-templates", icon: LayoutTemplate },
   { label: "Template Builder", to: "/template-builder", icon: FileText },
@@ -75,17 +74,11 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
                 aria-current={active ? "page" : undefined}
                 className={`group flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors duration-150 ${active ? "text-primary" : "text-muted-foreground"}`}
               >
-                {to === "/create-invoice" ? (
-                  <span className="-mt-5 grid size-12 place-items-center rounded-full bg-pop text-white shadow-lg ring-4 ring-background transition-transform duration-150 motion-safe:group-active:scale-90">
-                    <Icon className="size-[22px]" aria-hidden="true" />
-                  </span>
-                ) : (
-                  <span
-                    className={`grid h-7 w-12 place-items-center rounded-full transition-[background-color,transform] duration-200 motion-safe:group-active:scale-90 ${active ? "bg-accent" : ""}`}
-                  >
-                    <Icon className="size-5" aria-hidden="true" />
-                  </span>
-                )}
+                <span
+                  className={`grid h-7 w-12 place-items-center rounded-full transition-[background-color,transform] duration-200 motion-safe:group-active:scale-90 ${active ? "bg-accent" : ""}`}
+                >
+                  <Icon className="size-5" aria-hidden="true" />
+                </span>
                 <span>{label}</span>
               </Link>
             )
@@ -216,6 +209,9 @@ const iconBtn =
 function MobileHeader() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const unread = useNotificationStore(
+    (state) => state.notifications.filter((n) => !n.read).length,
+  )
   const segments = pathname.split("/").filter(Boolean)
   const base =
     "sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 bg-background/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden"
@@ -225,10 +221,18 @@ function MobileHeader() {
       <header className={base}>
         <Logo variant="full" className="h-8" />
         <Link
-          to="/settings"
-          aria-label="Settings"
-          className={`${iconBtn} ml-auto`}
+          to="/notifications"
+          aria-label={
+            unread ? `Notifications, ${unread} unread` : "Notifications"
+          }
+          className={`${iconBtn} relative ml-auto`}
         >
+          <Bell className="size-[18px]" aria-hidden="true" />
+          {unread > 0 && (
+            <span className="absolute top-2 right-2.5 size-2 rounded-full bg-pop ring-2 ring-card" />
+          )}
+        </Link>
+        <Link to="/settings" aria-label="Settings" className={iconBtn}>
           <Settings className="size-[18px]" aria-hidden="true" />
         </Link>
       </header>
@@ -297,20 +301,35 @@ export function ProtectedLayout() {
     return null
   }
 
+  // Settings is a pushed screen on phones: full slide from the right, no tab bar.
+  const isSettings = pathname === "/settings"
+
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex min-w-0 max-w-full flex-col overflow-hidden">
         <MobileHeader />
-        <main className="workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-2 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-4">
+        <main
+          className={cn(
+            "workspace-content flex w-full min-w-0 max-w-full flex-1 flex-col px-4 pt-2 md:p-4",
+            isSettings
+              ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+              : "pb-[calc(5.5rem+env(safe-area-inset-bottom))]",
+          )}
+        >
           <div
             key={pathname}
-            className="route-content flex min-w-0 flex-1 flex-col"
+            className={cn(
+              "route-content flex min-w-0 flex-1 flex-col",
+              isSettings && "route-push",
+            )}
           >
             <Outlet />
           </div>
         </main>
-        <MobileNavigation isAdmin={user.is_superuser ?? false} />
+        {!isSettings && (
+          <MobileNavigation isAdmin={user.is_superuser ?? false} />
+        )}
       </SidebarInset>
     </SidebarProvider>
   )
