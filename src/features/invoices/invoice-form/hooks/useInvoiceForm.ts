@@ -21,6 +21,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { formResolver } from "@/lib/form"
 import { fetchInvoicePdf, invoicePdfFilename } from "@/lib/invoicePdf"
 import { canShareFiles, downloadFile, shareFile } from "@/lib/share"
+import { toWhatsAppNumber, whatsAppChatUrl } from "@/lib/whatsapp"
 import { queryClient } from "@/queryClient"
 import { handleError } from "@/utils"
 import {
@@ -543,7 +544,15 @@ export function useInvoiceForm() {
     showSuccessToast(
       "Summary shared. On Desktop, please download and attach PDF manually.",
     )
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank")
+    // Open the customer's chat when the form has a usable number.
+    const number = toWhatsAppNumber(formData.customerPhone)
+    window.open(
+      number
+        ? whatsAppChatUrl(number, text)
+        : `https://wa.me/?text=${encodeURIComponent(text)}`,
+      "_blank",
+      "noopener",
+    )
   }, [
     items,
     form,

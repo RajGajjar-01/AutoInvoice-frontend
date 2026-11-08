@@ -1,12 +1,19 @@
-import { type QueryKey, useMutation } from "@tanstack/react-query"
+import { type QueryKey, useMutation, useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { ApiError } from "@/client"
 import { InvoicesService } from "@/client/sdk.gen"
 import type { InvoiceStatus } from "@/client/types.gen"
+import { companySettingsQueryOptions } from "@/features/company-settings/queries"
 import type { Invoice } from "@/features/invoices/hooks/useInvoices"
+import { documentConfigs } from "@/features/invoices/invoice-form/constants"
 import { invoicesQueryKeys } from "@/features/invoices/queries"
 import useCustomToast from "@/hooks/useCustomToast"
 import { haptic } from "@/lib/haptics"
+import { fetchInvoicePdf, invoicePdfFilename } from "@/lib/invoicePdf"
+import { canShareFiles, downloadFile, shareFile } from "@/lib/share"
+import { toWhatsAppNumber, whatsAppChatUrl } from "@/lib/whatsapp"
 import { queryClient } from "@/queryClient"
+import { getSafeErrorMessage } from "@/utils"
 
 const listsFilter = { queryKey: [...invoicesQueryKeys.all, "list"] }
 type ListData = { data: Invoice[] }
@@ -28,12 +35,105 @@ function restore(snapshot: Snapshot) {
 const refreshInvoices = () =>
   queryClient.invalidateQueries({ queryKey: invoicesQueryKeys.all })
 
+/** What a WhatsApp send needs to know about an invoice. */
+export type WhatsAppInvoice = {
+  id: string
+  invoiceNumber?: string | null
+  invoice_number?: string | null
+  document_type?: string | null
+  currency?: string | null
+  grandTotal?: number | string | null
+  grand_total?: number | string | null
+  customer?: { whatsapp?: string | null; phone?: string | null } | null
+}
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  INR: "₹",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+}
+
+function whatsAppDetails(inv: WhatsAppInvoice) {
+  const config =
+    documentConfigs[
+      (inv.document_type ?? "invoice") as keyof typeof documentConfigs
+    ] ?? documentConfigs.invoice
+  const number = inv.invoiceNumber ?? inv.invoice_number ?? ""
+  const currency = inv.currency ?? "INR"
+  const total = Number(inv.grandTotal ?? inv.grand_total ?? 0)
+  const amount = config.hidePricing
+    ? ""
+    : ` for ${CURRENCY_SYMBOLS[currency] ?? `${currency} `}${total.toFixed(2)}`
+  return {
+    title: `${config.singular} ${number}`,
+    text: `Hello, please find ${config.singular.toLowerCase()} ${number}${amount} attached. Thank you!`,
+    filename: invoicePdfFilename(config.pdfTitle, number),
+  }
+}
+
+/** The backend wrote these messages for users; other errors stay generic. */
+function whatsAppErrorMessage(error: unknown): string {
+  if (
+    error instanceof ApiError &&
+    [422, 502, 503].includes(error.status) &&
+    error.body &&
+    typeof error.body === "object" &&
+    "detail" in error.body &&
+    typeof error.body.detail === "string"
+  ) {
+    return error.body.detail
+  }
+  return getSafeErrorMessage(error)
+}
+
 export const nextStatus = (status: string): InvoiceStatus =>
   status === "paid" ? "unpaid" : status === "unpaid" ? "overdue" : "paid"
 
 /** Status, delete and WhatsApp actions for invoices, with instant UI and rollback on error. */
 export function useInvoiceActions() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const { data: companySettings } = useQuery(companySettingsQueryOptions())
+  // The backend can send by itself only through an OpenWA server.
+  const openWaReady = Boolean(
+    companySettings?.whatsapp_enabled &&
+      companySettings.openwa_api_key_set &&
+      companySettings.openwa_session_id_set,
+  )
+
+  /**
+   * Without OpenWA: phones share the PDF through the share sheet (pick
+   * WhatsApp there); desktops open the customer's chat and download the PDF
+   * to attach. Call it straight from the click, so the chat window is not
+   * blocked as a pop-up.
+   */
+  const shareOnWhatsAppManually = (inv: WhatsAppInvoice, number: string) => {
+    const { title, text, filename } = whatsAppDetails(inv)
+    if (canShareFiles()) {
+      showSuccessToast("Preparing PDF…")
+      fetchInvoicePdf(inv.id, filename)
+        .then((file) => shareFile(file, title, text))
+        .catch((error: unknown) =>
+          showErrorToast(
+            error instanceof Error ? error.message : "Could not create the PDF",
+          ),
+        )
+      return
+    }
+    window.open(whatsAppChatUrl(number, text), "_blank", "noopener")
+    fetchInvoicePdf(inv.id, filename)
+      .then((file) => {
+        downloadFile(file)
+        showSuccessToast(
+          "WhatsApp is open. Attach the downloaded PDF to the chat.",
+        )
+      })
+      .catch((error: unknown) =>
+        showErrorToast(
+          error instanceof Error ? error.message : "Could not create the PDF",
+        ),
+      )
+  }
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: InvoiceStatus }) =>
@@ -74,13 +174,28 @@ export function useInvoiceActions() {
   })
 
   const whatsappMutation = useMutation({
-    mutationFn: (body: { id: string; to_phone: string }) =>
+    mutationFn: (body: { inv: WhatsAppInvoice; number: string }) =>
       InvoicesService.sendInvoiceWhatsapp({
-        id: body.id,
-        requestBody: { to_phone: body.to_phone },
+        id: body.inv.id,
+        requestBody: { to_phone: body.number },
       }),
     onSuccess: () => showSuccessToast("Invoice sent via WhatsApp"),
-    onError: () => showErrorToast("Failed to send via WhatsApp"),
+    onError: (error, { inv, number }) => {
+      if (error instanceof ApiError && error.status === 503) {
+        // OpenWA is not set up after all: offer the manual way. A toast
+        // button is a fresh click, so the chat window is not blocked.
+        toast("WhatsApp sending is not set up", {
+          description: "Send it from your own WhatsApp instead.",
+          duration: 15000,
+          action: {
+            label: "Open WhatsApp",
+            onClick: () => shareOnWhatsAppManually(inv, number),
+          },
+        })
+        return
+      }
+      showErrorToast(whatsAppErrorMessage(error))
+    },
   })
 
   const setStatus = (inv: Pick<Invoice, "id">, status: InvoiceStatus) => {
@@ -117,16 +232,21 @@ export function useInvoiceActions() {
       })
     },
 
-    sendWhatsApp: (inv: {
-      id: string
-      customer?: { whatsapp?: string | null; phone?: string | null } | null
-    }) => {
+    sendWhatsApp: (inv: WhatsAppInvoice) => {
       const phone = inv.customer?.whatsapp || inv.customer?.phone
       if (!phone) {
         showErrorToast("No WhatsApp number available for this customer")
         return
       }
-      whatsappMutation.mutate({ id: inv.id, to_phone: phone })
+      const number = toWhatsAppNumber(phone)
+      if (!number) {
+        showErrorToast(
+          "The customer's phone number is not valid for WhatsApp. Save it with the country code.",
+        )
+        return
+      }
+      if (openWaReady) whatsappMutation.mutate({ inv, number })
+      else shareOnWhatsAppManually(inv, number)
     },
   }
 }
