@@ -1,13 +1,13 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   ArrowLeft,
   ArrowRight,
-  Boxes,
+  Stack as Boxes,
   Check,
   Package,
   Plus,
   Wallet,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"

@@ -1,22 +1,22 @@
 import {
-  ArrowRightToLine,
-  Bell,
+  ArrowLineRight as ArrowRightToLine,
   Briefcase,
-  ChevronRight,
-  ContactRound,
-  FileText,
-  Home,
-  LayoutTemplate,
-  LineChart,
-  PanelLeft,
-  PenLine,
-  Table2,
-  Users,
-} from "lucide-react"
+  CaretRight as ChevronRight,
+  AddressBook as ContactRound,
+  Layout as LayoutTemplate,
+  SidebarSimple as PanelLeft,
+  PencilLine as PenLine,
+  Table as Table2,
+} from "@phosphor-icons/react"
 import { useState } from "react"
 import { Link as RouterLink, useLocation } from "react-router"
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
+import { BellIcon } from "@/components/ui/animated-icons/bell"
+import { ChartLineIcon } from "@/components/ui/animated-icons/chart-line"
+import { FileTextIcon } from "@/components/ui/animated-icons/file-text"
+import { HomeIcon } from "@/components/ui/animated-icons/home"
+import { UsersIcon } from "@/components/ui/animated-icons/users"
 import { Button } from "@/components/ui/button"
 import {
   Sidebar,
@@ -37,21 +37,21 @@ import useAuth from "@/hooks/useAuth"
 import { User } from "./User"
 
 const topItems = [
-  { icon: Home, title: "Dashboard", path: "/dashboard" },
+  { icon: HomeIcon, title: "Dashboard", path: "/dashboard" },
   { icon: Briefcase, title: "Items", path: "/items" },
   { icon: Table2, title: "Data Tables", path: "/data-tables" },
   { icon: ContactRound, title: "Customers", path: "/customers" },
 ]
 
 const invoiceSubItems = [
-  { icon: FileText, title: "Invoices", path: "/invoices" },
+  { icon: FileTextIcon, title: "Invoices", path: "/invoices" },
   { icon: LayoutTemplate, title: "Templates", path: "/invoice-templates" },
   { icon: PenLine, title: "Template Builder", path: "/template-builder" },
 ]
 
 const bottomItems = [
-  { icon: LineChart, title: "Insights", path: "/insights" },
-  { icon: Bell, title: "Notifications", path: "/notifications" },
+  { icon: ChartLineIcon, title: "Insights", path: "/insights" },
+  { icon: BellIcon, title: "Notifications", path: "/notifications" },
 ]
 
 const INVOICE_PATHS = [
@@ -79,7 +79,7 @@ export function AppSidebar() {
   const [invoicesOpen, setInvoicesOpen] = useState(isInvoiceActive)
 
   const adminItems = currentUser?.is_superuser
-    ? [{ icon: Users, title: "Admin", path: "/admin" }]
+    ? [{ icon: UsersIcon, title: "Admin", path: "/admin" }]
     : []
 
   const handleSidebarClick = (e: React.MouseEvent) => {
@@ -160,7 +160,7 @@ export function AppSidebar() {
                       <RouterLink to={item.path} onClick={handleNavClick} />
                     }
                   >
-                    <item.icon />
+                    <item.icon size={18} />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -175,7 +175,7 @@ export function AppSidebar() {
                     isActive={isInvoiceActive}
                     render={<RouterLink to="/invoices" />}
                   >
-                    <FileText />
+                    <FileTextIcon size={18} />
                     <span>Invoices</span>
                   </SidebarMenuButton>
                 ) : (
@@ -186,7 +186,7 @@ export function AppSidebar() {
                       className="w-full"
                       tooltip="Invoices"
                     >
-                      <FileText />
+                      <FileTextIcon size={18} />
                       <span>Invoices</span>
                       <ChevronRight
                         className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-200 ${
@@ -232,7 +232,7 @@ export function AppSidebar() {
                       <RouterLink to={item.path} onClick={handleNavClick} />
                     }
                   >
-                    <item.icon />
+                    <item.icon size={18} />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -1,12 +1,11 @@
 import {
-  CheckCircle2,
+  CheckCircle as CheckCircle2,
   CircleDashed,
   FileText,
-  MoreHorizontal,
-  Send,
-  Share2,
-  Trash2,
-} from "lucide-react"
+  DotsThree as MoreHorizontal,
+  ShareNetwork as Share2,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { ListRow } from "@/components/Common/ListRow"
 import { SwipeableRow } from "@/components/Common/SwipeableRow"
@@ -26,7 +25,6 @@ import { StatusBadge } from "./StatusBadge"
 interface MobileInvoiceCardProps {
   invoice: Invoice
   onSetPaid: (invoice: Invoice, paid: boolean) => void
-  onWhatsApp: (invoice: Invoice) => void
   /** Delete from the menu: opens the confirm dialog. */
   onDelete: (invoice: Invoice) => void
   /** Delete from a swipe: removes at once with undo. */
@@ -52,7 +50,6 @@ const shareInvoice = (inv: Invoice) =>
 export function MobileInvoiceCard({
   invoice,
   onSetPaid,
-  onWhatsApp,
   onDelete,
   onSwipeDelete,
 }: MobileInvoiceCardProps) {
@@ -128,9 +125,6 @@ export function MobileInvoiceCard({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => shareInvoice(invoice)}>
                 <Share2 /> Share
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onWhatsApp(invoice)}>
-                <Send /> Send via WhatsApp
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

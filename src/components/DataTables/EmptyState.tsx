@@ -1,4 +1,4 @@
-import { Plus, Table2 } from "lucide-react"
+import { Plus, Table as Table2 } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 
 interface EmptyStateProps {

@@ -1,5 +1,5 @@
+import { ArrowsClockwise as RefreshCw } from "@phosphor-icons/react"
 import { useQueryClient } from "@tanstack/react-query"
-import { RefreshCw } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { haptic } from "@/lib/haptics"
 

@@ -1,4 +1,9 @@
-import { Bell, Calendar, Check, Inbox } from "lucide-react"
+import {
+  Bell,
+  CalendarBlank as Calendar,
+  Check,
+  Tray as Inbox,
+} from "@phosphor-icons/react"
 import { useNavigate } from "react-router"
 import { Button } from "@/components/ui/button"
 

@@ -1,4 +1,4 @@
-import { Clock, FilePlus, FileText } from "lucide-react"
+import { Clock, FilePlus, FileText } from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { ListRow, ListRows } from "@/components/Common/ListRow"
 import { buttonVariants } from "@/components/ui/button"

@@ -1,5 +1,10 @@
+import {
+  Buildings as Building2,
+  AddressBook as ContactRound,
+  MagnifyingGlass as Search,
+  Users,
+} from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
-import { Building2, ContactRound, Search, Users } from "lucide-react"
 import { useDeferredValue, useMemo, useState } from "react"
 import { DataTable } from "@/components/Common/DataTable"
 import { FilterChips } from "@/components/Common/FilterChips"

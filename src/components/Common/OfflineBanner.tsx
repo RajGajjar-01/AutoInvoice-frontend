@@ -1,5 +1,5 @@
+import { CloudSlash as CloudOff, WifiHigh as Wifi } from "@phosphor-icons/react"
 import { onlineManager, useIsMutating } from "@tanstack/react-query"
-import { CloudOff, Wifi } from "lucide-react"
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 
 // React Query already pauses requests offline and resumes them on reconnect;

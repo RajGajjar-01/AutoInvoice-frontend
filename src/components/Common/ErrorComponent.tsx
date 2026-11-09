@@ -1,4 +1,8 @@
-import { AlertTriangle, Home, RefreshCw } from "lucide-react"
+import {
+  Warning as AlertTriangle,
+  House as Home,
+  ArrowsClockwise as RefreshCw,
+} from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 

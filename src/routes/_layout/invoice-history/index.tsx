@@ -1,13 +1,12 @@
 import {
-  AlertTriangle,
+  Warning as AlertTriangle,
   Clock,
   FilePlus,
   FileText,
-  IndianRupee,
-  MoreHorizontal,
-  Send,
-  Trash2,
-} from "lucide-react"
+  CurrencyInr as IndianRupee,
+  DotsThree as MoreHorizontal,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 import { useMemo, useState } from "react"
 import { Link } from "react-router"
 import { FilterChips } from "@/components/Common/FilterChips"
@@ -59,7 +58,6 @@ function InvoiceHistoryPage() {
     setDeleteTarget,
     handleToggleStatus,
     handleDelete,
-    handleWhatsApp,
     setStatus,
     deleteWithUndo,
   } = useInvoices()
@@ -211,7 +209,6 @@ function InvoiceHistoryPage() {
                 <MobileInvoiceCard
                   key={inv.id}
                   invoice={inv}
-                  onWhatsApp={handleWhatsApp}
                   onDelete={setDeleteTarget}
                   onSetPaid={(inv, paid) =>
                     setStatus(inv, paid ? "paid" : "unpaid")
@@ -315,12 +312,6 @@ function InvoiceHistoryPage() {
                               }
                             >
                               <FileText className="mr-2 h-4 w-4" /> View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleWhatsApp(inv)}
-                            >
-                              <Send className="mr-2 h-4 w-4" /> Send via
-                              WhatsApp
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"

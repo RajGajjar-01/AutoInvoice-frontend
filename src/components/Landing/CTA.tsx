@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight } from "@phosphor-icons/react"
 import { type PointerEvent, useRef } from "react"
 import { Link } from "react-router"
 import { BrandWaves } from "@/components/Common/BrandWaves"

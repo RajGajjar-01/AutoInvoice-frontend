@@ -1,4 +1,8 @@
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
+import {
+  CalendarDots as CalendarDays,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+} from "@phosphor-icons/react"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"

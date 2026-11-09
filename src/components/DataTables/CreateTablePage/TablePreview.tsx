@@ -15,7 +15,12 @@ import {
   useSortable,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { GripVertical, LayoutGrid, Plus, Trash2 } from "lucide-react"
+import {
+  DotsSixVertical as GripVertical,
+  SquaresFour as LayoutGrid,
+  Plus,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 

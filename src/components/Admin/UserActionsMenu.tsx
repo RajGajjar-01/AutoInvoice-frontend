@@ -1,4 +1,4 @@
-import { EllipsisVertical } from "lucide-react"
+import { DotsThreeVertical as EllipsisVertical } from "@phosphor-icons/react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {

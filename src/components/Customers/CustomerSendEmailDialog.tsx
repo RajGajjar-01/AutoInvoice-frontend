@@ -1,5 +1,5 @@
+import { Envelope as Mail } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { Mail } from "lucide-react"
 import { useEffect, useState } from "react"
 import { CustomersService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"

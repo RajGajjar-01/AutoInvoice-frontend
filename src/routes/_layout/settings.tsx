@@ -1,15 +1,15 @@
-import type { LucideIcon } from "lucide-react"
+import type { Icon as LucideIcon } from "@phosphor-icons/react"
 import {
-  ChevronRight,
-  LockKeyhole,
-  LogOut,
+  CaretRight as ChevronRight,
+  LockKey as LockKeyhole,
+  SignOut as LogOut,
   Monitor,
   Moon,
   Palette,
   Sun,
-  Trash2,
-  UserRound,
-} from "lucide-react"
+  Trash as Trash2,
+  User as UserRound,
+} from "@phosphor-icons/react"
 import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router"

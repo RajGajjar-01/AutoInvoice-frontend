@@ -1,4 +1,9 @@
-import { ArrowDown, ArrowUp, GripVertical, X } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowUp,
+  DotsSixVertical as GripVertical,
+  X,
+} from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"

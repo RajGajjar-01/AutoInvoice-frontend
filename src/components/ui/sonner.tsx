@@ -1,10 +1,4 @@
-import {
-  CircleCheckIcon,
-  InfoIcon,
-  Loader2Icon,
-  OctagonXIcon,
-  TriangleAlertIcon,
-} from "lucide-react"
+import { CheckCircle as CircleCheckIcon, Info as InfoIcon, CircleNotch as Loader2Icon, XCircle as OctagonXIcon, Warning as TriangleAlertIcon } from "@phosphor-icons/react"
 import { useTheme } from "@/components/theme-provider"
 import { usePhoneLayout } from "@/hooks/use-mobile"
 import { Toaster as Sonner, type ToasterProps } from "sonner"

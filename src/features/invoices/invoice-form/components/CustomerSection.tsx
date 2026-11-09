@@ -1,4 +1,4 @@
-import { Search } from "lucide-react"
+import { MagnifyingGlass as Search } from "@phosphor-icons/react"
 import { useRef, useState } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import {

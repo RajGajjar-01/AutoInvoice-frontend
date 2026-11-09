@@ -1,4 +1,9 @@
-import { ChevronsUpDown, LogOut, Settings, UserCircle } from "lucide-react"
+import {
+  CaretUpDown as ChevronsUpDown,
+  SignOut as LogOut,
+  Gear as Settings,
+  UserCircle,
+} from "@phosphor-icons/react"
 import { Link as RouterLink } from "react-router"
 import type { UserPublic } from "@/client"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"

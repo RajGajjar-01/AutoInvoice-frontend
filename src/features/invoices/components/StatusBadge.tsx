@@ -1,4 +1,4 @@
-import { CircleDashed } from "lucide-react"
+import { CircleDashed } from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
 import { statusIcon, statusVariant } from "../constants"
 

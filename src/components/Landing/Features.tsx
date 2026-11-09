@@ -1,13 +1,13 @@
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
 import {
-  BarChart3,
+  ChartBar as BarChart3,
   FileText,
-  IndianRupee,
-  LayoutTemplate,
+  CurrencyInr as IndianRupee,
+  Layout as LayoutTemplate,
   Package,
   Users,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { forwardRef, useLayoutEffect, useRef, useState } from "react"
 import {
   LandingIllustration,

@@ -1,14 +1,14 @@
-import { useMutation } from "@tanstack/react-query"
 import {
   ArrowLeft,
   ArrowRight,
-  Building2,
+  Buildings as Building2,
   Check,
   MapPin,
   Plus,
   User,
   Wallet,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { useMutation } from "@tanstack/react-query"
 import { useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"

@@ -1,4 +1,8 @@
-import { Check, MoreHorizontal, Trash2 } from "lucide-react"
+import {
+  Check,
+  DotsThree as MoreHorizontal,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 import { SwipeableRow } from "@/components/Common/SwipeableRow"
 import { Button } from "@/components/ui/button"
 import {

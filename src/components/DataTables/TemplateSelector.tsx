@@ -1,15 +1,15 @@
 import {
-  BadgeDollarSign,
-  Building2,
-  ClipboardList,
+  CurrencyCircleDollar as BadgeDollarSign,
+  Buildings as Building2,
+  ClipboardText as ClipboardList,
   FileText,
-  FolderKanban,
+  Kanban as FolderKanban,
   Receipt,
-  RefreshCw,
-  ScrollText,
-  UserRoundSearch,
+  ArrowsClockwise as RefreshCw,
+  Scroll as ScrollText,
+  UserFocus as UserRoundSearch,
   Users,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +18,7 @@ import {
   type DataTableTemplate,
 } from "@/features/data-tables/templates"
 
-// Map of icon name string → lucide component
+// Map of icon name string → phosphor component
 const ICON_MAP: Record<string, typeof FileText> = {
   BadgeDollarSign,
   Building2,

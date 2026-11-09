@@ -1,5 +1,5 @@
+import { ArrowRight, CheckCircle as CheckCircle2 } from "@phosphor-icons/react"
 import gsap from "gsap"
-import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
 import { Link } from "react-router"
 import { buttonVariants } from "@/components/ui/button"

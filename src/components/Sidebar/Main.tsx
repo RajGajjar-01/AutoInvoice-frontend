@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react"
+import type { ComponentType } from "react"
 import { Link as RouterLink, useLocation } from "react-router"
 import {
   SidebarGroup,
@@ -13,7 +13,7 @@ import { prefetchPage } from "@/routes/pages"
 interface SidebarItem {
   title: string
   path: string
-  icon: LucideIcon
+  icon: ComponentType<{ size?: number }>
 }
 
 interface MainProps {
@@ -49,7 +49,7 @@ export function Main({ items }: MainProps) {
                     />
                   }
                 >
-                  <item.icon />
+                  <item.icon size={18} />
                   <span>{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>

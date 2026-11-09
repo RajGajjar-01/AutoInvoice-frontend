@@ -1,4 +1,7 @@
-import { ChevronDown, ChevronUp } from "lucide-react"
+import {
+  CaretDown as ChevronDown,
+  CaretUp as ChevronUp,
+} from "@phosphor-icons/react"
 import type { UseFormReturn } from "react-hook-form"
 import {
   FormControl,

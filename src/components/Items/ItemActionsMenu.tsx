@@ -1,4 +1,4 @@
-import { Eye, MoreHorizontal } from "lucide-react"
+import { Eye, DotsThree as MoreHorizontal } from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import {

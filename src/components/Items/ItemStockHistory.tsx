@@ -1,4 +1,10 @@
-import { Clock, Minus, PackageX, TrendingDown, TrendingUp } from "lucide-react"
+import {
+  Clock,
+  Minus,
+  Package,
+  TrendDown as TrendingDown,
+  TrendUp as TrendingUp,
+} from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -146,7 +152,7 @@ export function ItemStockHistory({ item }: ItemStockHistoryProps) {
         {history.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="rounded-full bg-muted p-4 mb-3">
-              <PackageX className="h-6 w-6 text-muted-foreground" />
+              <Package className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-sm font-medium">No stock history yet</p>
             <p className="text-xs text-muted-foreground mt-1">

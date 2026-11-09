@@ -1,13 +1,13 @@
 import {
-  AlertTriangle,
-  BarChart3,
+  Warning as AlertTriangle,
+  ChartBar as BarChart3,
   CircleDashed,
-  CircleX,
+  XCircle as CircleX,
   FileText,
-  IndianRupee,
-  TrendingUp,
+  CurrencyInr as IndianRupee,
+  TrendUp as TrendingUp,
   Users,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import {
   Area,
   AreaChart,

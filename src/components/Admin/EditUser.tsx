@@ -1,5 +1,5 @@
+import { PencilSimple as Pencil } from "@phosphor-icons/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Pencil } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"

@@ -1,5 +1,11 @@
+import {
+  Warning as AlertTriangle,
+  Funnel as Filter,
+  Package,
+  MagnifyingGlass as Search,
+  XCircle,
+} from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
-import { AlertTriangle, Filter, Package, Search, XCircle } from "lucide-react"
 import { useState } from "react"
 import { DataTable } from "@/components/Common/DataTable"
 import { FilterChips } from "@/components/Common/FilterChips"

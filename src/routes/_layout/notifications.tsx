@@ -1,4 +1,4 @@
-import { CheckCheck, Trash2 } from "lucide-react"
+import { Checks as CheckCheck, Trash as Trash2 } from "@phosphor-icons/react"
 import { FilterChips } from "@/components/Common/FilterChips"
 import { PageHeader } from "@/components/Common/PageHeader"
 import { SearchInput } from "@/components/Common/SearchInput"

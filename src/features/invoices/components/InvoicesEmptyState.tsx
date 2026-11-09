@@ -1,4 +1,4 @@
-import { FilePlus, FileText } from "lucide-react"
+import { FilePlus, FileText } from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 

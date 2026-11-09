@@ -1,19 +1,19 @@
-import { useQuery } from "@tanstack/react-query"
-import type { LucideIcon } from "lucide-react"
+import type { Icon as LucideIcon } from "@phosphor-icons/react"
 import {
   ArrowLeft,
   Briefcase,
   Check,
-  Code2,
+  Code as Code2,
   Eye,
-  FileSpreadsheet,
+  FileXls as FileSpreadsheet,
   FileText,
   Receipt,
   ShoppingBag,
-  Trash2,
-  Upload,
+  Trash as Trash2,
+  UploadSimple as Upload,
   Wrench,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { useQuery } from "@tanstack/react-query"
 import type React from "react"
 import { useRef, useState } from "react"
 import { Link } from "react-router"

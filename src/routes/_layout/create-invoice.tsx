@@ -1,16 +1,15 @@
 import {
   ArrowLeft,
-  Download,
+  DownloadSimple as Download,
   Eye,
-  Mail,
-  MoreHorizontal,
-  PackagePlus,
+  Envelope as Mail,
+  DotsThree as MoreHorizontal,
+  Package as PackagePlus,
   Percent,
-  Save,
-  Send,
-  Share2,
+  FloppyDisk as Save,
+  ShareNetwork as Share2,
   Truck,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import { createPortal } from "react-dom"
 import { Link, useNavigate } from "react-router"
 import { ModernExcelTable } from "@/components/modern-excel-table"
@@ -175,10 +174,11 @@ function PhoneActionBar({
               <Download /> Download PDF
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onShare}>
-              {share ? <Share2 /> : <Send />}
-              {share ? "Share PDF" : "Send via WhatsApp"}
-            </DropdownMenuItem>
+            {share && (
+              <DropdownMenuItem onClick={onShare}>
+                <Share2 /> Share PDF
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onEmail}>
               <Mail /> Send via Email
             </DropdownMenuItem>
@@ -818,15 +818,6 @@ function CreateInvoicePage() {
                     Download PDF
                   </Button>
                   <Separator />
-                  <Button
-                    type="button"
-                    className="w-full"
-                    variant="outline"
-                    onClick={handleWhatsApp}
-                  >
-                    <Send className="mr-2 h-4 w-4" />
-                    Send via WhatsApp
-                  </Button>
                   <Button
                     type="button"
                     className="w-full"

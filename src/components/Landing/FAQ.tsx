@@ -1,6 +1,6 @@
+import { ChatCircle as MessageCircle } from "@phosphor-icons/react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { MessageCircle } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
 import { Link } from "react-router"
 import {

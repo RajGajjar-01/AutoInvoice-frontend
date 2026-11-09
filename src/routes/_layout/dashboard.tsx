@@ -1,18 +1,18 @@
 import {
-  AlertTriangle,
+  Warning as AlertTriangle,
   ArrowRight,
   ArrowUpRight,
   CircleDashed,
-  CircleX,
+  XCircle as CircleX,
   FilePlus,
   FileText,
-  History,
+  ClockCounterClockwise as History,
   Package,
-  PackagePlus,
-  TrendingUp,
+  Package as PackagePlus,
+  TrendUp as TrendingUp,
   UserPlus,
   Users,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import { Badge } from "@/components/ui/badge"

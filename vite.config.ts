@@ -43,7 +43,7 @@ export default defineConfig({
             },
             {
               name: "vendor-ui",
-              test: /node_modules[\\/](radix-ui|@radix-ui|sonner|next-themes|clsx|tailwind-merge|class-variance-authority|lucide-react)[\\/]/,
+              test: /node_modules[\\/](radix-ui|@radix-ui|sonner|next-themes|clsx|tailwind-merge|class-variance-authority|@phosphor-icons)[\\/]/,
             },
             { name: "charts", test: /node_modules[\\/]recharts[\\/]/ },
             { name: "motion", test: /node_modules[\\/]gsap[\\/]/ },

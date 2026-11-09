@@ -1,4 +1,9 @@
-import { ArrowUpRight, CalendarDays, CircleX, Package } from "lucide-react"
+import {
+  ArrowUpRight,
+  CalendarDots as CalendarDays,
+  XCircle as CircleX,
+  Package,
+} from "@phosphor-icons/react"
 import { useId, useState } from "react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"

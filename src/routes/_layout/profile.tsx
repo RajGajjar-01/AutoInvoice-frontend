@@ -1,13 +1,13 @@
 import {
-  BadgeCheck,
-  Building2,
+  SealCheck as BadgeCheck,
+  Buildings as Building2,
   CreditCard,
   FileText,
-  Mail,
+  Envelope as Mail,
   MapPin,
-  MessageSquare,
+  ChatText as MessageSquare,
   ShieldCheck,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import { FormProvider } from "react-hook-form"
 import { Link } from "react-router"
 import { ProfileSection } from "@/components/Profile/ProfileSection"

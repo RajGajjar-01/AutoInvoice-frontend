@@ -1,12 +1,12 @@
 import {
   Copy,
-  MoreHorizontal,
-  Pencil,
+  DotsThree as MoreHorizontal,
+  PencilSimple as Pencil,
   Plus,
-  Search,
-  Table2,
-  Trash2,
-} from "lucide-react"
+  MagnifyingGlass as Search,
+  Table as Table2,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 import { useState } from "react"
 import { useLoaderData, useNavigate, useRevalidator } from "react-router"
 import { toast } from "sonner"

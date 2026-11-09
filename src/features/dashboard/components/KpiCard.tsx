@@ -1,5 +1,8 @@
-import type { LucideIcon } from "lucide-react"
-import { TrendingDown, TrendingUp } from "lucide-react"
+import type { Icon as LucideIcon } from "@phosphor-icons/react"
+import {
+  TrendDown as TrendingDown,
+  TrendUp as TrendingUp,
+} from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 

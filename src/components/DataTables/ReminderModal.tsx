@@ -1,4 +1,4 @@
-import { Bell, Mail, Phone } from "lucide-react"
+import { Bell, Envelope as Mail, Phone } from "@phosphor-icons/react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useRevalidator } from "react-router"

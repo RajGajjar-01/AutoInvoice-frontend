@@ -1,6 +1,6 @@
+import { Check, CheckCircle as CheckCircle2 } from "@phosphor-icons/react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { Check, CheckCircle2 } from "lucide-react"
 import { useLayoutEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"

@@ -1,10 +1,10 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
-  AlertTriangle,
+  Warning as AlertTriangle,
   SlidersHorizontal,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react"
+  TrendDown as TrendingDown,
+  TrendUp as TrendingUp,
+} from "@phosphor-icons/react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"

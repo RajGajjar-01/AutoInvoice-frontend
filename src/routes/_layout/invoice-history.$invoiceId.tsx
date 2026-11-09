@@ -1,26 +1,25 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
-import type { LucideIcon } from "lucide-react"
+import type { Icon as LucideIcon } from "@phosphor-icons/react"
 import {
-  AlertTriangle,
+  Warning as AlertTriangle,
   ArrowLeft,
-  Calendar,
-  CheckCircle2,
+  CalendarBlank as Calendar,
+  CheckCircle as CheckCircle2,
   CircleDashed,
-  CircleX,
+  XCircle as CircleX,
   CreditCard,
-  Download,
+  DownloadSimple as Download,
   Eye,
-  IndianRupee,
-  Mail,
+  CurrencyInr as IndianRupee,
+  Envelope as Mail,
   MapPin,
   Phone,
   Receipt,
-  Send,
-  Share2,
-  StickyNote,
-  Trash2,
+  ShareNetwork as Share2,
+  Note as StickyNote,
+  Trash as Trash2,
   User,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { InvoicesService } from "@/client/sdk.gen"
@@ -221,8 +220,6 @@ function InvoiceDetailPage() {
       )
   }
 
-  const handleWhatsApp = () => actions.sendWhatsApp(invoice)
-
   const handleEmail = () => {
     const email = invoice.customer?.email
     if (!email) {
@@ -307,7 +304,6 @@ function InvoiceDetailPage() {
             icon: sharePdf ? Share2 : Download,
             onClick: handleDownloadPDF,
           },
-          { label: "WhatsApp", icon: Send, onClick: handleWhatsApp },
           { label: "Email", icon: Mail, onClick: handleEmail },
         ]}
       />

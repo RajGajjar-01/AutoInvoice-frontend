@@ -1,5 +1,9 @@
-import type { LucideIcon } from "lucide-react"
-import { CheckCircle2, CircleDashed, CircleX } from "lucide-react"
+import type { Icon as LucideIcon } from "@phosphor-icons/react"
+import {
+  CheckCircle as CheckCircle2,
+  CircleDashed,
+  XCircle as CircleX,
+} from "@phosphor-icons/react"
 
 export const statusVariant: Record<
   string,

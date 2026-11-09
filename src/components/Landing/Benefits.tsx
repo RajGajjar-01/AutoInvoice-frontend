@@ -1,6 +1,12 @@
+import {
+  Clock,
+  FileText,
+  Palette,
+  ShieldCheck,
+  Lightning as Zap,
+} from "@phosphor-icons/react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { Clock, FileText, Palette, ShieldCheck, Zap } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 

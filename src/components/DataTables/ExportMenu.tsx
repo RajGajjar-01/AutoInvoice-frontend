@@ -1,4 +1,8 @@
-import { Braces, Download, FileText } from "lucide-react"
+import {
+  BracketsCurly as Braces,
+  DownloadSimple as Download,
+  FileText,
+} from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {

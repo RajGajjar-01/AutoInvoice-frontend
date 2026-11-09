@@ -14,32 +14,32 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { useQuery } from "@tanstack/react-query"
 import {
-  AlignCenter,
-  AlignJustify,
-  AlignLeft,
-  AlignRight,
+  TextAlignCenter as AlignCenter,
+  TextAlignJustify as AlignJustify,
+  TextAlignLeft as AlignLeft,
+  TextAlignRight as AlignRight,
   ArrowLeft,
-  Building2,
+  Buildings as Building2,
   Calculator,
   Check,
   Eye,
   FileText,
-  GripVertical,
+  DotsSixVertical as GripVertical,
   Layout,
-  type LucideIcon,
+  type Icon as LucideIcon,
   Palette,
-  PenLine,
+  PencilLine as PenLine,
   Plus,
-  RotateCcw,
-  Save,
-  StickyNote,
-  Table2,
-  Type,
+  ArrowCounterClockwise as RotateCcw,
+  FloppyDisk as Save,
+  Note as StickyNote,
+  Table as Table2,
+  TextT as Type,
   User,
   X,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { useQuery } from "@tanstack/react-query"
 import type React from "react"
 import { useCallback, useState } from "react"
 import { Link } from "react-router"

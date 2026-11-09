@@ -1,4 +1,10 @@
-import { ArrowLeft, Bell, Filter, Plus, Trash2 } from "lucide-react"
+import {
+  ArrowLeft,
+  Bell,
+  Funnel as Filter,
+  Plus,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
 import {
   type LoaderFunctionArgs,

@@ -1,22 +1,22 @@
-import { useQuery } from "@tanstack/react-query"
 import {
   ArrowLeft,
-  BadgeIndianRupee,
-  Calendar,
+  CurrencyInr as BadgeIndianRupee,
+  CalendarBlank as Calendar,
   CreditCard,
   FilePlus,
   FileText,
-  Mail,
+  Envelope as Mail,
   MapPin,
-  MessageCircle,
-  MessageSquare,
+  ChatCircle as MessageCircle,
+  ChatText as MessageSquare,
   Phone,
-  StickyNote,
+  Note as StickyNote,
   Tag,
   Truck,
   User,
   Wallet,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { Link } from "react-router"
 import type { CustomerPublic } from "@/client/types.gen"

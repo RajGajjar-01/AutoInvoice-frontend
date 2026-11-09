@@ -1,6 +1,13 @@
+import {
+  Calculator,
+  Factory,
+  Package,
+  Pill,
+  Storefront as Store,
+  Users,
+} from "@phosphor-icons/react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { Calculator, Factory, Package, Pill, Store, Users } from "lucide-react"
 import { useLayoutEffect, useRef } from "react"
 
 gsap.registerPlugin(ScrollTrigger)

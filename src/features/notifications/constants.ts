@@ -1,4 +1,9 @@
-import { Bell, Calendar, Clock, Info } from "lucide-react"
+import {
+  Bell,
+  CalendarBlank as Calendar,
+  Clock,
+  Info,
+} from "@phosphor-icons/react"
 import type { TypeConfig } from "./types"
 
 export const TYPE_CONFIG: Record<string, TypeConfig> = {

@@ -2,19 +2,16 @@ import {
   ArrowLeft,
   Bell,
   Briefcase,
-  FileText,
-  Home,
-  LayoutTemplate,
-  LineChart,
-  LogOut,
-  Menu,
+  Layout as LayoutTemplate,
+  ChartLineUp as LineChart,
+  SignOut as LogOut,
   Moon,
-  Settings,
+  Gear as Settings,
   Sun,
-  Table2,
+  Table as Table2,
   UserCircle,
   Users,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import { useEffect, useState } from "react"
 import {
   Link,
@@ -29,6 +26,9 @@ import { OfflineBanner } from "@/components/Common/OfflineBanner"
 import { PullToRefresh } from "@/components/Common/PullToRefresh"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import { useTheme } from "@/components/theme-provider"
+import { FileTextIcon } from "@/components/ui/animated-icons/file-text"
+import { HomeIcon } from "@/components/ui/animated-icons/home"
+import { MenuIcon } from "@/components/ui/animated-icons/menu"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Drawer,
@@ -40,14 +40,15 @@ import {
 } from "@/components/ui/drawer"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { DashboardSkeleton } from "@/features/dashboard/components/DashboardSkeleton"
 import { useNotificationStore } from "@/features/data-tables/notification-store"
 import useAuth from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 import { prefetchPage } from "@/routes/pages"
 
 const mobileLinks = [
-  { label: "Home", to: "/dashboard", icon: Home },
-  { label: "Invoices", to: "/invoices", icon: FileText },
+  { label: "Home", to: "/dashboard", icon: HomeIcon },
+  { label: "Invoices", to: "/invoices", icon: FileTextIcon },
   { label: "Customers", to: "/customers", icon: Users },
   { label: "Items", to: "/items", icon: Briefcase },
 ]
@@ -55,7 +56,7 @@ const mobileLinks = [
 const moreLinks = [
   { label: "Data Tables", to: "/data-tables", icon: Table2 },
   { label: "Templates", to: "/invoice-templates", icon: LayoutTemplate },
-  { label: "Template Builder", to: "/template-builder", icon: FileText },
+  { label: "Template Builder", to: "/template-builder", icon: FileTextIcon },
   { label: "Insights", to: "/insights", icon: LineChart },
   { label: "Notifications", to: "/notifications", icon: Bell },
 ]
@@ -88,7 +89,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
                 <span
                   className={`grid h-7 w-12 place-items-center rounded-full transition-[background-color,transform] duration-200 motion-safe:group-active:scale-90 ${active ? "bg-accent" : ""}`}
                 >
-                  <Icon className="size-5" aria-hidden="true" />
+                  <Icon size={20} aria-hidden="true" />
                 </span>
                 <span>{label}</span>
               </Link>
@@ -104,7 +105,7 @@ function MobileNavigation({ isAdmin }: { isAdmin: boolean }) {
             }
           >
             <span className="grid h-7 w-12 place-items-center rounded-full transition-transform duration-200 motion-safe:group-active:scale-90">
-              <Menu className="size-5" aria-hidden="true" />
+              <MenuIcon size={20} />
             </span>
             <span>More</span>
           </DrawerTrigger>
@@ -378,7 +379,15 @@ export function ProtectedLayout() {
               isSettings && "route-push",
             )}
           >
-            {switchingPage ? <PageSkeleton /> : <Outlet />}
+            {switchingPage ? (
+              navigation.location?.pathname === "/dashboard" ? (
+                <DashboardSkeleton />
+              ) : (
+                <PageSkeleton />
+              )
+            ) : (
+              <Outlet />
+            )}
           </div>
         </main>
         {!hideTabBar && (

@@ -14,12 +14,12 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import {
-  ChevronDown,
-  ChevronRight,
-  GripVertical,
+  CaretDown as ChevronDown,
+  CaretRight as ChevronRight,
+  DotsSixVertical as GripVertical,
   Plus,
-  Trash2,
-} from "lucide-react"
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 import { useEffect, useRef, useState } from "react"
 import { COLUMN_TYPES } from "@/components/DataTables/PropertyRow"
 import { Badge } from "@/components/ui/badge"

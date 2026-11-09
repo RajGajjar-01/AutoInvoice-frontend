@@ -1,5 +1,5 @@
+import { Trash as Trash2 } from "@phosphor-icons/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Trash2 } from "lucide-react"
 import { useState } from "react"
 import { ItemsService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"

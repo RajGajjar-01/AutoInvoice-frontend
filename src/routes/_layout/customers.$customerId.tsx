@@ -1,5 +1,5 @@
+import { Warning as AlertTriangle, ArrowLeft } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
-import { AlertTriangle, ArrowLeft } from "lucide-react"
 import { Link, useNavigate, useParams } from "react-router"
 import { CustomerDetail } from "@/components/Customers/CustomerDetail"
 import { Button } from "@/components/ui/button"

@@ -1,4 +1,7 @@
-import { BellOff, Search } from "lucide-react"
+import {
+  BellSlash as BellOff,
+  MagnifyingGlass as Search,
+} from "@phosphor-icons/react"
 
 interface NotificationsEmptyProps {
   filtered?: boolean

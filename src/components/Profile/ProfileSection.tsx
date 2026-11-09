@@ -1,5 +1,9 @@
-import type { LucideIcon } from "lucide-react"
-import { Pencil, Save, X } from "lucide-react"
+import type { Icon as LucideIcon } from "@phosphor-icons/react"
+import {
+  PencilSimple as Pencil,
+  FloppyDisk as Save,
+  X,
+} from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 
 interface ProfileSectionProps {

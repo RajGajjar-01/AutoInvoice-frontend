@@ -1,5 +1,10 @@
+import {
+  ArrowLeft,
+  Check,
+  FileXls as FileSpreadsheet,
+  UploadSimple as Upload,
+} from "@phosphor-icons/react"
 import { useMutation } from "@tanstack/react-query"
-import { ArrowLeft, Check, FileSpreadsheet, Upload } from "lucide-react"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
 import { InvoiceTemplatesService } from "@/client"

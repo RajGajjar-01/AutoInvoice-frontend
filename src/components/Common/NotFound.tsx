@@ -1,4 +1,4 @@
-import { Home, Search } from "lucide-react"
+import { House as Home, MagnifyingGlass as Search } from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 

@@ -1,4 +1,11 @@
 import {
+  ArrowsDownUp as ArrowUpDown,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+  CaretDoubleLeft as ChevronsLeft,
+  CaretDoubleRight as ChevronsRight,
+} from "@phosphor-icons/react"
+import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
@@ -7,13 +14,6 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import {
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react"
 import { Fragment, memo, type ReactNode, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {

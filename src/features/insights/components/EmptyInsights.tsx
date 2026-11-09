@@ -1,4 +1,4 @@
-import { FileText, LineChart as LineChartIcon } from "lucide-react"
+import { FileText, ChartLineUp as LineChartIcon } from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 

@@ -1,15 +1,15 @@
 import {
   ArrowLeft,
-  BadgeIndianRupee,
+  CurrencyInr as BadgeIndianRupee,
   Barcode,
   FileCode,
   Info,
-  Layers,
+  Stack as Layers,
   Package,
   Percent,
   ShoppingCart,
   Tag,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

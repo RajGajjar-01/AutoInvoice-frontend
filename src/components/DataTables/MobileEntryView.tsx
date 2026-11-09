@@ -1,4 +1,11 @@
-import { Bell, ChevronDown, ChevronUp, Plus, Trash2, X } from "lucide-react"
+import {
+  Bell,
+  CaretDown as ChevronDown,
+  CaretUp as ChevronUp,
+  Plus,
+  Trash as Trash2,
+  X,
+} from "@phosphor-icons/react"
 import { useState } from "react"
 import { TableCell } from "@/components/DataTables/TableCell"
 import { Button } from "@/components/ui/button"

@@ -1,4 +1,8 @@
-import { FilePlus, FileText, Search } from "lucide-react"
+import {
+  FilePlus,
+  FileText,
+  MagnifyingGlass as Search,
+} from "@phosphor-icons/react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 

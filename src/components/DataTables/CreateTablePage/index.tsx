@@ -1,15 +1,15 @@
 import {
-  Calendar,
+  CalendarBlank as Calendar,
   Check,
-  DollarSign,
-  Mail,
+  CurrencyDollar as DollarSign,
+  Envelope as Mail,
   MapPin,
-  MessageSquare,
+  ChatText as MessageSquare,
   Phone,
   Plus,
   Tag,
   User,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"

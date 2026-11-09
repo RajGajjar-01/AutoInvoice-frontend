@@ -1,4 +1,11 @@
-import { Building2, Camera, Eye, EyeOff, Trash2, Upload } from "lucide-react"
+import {
+  Buildings as Building2,
+  Camera,
+  Eye,
+  EyeSlash as EyeOff,
+  Trash as Trash2,
+  UploadSimple as Upload,
+} from "@phosphor-icons/react"
 import { useId, useRef, useState } from "react"
 import { useController, useFormContext } from "react-hook-form"
 import { toast } from "sonner"

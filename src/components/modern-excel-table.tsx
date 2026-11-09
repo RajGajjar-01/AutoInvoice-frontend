@@ -1,4 +1,8 @@
-import { GripVertical, Plus, Trash2 } from "lucide-react"
+import {
+  DotsSixVertical as GripVertical,
+  Plus,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react"
+import type { Icon as LucideIcon } from "@phosphor-icons/react"
 import { type ReactNode, useEffect, useRef, useState } from "react"
 import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"

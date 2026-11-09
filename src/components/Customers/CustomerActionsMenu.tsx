@@ -1,4 +1,7 @@
-import { EllipsisVertical, ExternalLink } from "lucide-react"
+import {
+  DotsThreeVertical as EllipsisVertical,
+  ArrowSquareOut as ExternalLink,
+} from "@phosphor-icons/react"
 import { useState } from "react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
