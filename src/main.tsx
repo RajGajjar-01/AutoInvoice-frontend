@@ -1,4 +1,5 @@
 import { registerSW } from "virtual:pwa-register"
+import { IconContext } from "@phosphor-icons/react"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
@@ -32,10 +33,12 @@ const updateSW = registerSW({
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <Toaster richColors />
-      </QueryClientProvider>
+      <IconContext.Provider value={{ weight: "bold" }}>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <Toaster richColors />
+        </QueryClientProvider>
+      </IconContext.Provider>
     </ThemeProvider>
   </StrictMode>,
 )

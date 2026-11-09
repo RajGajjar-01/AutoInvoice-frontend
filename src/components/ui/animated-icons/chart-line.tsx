@@ -6,6 +6,7 @@ import type { HTMLAttributes } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { useParentHover } from "./use-parent-hover";
 
 export interface ChartLineIconHandle {
   startAnimation: () => void;
@@ -35,6 +36,8 @@ const VARIANTS: Variants = {
 const ChartLineIcon = forwardRef<ChartLineIconHandle, ChartLineIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
     const controls = useAnimation();
+    const rootRef = useRef<HTMLDivElement>(null);
+    useParentHover(rootRef, controls);
     const isControlledRef = useRef(false);
 
     useImperativeHandle(ref, () => {
@@ -70,7 +73,8 @@ const ChartLineIcon = forwardRef<ChartLineIconHandle, ChartLineIconProps>(
 
     return (
       <div
-        className={cn(className)}
+        ref={rootRef}
+        className={cn("flex shrink-0 items-center justify-center", className)}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         {...props}

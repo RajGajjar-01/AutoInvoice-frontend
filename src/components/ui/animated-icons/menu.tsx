@@ -6,6 +6,7 @@ import type { HTMLAttributes } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { useParentHover } from "./use-parent-hover";
 
 export interface MenuIconHandle {
   startAnimation: () => void;
@@ -37,6 +38,8 @@ const LINE_VARIANTS: Variants = {
 const MenuIcon = forwardRef<MenuIconHandle, MenuIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
     const controls = useAnimation();
+    const rootRef = useRef<HTMLDivElement>(null);
+    useParentHover(rootRef, controls);
     const isControlledRef = useRef(false);
 
     useImperativeHandle(ref, () => {
@@ -71,7 +74,8 @@ const MenuIcon = forwardRef<MenuIconHandle, MenuIconProps>(
     );
     return (
       <div
-        className={cn(className)}
+        ref={rootRef}
+        className={cn("flex shrink-0 items-center justify-center", className)}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         {...props}

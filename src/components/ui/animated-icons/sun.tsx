@@ -6,6 +6,7 @@ import type { HTMLAttributes } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { useParentHover } from "./use-parent-hover";
 
 export interface SunIconHandle {
   startAnimation: () => void;
@@ -27,6 +28,8 @@ const PATH_VARIANTS: Variants = {
 const SunIcon = forwardRef<SunIconHandle, SunIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
     const controls = useAnimation();
+    const rootRef = useRef<HTMLDivElement>(null);
+    useParentHover(rootRef, controls);
     const isControlledRef = useRef(false);
 
     useImperativeHandle(ref, () => {
@@ -61,7 +64,8 @@ const SunIcon = forwardRef<SunIconHandle, SunIconProps>(
     );
     return (
       <div
-        className={cn(className)}
+        ref={rootRef}
+        className={cn("flex shrink-0 items-center justify-center", className)}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         {...props}

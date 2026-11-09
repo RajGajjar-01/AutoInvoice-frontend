@@ -49,7 +49,7 @@ export function Main({ items }: MainProps) {
                     />
                   }
                 >
-                  <item.icon size={18} />
+                  <item.icon size={16} />
                   <span>{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>

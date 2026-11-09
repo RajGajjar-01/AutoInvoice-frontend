@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Bell,
   Briefcase,
+  FileText,
   Layout as LayoutTemplate,
   ChartLineUp as LineChart,
   SignOut as LogOut,
@@ -56,7 +57,7 @@ const mobileLinks = [
 const moreLinks = [
   { label: "Data Tables", to: "/data-tables", icon: Table2 },
   { label: "Templates", to: "/invoice-templates", icon: LayoutTemplate },
-  { label: "Template Builder", to: "/template-builder", icon: FileTextIcon },
+  { label: "Template Builder", to: "/template-builder", icon: FileText },
   { label: "Insights", to: "/insights", icon: LineChart },
   { label: "Notifications", to: "/notifications", icon: Bell },
 ]

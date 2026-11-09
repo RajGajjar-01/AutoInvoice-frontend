@@ -160,7 +160,7 @@ export function AppSidebar() {
                       <RouterLink to={item.path} onClick={handleNavClick} />
                     }
                   >
-                    <item.icon size={18} />
+                    <item.icon size={16} />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -175,7 +175,7 @@ export function AppSidebar() {
                     isActive={isInvoiceActive}
                     render={<RouterLink to="/invoices" />}
                   >
-                    <FileTextIcon size={18} />
+                    <FileTextIcon size={16} />
                     <span>Invoices</span>
                   </SidebarMenuButton>
                 ) : (
@@ -186,7 +186,7 @@ export function AppSidebar() {
                       className="w-full"
                       tooltip="Invoices"
                     >
-                      <FileTextIcon size={18} />
+                      <FileTextIcon size={16} />
                       <span>Invoices</span>
                       <ChevronRight
                         className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-200 ${
@@ -210,7 +210,7 @@ export function AppSidebar() {
                                 />
                               }
                             >
-                              <sub.icon className="h-3.5 w-3.5" />
+                              <sub.icon size={14} />
                               <span>{sub.title}</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -232,7 +232,7 @@ export function AppSidebar() {
                       <RouterLink to={item.path} onClick={handleNavClick} />
                     }
                   >
-                    <item.icon size={18} />
+                    <item.icon size={16} />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

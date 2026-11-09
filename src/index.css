@@ -572,3 +572,27 @@
     animation: none;
   }
 }
+
+/* Hover/click feedback for plain (Phosphor) icons inside links, buttons and menu items. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :is(a, button, [role="menuitem"]):not(:disabled):hover
+    > svg:not(.animate-spin) {
+    animation: icon-hover 0.4s ease-in-out;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(a, button, [role="menuitem"]) > svg {
+    transition: scale 0.12s ease-out;
+  }
+  :is(a, button, [role="menuitem"]):active > svg:not(.animate-spin) {
+    scale: 0.8;
+  }
+}
+@keyframes icon-hover {
+  30% {
+    transform: translateY(-2px) rotate(-8deg) scale(1.12);
+  }
+  60% {
+    transform: translateY(0) rotate(6deg) scale(1.06);
+  }
+}
